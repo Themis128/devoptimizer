@@ -1,61 +1,56 @@
-# Playwright Testing Helper Scripts
+# DevOptimizer Script Hub
 
-## Quick Reference
+A unified execution platform for Windows maintenance and developer tooling — consolidating hundreds of PowerShell scripts, batch tools, a Python CLI, and a native WPF app behind one menu, registry, and health system.
 
-### Before Each Test Run
+> **Personal, machine-specific project.** Paths (e.g. `D:\DevOptimizer`), scheduled tasks, and hardware tuning assume this workstation. Private repo.
+
+## What's inside
+
+| Layer | Components |
+|---|---|
+| **Core** | `DevOptimizer-Master.psm1` module loader (Path → Admin → Hub), config merge, favorites |
+| **Discovery** | `Discover-Scripts.ps1` → `Build-Registry.ps1` → `config/hub-registry.json` (schema-validated, **346 commands**, 12 categories) |
+| **Execution** | `Execute-Command.ps1`, `Show-Menu.ps1`, `Check-Health.ps1`, `Update-Hub.ps1` |
+| **Integration** | `devoptimizer.ps1` (12 parameter sets) ↔ Python CLI (`py/devoptimizer_cli`, Typer/Rich) |
+| **App** | WPF Windows 11 app (`app/`) with launcher exe, settings page, toasts, jump list, per-user installer |
+
+## Quick start
+
 ```powershell
-.\quick-cleanup.ps1
-```
-Kills orphaned browser processes and shows available RAM.
+# Interactive menu (desktop launcher: DevOptimizer.bat)
+powershell.exe -ExecutionPolicy Bypass -File "D:\DevOptimizer\devoptimizer.ps1" -Menu
 
-### Switch to Test Profile
-```powershell
-.\switch-profile.ps1 -Profile test
-```
-Launches VS Code Insiders with minimal extensions for testing.
-
-### Switch to Heavy Profile
-```powershell
-.\switch-profile.ps1 -Profile heavy
-```
-Returns to full development environment.
-
-## Setup Instructions
-
-### 1. Copy Playwright Config
-Copy the optimized config to your project:
-```powershell
-Copy-Item D:\DevOptimizer\playwright.config.optimized.ts <your-project>\playwright.config.ts
+# Search / run by category / health check
+devoptimizer.ps1 -Search "cleanup"
+devoptimizer.ps1 -Category maintenance
+devoptimizer.ps1 -Health
 ```
 
-### 2. Copy Global Teardown
-Copy to your project root:
+Key areas: `scripts\` (general + issue-specific subfolders like `scripts\devin\`), `portable\`, `tools\`, `modules\`, `config\`, `app\`.
+
+## Verification
+
 ```powershell
-Copy-Item D:\DevOptimizer\global-teardown.ts <your-project>\global-teardown.ts
+# App + registry test suites (requires pwsh — Pester 6; sets DEVOPT_ROOT itself)
+pwsh -File scripts\Test-App.ps1          # 37/37 passing
+
+# Full script syntax sweep
+powershell -File validate-all-scripts.ps1   # 612/612 valid
+
+# Registry health: every command path resolves
+pwsh -File Discover-Scripts.ps1 -PassThru
 ```
 
-### 3. Create Test Profile in VS Code
-1. Open VS Code Insiders
-2. Press Ctrl+Shift+P
-3. Type "Profiles: Create Profile"
-4. Name it "Playwright-Test"
-5. Disable all extensions except:
-   - Playwright Test for VS Code
-   - (optional) Error Lens
-   - (optional) ESLint
+## Documentation
 
-## Recommended Testing Workflow
+- [`DEVOPTIMIZER-HUB-DOCS.md`](DEVOPTIMIZER-HUB-DOCS.md) — complete hub documentation
+- [`docs/SCRIPT-HUB-ARCHITECTURE.md`](docs/SCRIPT-HUB-ARCHITECTURE.md) — architecture deep-dive
+- [`INDEX.md`](INDEX.md) — VS Code optimization docs index
+- [`PLAYWRIGHT-TESTING-README.md`](PLAYWRIGHT-TESTING-README.md) — Playwright testing helper scripts
+- Plan log: [`docs/glm-hammer/plans/`](docs/glm-hammer/plans/)
 
-1. Run cleanup: `.\quick-cleanup.ps1`
-2. Switch to test profile: `.\switch-profile.ps1 -Profile test`
-3. Open your project in VS Code Insiders
-4. Run Playwright tests
-5. After testing, switch back: `.\switch-profile.ps1 -Profile heavy`
+## Notes
 
-## Tips
-
-- Always run quick-cleanup.ps1 before testing
-- Use test profile to reduce VS Code memory from 10GB to ~2-3GB
-- Monitor RAM in Task Manager during tests
-- If tests still freeze, reduce WSL memory further to 10GB
-
+- Admin-required scripts carry `#Requires -RunAsAdministrator`; the app auto-elevates from registry metadata.
+- Mimosa security policy (`.mimosa/security-policy.json`) documents the single-user trust model and accepted-by-design scanner findings.
+- Logs, caches, archives, and tooling state are gitignored — see [.gitignore](.gitignore).
