@@ -1,0 +1,19 @@
+# Intel XTU Configuration for i9-12900H
+# Generated: 2025-11-16 09:39:50
+
+# Power Settings
+TurboBoostPowerMax=5
+TurboBoostShortPowerMax=5
+
+# Voltage Settings
+CoreVoltageOffset=10
+
+# Frequency Settings
+TurboBoostMax=100
+
+# Instructions:
+# 1. Launch Intel XTU
+# 2. Navigate to Advanced Tuning
+# 3. Apply these values manually if registry settings don't take effect
+# 4. Run Stress Test for 15-30 minutes
+# 5. Monitor temperatures (Core < 90°C, Package < 95°C)

@@ -1,0 +1,35 @@
+{
+  "cline.apiProvider": "openai",
+  "cline.openAiBaseUrl": "https://integrate.api.nvidia.com/v1",
+  "cline.openAiModelId": "nvidia/nemotron-3-ultra-550b-a55b",
+  "cline.openAiApiKey": "YOUR_NVIDIA_NIM_API_KEY_HERE",
+  
+  "cline.usePlanActSeparateModels": true,
+  "cline.planModeModelId": "nvidia/nemotron-3-ultra-550b-a55b",
+  "cline.actModeModelId": "nvidia/nemotron-3-nano-30b-a3b-reasoning",
+  
+  "cline.reasoningEffort": "medium",
+  "cline.promptCachingEnabled": true,
+  
+  "cline.customHeaders": [],
+  "cline.useAzureOpenAI": false,
+  "cline.azureApiVersion": "",
+  "cline.useAzureIdentityAuth": false,
+  
+  "cline.advancedSettings": {
+    "imagesEnabled": true,
+    "browserEnabled": true,
+    "promptCachingEnabled": true
+  },
+  
+  "cline.contextWindow": 128000,
+  "cline.maxTokens": 8192,
+  
+  "cline.autoApproveEnabled": false,
+  "cline.diffEnabled": true,
+  "cline.showRooCodeIgnoreFiles": true,
+  
+  "cline.experiments": {
+    "usePlanActSeparateModels": true
+  }
+}

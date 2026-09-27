@@ -1,0 +1,37 @@
+{
+  "//": "Cline configured for local NVIDIA PAIR (Personal AI Router). The Ollama-compatible proxy on port 11434 serves OpenAI-shaped responses for ALL cluster chat models (the 1234 proxy only routes to LM Studio). Restart VS Code after applying.",
+  "cline.apiProvider": "openai",
+  "cline.openAiBaseUrl": "http://127.0.0.1:11434/v1",
+  "cline.openAiModelId": "qwen2.5-coder:7b",
+  "cline.openAiApiKey": "local-pair",
+
+  "cline.usePlanActSeparateModels": true,
+  "cline.planModeModelId": "qwen3:4b",
+  "cline.actModeModelId": "qwen2.5-coder:7b",
+
+  "cline.reasoningEffort": "medium",
+  "cline.promptCachingEnabled": true,
+
+  "cline.customHeaders": [],
+  "cline.useAzureOpenAI": false,
+  "cline.azureApiVersion": "",
+  "cline.useAzureIdentityAuth": false,
+
+  "cline.advancedSettings": {
+    "imagesEnabled": true,
+    "browserEnabled": true,
+    "promptCachingEnabled": true
+  },
+
+  "//context": "Local 8GB VRAM RTX 3070 Laptop cannot serve 128k context; 32k is a realistic served window with qwen2.5-coder:7b Q4.",
+  "cline.contextWindow": 32768,
+  "cline.maxTokens": 8192,
+
+  "cline.autoApproveEnabled": false,
+  "cline.diffEnabled": true,
+  "cline.showRooCodeIgnoreFiles": true,
+
+  "cline.experiments": {
+    "usePlanActSeparateModels": true
+  }
+}

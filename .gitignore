@@ -1,0 +1,53 @@
+# --- transient output / logs ---
+logs/
+*.log
+script-validation-report-*.txt
+TEST-RESULTS-*.txt
+cleanup-log.txt
+high-priority-invalid.txt
+invalid-scripts-*.txt
+invalid-scripts-detailed.txt
+
+# --- caches & dependency trees ---
+node_modules/
+__pycache__/
+*.pyc
+.nuxt/
+.next/
+cache/
+
+# --- redistributable archives (extracted dirs are kept) ---
+*.zip
+*.7z
+
+# --- third-party binaries (sysinternals etc.) ---
+bin/sysinternals/
+
+# --- machine-local state, evidence, sweep outputs ---
+evidence/
+traces/
+metrics/
+performance-reports/
+exports/
+schedule-history.json
+
+# --- backups & archived history ---
+backups/
+archive/
+*.corrupted.bak
+*.bak
+
+# --- tooling/session state (ZCode, Mimosa, glm-hammer) ---
+.mimosa/
+.zcode/
+.glm-hammer/
+
+# --- Windows reserved-name junk (phantom 'nul' entries choke git) ---
+nul
+
+# --- editor / OS noise ---
+Desktop.ini
+Thumbs.db
+$RECYCLE.BIN/
+*.backup
+*.backup-*

@@ -1,0 +1,25 @@
+\Processor(_Total)\% Processor Time
+\Processor(_Total)\% Interrupt Time
+\Processor(_Total)\% Privileged Time
+\Processor(_Total)\% User Time
+\Memory\Available MBytes
+\Memory\Committed Bytes
+\Memory\Pool Nonpaged Bytes
+\Memory\Pool Paged Bytes
+\PhysicalDisk(_Total)\Disk Read Bytes/sec
+\PhysicalDisk(_Total)\Disk Write Bytes/sec
+\PhysicalDisk(_Total)\Avg. Disk Queue Length
+\PhysicalDisk(_Total)\% Disk Time
+\Network Interface(*)\Bytes Total/sec
+\Network Interface(*)\Bytes Sent/sec
+\Network Interface(*)\Bytes Received/sec
+\Network Interface(*)\Packets/sec
+\Process(*)\Working Set
+\Process(*)\% Processor Time
+\System\Processor Queue Length
+\System\Context Switches/sec
+\System\System Calls/sec
+\System\File Control Operations/sec
+\System\File Read Operations/sec
+\System\File Write Operations/sec
+\System\File Data Operations/sec

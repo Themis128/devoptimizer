@@ -1,0 +1,35 @@
+{
+  "scriptRegistry": {
+    "version": "4.0.0",
+    "lastUpdated": "2025-01-08T20:30:00Z",
+    "totalScripts": 0,
+    "autoDiscovery": true,
+    "scripts": {},
+    "categories": {
+      "system": [],
+      "development": [],
+      "optimization": [],
+      "maintenance": [],
+      "ai-tools": [],
+      "gaming": [],
+      "networking": [],
+      "security": [],
+      "utilities": []
+    },
+    "metadata": {
+      "discoveryRules": {
+        "fileExtensions": [".bat", ".cmd"],
+        "excludePatterns": ["*test*", "*backup*", "*temp*"],
+        "requiresHeader": false,
+        "autoCategorizationEnabled": true
+      },
+      "validation": {
+        "checkSyntax": true,
+        "checkPaths": true,
+        "checkAdminRequirements": true,
+        "checkDependencies": true
+      }
+    }
+  }
+}
+

@@ -1,0 +1,105 @@
+{
+  "devOptimizer": {
+    "version": "4.0.0",
+    "name": "DevOptimizer Advanced System",
+    "description": "Modular Windows Development Optimization System",
+    "lastUpdated": "2025-01-08",
+    "hubPath": "D:\\DevOptimizer",
+    "settings": {
+      "autoDiscovery": true,
+      "dynamicMenus": true,
+      "categoryGrouping": true,
+      "adminCheck": true,
+      "logging": true,
+      "backupBeforeChanges": true,
+      "maxLogFiles": 10,
+      "logLevel": "INFO"
+    },
+    "categories": {
+      "system": {
+        "name": "System Optimization",
+        "description": "Core Windows system optimizations",
+        "icon": "🔧",
+        "priority": 1,
+        "requiresAdmin": true
+      },
+      "development": {
+        "name": "Development Tools",
+        "description": "Developer environment setup and optimization",
+        "icon": "🛠️",
+        "priority": 2,
+        "requiresAdmin": false
+      },
+      "optimization": {
+        "name": "Performance Optimization",
+        "description": "Advanced performance tuning and optimization",
+        "icon": "⚡",
+        "priority": 3,
+        "requiresAdmin": true
+      },
+      "maintenance": {
+        "name": "System Maintenance",
+        "description": "Cleanup and maintenance utilities",
+        "icon": "🧹",
+        "priority": 4,
+        "requiresAdmin": false
+      },
+      "ai-tools": {
+        "name": "AI & ML Tools",
+        "description": "Artificial Intelligence and Machine Learning tools",
+        "icon": "🤖",
+        "priority": 5,
+        "requiresAdmin": false
+      },
+      "gaming": {
+        "name": "Gaming & Streaming",
+        "description": "Gaming performance and streaming optimization",
+        "icon": "🎮",
+        "priority": 6,
+        "requiresAdmin": true
+      },
+      "networking": {
+        "name": "Network Optimization",
+        "description": "Network performance and connectivity tools",
+        "icon": "🌐",
+        "priority": 7,
+        "requiresAdmin": true
+      },
+      "security": {
+        "name": "Security & Privacy",
+        "description": "Security hardening and privacy tools",
+        "icon": "🔒",
+        "priority": 8,
+        "requiresAdmin": true
+      },
+      "utilities": {
+        "name": "General Utilities",
+        "description": "Miscellaneous utility scripts",
+        "icon": "🔨",
+        "priority": 9,
+        "requiresAdmin": false
+      }
+    },
+    "menuConfiguration": {
+      "showIcons": true,
+      "showDescriptions": true,
+      "showAdminRequired": true,
+      "groupByCategory": true,
+      "maxItemsPerPage": 15,
+      "enableSearch": false,
+      "colorScheme": "cyan"
+    },
+    "paths": {
+      "scripts": "scripts",
+      "categories": "categories",
+      "logs": "logs",
+      "backups": "backups",
+      "templates": "templates",
+      "config": "config",
+      "registry": "registry",
+      "docs": "docs",
+      "generators": "generators",
+      "tools": "tools"
+    }
+  }
+}

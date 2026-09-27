@@ -1,0 +1,34 @@
+﻿{
+    "performance":  {
+                        "timeout_long":  600,
+                        "timeout_default":  300,
+                        "max_concurrent_tasks":  4,
+                        "parallel_execution":  true
+                    },
+    "security":  {
+                     "admin_required":  false,
+                     "path_sanitization":  true,
+                     "input_validation":  true
+                 },
+    "logging":  {
+                    "max_log_size":  "10MB",
+                    "log_levels":  [
+                                       "DEBUG",
+                                       "INFO",
+                                       "WARNING",
+                                       "ERROR",
+                                       "CRITICAL"
+                                   ],
+                    "max_log_files":  10,
+                    "file_output":  true,
+                    "console_output":  true,
+                    "enabled":  true
+                },
+    "system":  {
+                   "environment":  "production",
+                   "debug_mode":  false,
+                   "name":  "DevOptimizer",
+                   "version":  "2.0.0",
+                   "log_level":  "INFO"
+               }
+}

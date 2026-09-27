@@ -1,0 +1,29 @@
+# System Cleanup Exclusion List
+# ============================
+# Add paths or patterns (one per line) to exclude from cleanup
+# Lines starting with # are comments
+# Supports wildcards: * matches any characters
+#
+# Examples:
+# C:\Users\YourName\AppData\Local\ImportantApp
+# *MyProject*
+# *.important
+# Teams
+# Discord
+
+# Add your exclusions below:
+
+# ═══════════════════════════════════════════════════════════════
+# ALWAYS-LOCKED FILES (system/driver level, cannot be freed)
+# These cause errors but CANNOT be cleaned while system is running
+# ═══════════════════════════════════════════════════════════════
+
+# Delivery Optimization - Windows Update service (always running)
+# These state files are locked by dosvc.exe service
+dosvcState.dat
+dosvcState.dat.LOG1
+dosvcState.dat.LOG2
+
+# NVIDIA shader cache - locked while GPU display is active
+# The GPU driver keeps these open for rendering
+*.nvph

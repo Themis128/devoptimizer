@@ -1,0 +1,20 @@
+{
+    "autoDiscover": true,
+    "logLevel": "INFO",
+    "categoriesPath": "config\\categories.json",
+    "registryPath": "config\\hub-registry.json",
+    "updateChannel": "stable",
+    "pythonBridge": {
+        "enabled": true,
+        "path": "python",
+        "venvPath": ".venv",
+        "scriptTimeoutSeconds": 300
+    },
+    "logRetentionDays": 30,
+    "favoritesPath": "config\\favorites.json",
+    "maxMenuItems": 50,
+    "telemetryEnabled": false,
+    "healthCheckIntervalHours": 24,
+    "mergeStrategy": "deep",
+    "baseConfigPath": "config\\devoptimizer-config.json"
+}

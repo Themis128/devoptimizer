@@ -1,0 +1,15 @@
+{
+  "name": "nuxt4-templates-root",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest --config vitest.config.simple.ts",
+    "test:ui": "vitest --ui --config vitest.config.simple.ts",
+    "test:coverage": "vitest --coverage --config vitest.config.simple.ts"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^3.20.1",
+    "vitest": "^3.2.4"
+  }
+}

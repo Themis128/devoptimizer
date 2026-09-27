@@ -1,0 +1,9 @@
+D:\DevOptimizer\tools\JsonValidator\bin\Release\net8.0\win-x64\publish\JsonValidator.exe
+D:\DevOptimizer\tools\JsonValidator\bin\Release\net8.0\win-x64\publish\JsonValidator.dll
+D:\DevOptimizer\tools\JsonValidator\bin\Release\net8.0\win-x64\publish\JsonValidator.deps.json
+D:\DevOptimizer\tools\JsonValidator\bin\Release\net8.0\win-x64\publish\JsonValidator.runtimeconfig.json
+D:\DevOptimizer\tools\JsonValidator\bin\Release\net8.0\win-x64\publish\JsonValidator.pdb
+D:\DevOptimizer\tools\JsonValidator\bin\Release\net8.0\win-x64\publish\Namotion.Reflection.dll
+D:\DevOptimizer\tools\JsonValidator\bin\Release\net8.0\win-x64\publish\Newtonsoft.Json.dll
+D:\DevOptimizer\tools\JsonValidator\bin\Release\net8.0\win-x64\publish\NJsonSchema.dll
+D:\DevOptimizer\tools\JsonValidator\bin\Release\net8.0\win-x64\publish\NJsonSchema.Annotations.dll

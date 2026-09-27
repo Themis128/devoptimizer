@@ -1,0 +1,227 @@
+{
+  "system": {
+    "name": "DevOptimizer System",
+    "version": "2.0.0",
+    "logLevel": "INFO",
+    "backupLocation": "D:\\DevOptimizer\\backups",
+    "logsLocation": "D:\\DevOptimizer\\logs",
+    "maxLogFiles": 10,
+    "maxLogSize": "10MB",
+    "autoCleanup": true,
+    "cleanupDays": 30
+  },
+  "ollama": {
+    "serverUrl": "http://127.0.0.1:11434",
+    "port": 11434,
+    "autoPort": true,
+    "maxPorts": 10,
+    "host": "127.0.0.1",
+    "defaultModels": [
+      "qwen2.5-coder:7b",
+      "llama2:7b",
+      "codellama:7b"
+    ],
+    "preferredModels": [
+      "qwen2.5-coder:7b",
+      "llama2:7b"
+    ],
+    "concurrency": 2,
+    "maxLoaded": 2,
+    "timeoutSeconds": 300,
+    "keepAliveSec": 600,
+    "retryAttempts": 3,
+    "backoffDelay": 0.5,
+    "enableMultiModel": true,
+    "enableStreaming": true,
+    "maxPromptLength": 8000,
+    "maxResponseLength": 512,
+    "maxContextLength": 2048,
+    "laptopOptimization": true,
+    "autoStart": true,
+    "healthCheckInterval": 60,
+    "logLevel": "INFO",
+    "metricsEnabled": true,
+    "metricsLogPath": "logs/ollama",
+    "analytics": {
+      "enabled": true,
+      "realTimeMonitoring": true,
+      "updateInterval": 5,
+      "maxHistoryHours": 24,
+      "dataRetention": 7,
+      "performanceMetrics": {
+        "cpuUsage": true,
+        "memoryUsage": true,
+        "responseTime": true,
+        "throughput": true,
+        "errorRate": true,
+        "modelLoadTimes": true
+      },
+      "systemMetrics": {
+        "diskUsage": true,
+        "networkActivity": true,
+        "processCount": true,
+        "serviceHealth": true
+      },
+      "aiMetrics": {
+        "promptComplexity": true,
+        "responseQuality": true,
+        "modelAccuracy": true,
+        "usagePatterns": true
+      },
+      "alerts": {
+        "enabled": true,
+        "thresholds": {
+          "highCpuUsage": 80,
+          "highMemoryUsage": 85,
+          "slowResponse": 5000,
+          "highErrorRate": 10
+        },
+        "notifications": {
+          "console": true,
+          "log": true,
+          "sound": false
+        }
+      }
+    }
+  },
+  "onedrive": {
+    "accounts": [
+      {
+        "name": "Personal",
+        "path": "C:\\Users\\%USERNAME%\\OneDrive"
+      },
+      {
+        "name": "University",
+        "path": "C:\\Users\\%USERNAME%\\OneDrive - University of Bolton"
+      },
+      {
+        "name": "College",
+        "path": "C:\\Users\\%USERNAME%\\OneDrive - New York College"
+      }
+    ],
+    "syncInterval": 300,
+    "backupEnabled": true
+  },
+  "cursor": {
+    "installPath": "C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\cursor",
+    "settingsPath": "%USERPROFILE%\\.cursor",
+    "extensionsPath": "%USERPROFILE%\\.cursor\\extensions",
+    "autoUpdate": true,
+    "backupSettings": true
+  },
+  "development": {
+    "nodejs": {
+      "version": "18.x",
+      "npmRegistry": "https://registry.npmjs.org/",
+      "globalPackages": [
+        "@angular/cli",
+        "@vue/cli",
+        "typescript",
+        "nuxi"
+      ]
+    },
+    "python": {
+      "version": "3.11",
+      "pipIndex": "https://pypi.org/simple/",
+      "globalPackages": [
+        "jupyter",
+        "tensorflow",
+        "torch",
+        "scikit-learn"
+      ]
+    },
+    "git": {
+      "defaultBranch": "main",
+      "autoCommit": false,
+      "commitMessage": "DevOptimizer automated commit"
+    }
+  },
+  "security": {
+    "enableFirewall": true,
+    "enableDefender": true,
+    "scanInterval": 86400,
+    "encryptionEnabled": true,
+    "auditLogging": true
+  },
+  "network": {
+    "dnsServers": [
+      "8.8.8.8",
+      "1.1.1.1"
+    ],
+    "connectivityTest": true,
+    "testInterval": 300,
+    "autoTroubleshoot": true
+  },
+  "performance": {
+    "monitoringEnabled": true,
+    "metricsInterval": 60,
+    "alertThresholds": {
+      "cpuUsage": 80,
+      "memoryUsage": 85,
+      "diskUsage": 90
+    },
+    "autoOptimization": false
+  },
+  "backup": {
+    "enabled": true,
+    "schedule": "daily",
+    "retentionDays": 30,
+    "compression": true,
+    "encryption": true,
+    "cloudSync": false,
+    "locations": [
+      "D:\\DevOptimizer\\backups",
+      "C:\\Users\\%USERNAME%\\OneDrive\\DevOptimizer-Backups"
+    ]
+  },
+  "user": {
+    "preferences": {
+      "theme": "dark",
+      "language": "en",
+      "notifications": true,
+      "autoStart": false,
+      "minimizeToTray": true
+    },
+    "shortcuts": {
+      "quickLaunch": true,
+      "desktopShortcut": true,
+      "startMenu": true
+    }
+  },
+  "automation": {
+    "enabled": true,
+    "tasks": [
+      {
+        "name": "daily-backup",
+        "schedule": "0 2 * * *",
+        "enabled": true
+      },
+      {
+        "name": "system-cleanup",
+        "schedule": "0 3 * * 0",
+        "enabled": true
+      },
+      {
+        "name": "security-scan",
+        "schedule": "0 4 * * *",
+        "enabled": true
+      }
+    ]
+  },
+  "integrations": {
+    "webhooks": {
+      "enabled": false,
+      "endpoints": []
+    },
+    "apis": {
+      "enabled": false,
+      "port": 8080,
+      "authentication": true
+    },
+    "cloud": {
+      "enabled": false,
+      "provider": "onedrive",
+      "syncInterval": 3600
+    }
+  }
+}

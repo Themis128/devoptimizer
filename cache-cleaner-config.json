@@ -1,0 +1,133 @@
+{
+  "cacheCleanerConfig": {
+    "version": "1.0",
+    "lastUpdated": "2025-01-08",
+    "settings": {
+      "pycacheDepth": 6
+    },
+    "autoCleanSettings": {
+      "enabled": false,
+      "frequency": "weekly",
+      "lastRun": null,
+      "cleanupTypes": ["quick", "nodejs", "python"]
+    },
+    "cacheTypes": {
+      "nodejs": {
+        "enabled": true,
+        "includeNpm": true,
+        "includePnpm": true,
+        "includeYarn": true,
+        "maxAge": 30
+      },
+      "python": {
+        "enabled": true,
+        "includePip": true,
+        "includeConda": true,
+        "includePyCache": true,
+        "maxAge": 30
+      },
+      "ide": {
+        "enabled": true,
+        "includeVSCode": true,
+        "includeCursor": true,
+        "includeJetBrains": true,
+        "maxAge": 7
+      },
+      "git": {
+        "enabled": true,
+        "includeObjects": true,
+        "includeRefs": true,
+        "maxAge": 90
+      },
+      "docker": {
+        "enabled": true,
+        "includeImages": true,
+        "includeContainers": true,
+        "includeVolumes": true,
+        "maxAge": 14
+      },
+      "buildTools": {
+        "enabled": true,
+        "includeWebpack": true,
+        "includeVite": true,
+        "includeRollup": true,
+        "maxAge": 7
+      },
+      "frameworks": {
+        "enabled": true,
+        "includeNextJS": true,
+        "includeNuxt": true,
+        "includeReact": true,
+        "includeVue": true,
+        "maxAge": 7
+      },
+      "aiml": {
+        "enabled": true,
+        "includeTensorFlow": true,
+        "includePyTorch": true,
+        "includeJupyter": true,
+        "includeHuggingFace": true,
+        "maxAge": 30
+      }
+    },
+    "searchRoots": {
+      "python": [
+        "%USERPROFILE%\\Nuxt Projects",
+        "%USERPROFILE%\\Documents",
+        "%USERPROFILE%\\source",
+        "%USERPROFILE%\\Desktop",
+        "D:\\Nuxt Projects",
+        "D:\\DevOptimizer"
+      ]
+    },
+    "exclusions": {
+      "paths": [
+        "C:\\Important\\Projects",
+        "C:\\Users\\baltz\\Documents\\Important"
+      ],
+      "patterns": [
+        "*.config.js",
+        "*.config.json",
+        "package-lock.json",
+        "yarn.lock",
+        "pnpm-lock.yaml"
+      ]
+    },
+    "notifications": {
+      "enabled": true,
+      "showProgress": true,
+      "showSummary": true,
+      "soundEnabled": false
+    },
+    "logging": {
+      "enabled": true,
+      "level": "INFO",
+      "filePath": "C:\\Users\\baltz\\Desktop\\DevOptimizer\\logs\\cache-cleaner.log",
+      "maxFileSize": "10MB",
+      "maxFiles": 5
+    },
+    "quickCleanPreset": {
+      "name": "Development Quick Clean",
+      "description": "Fast cleanup of common development caches",
+      "cacheTypes": ["nodejs", "python", "ide"],
+      "estimatedTime": "30 seconds",
+      "estimatedSpace": "500MB-2GB"
+    },
+    "completeCleanPreset": {
+      "name": "Complete Development Clean",
+      "description": "Comprehensive cleanup of all development caches",
+      "cacheTypes": ["nodejs", "python", "ide", "git", "docker", "buildTools", "frameworks", "aiml"],
+      "estimatedTime": "5-10 minutes",
+      "estimatedSpace": "2GB-10GB"
+    },
+    "smartCleanPreset": {
+      "name": "Smart Cache Clean",
+      "description": "Intelligent cleanup based on cache size and age",
+      "cacheTypes": ["auto"],
+      "minSizeThreshold": "100MB",
+      "maxAgeThreshold": 30,
+      "estimatedTime": "2-5 minutes",
+      "estimatedSpace": "1GB-5GB"
+    }
+  }
+}

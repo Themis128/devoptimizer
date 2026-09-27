@@ -1,0 +1,51 @@
+# NVIDIA PAIR - DevOptimizer Reference Config
+# NOTE: PAIR does NOT read this file. PAIR's real settings live in its own
+# storage (desktop app / terminal UI manage them). This file is the
+# DevOptimizer intent/reference for the nvidia-pair-setup.ps1 script.
+#
+# Verified against (2026-09-05):
+#   https://docs.nvidia.com/local-ai/nvpair          (overview + terminal setup)
+#   https://github.com/NVIDIA/Personal-AI-Router     (README, releases)
+#
+# --- Real facts ---
+# Installer    : NVPAIR-Setup-<ver>-x64.exe  (electron-builder NSIS, /S = silent)
+# App location : C:\Program Files\PAIR\PAIR.exe
+# Data root    : %LOCALAPPDATA%\Nvidia Corporation\Personal AI Router\
+#                configs\ui-config.json, engines\ollama.json, cluster\identity.json
+# CLI          : nvpair  (terminal UI; per-user bin on PATH; `q` quits cleanly)
+#                ONE interface per machine: desktop app XOR terminal UI.
+# Proxies      : 127.0.0.1:11434 (Ollama-compatible, OpenAI-shaped /v1) <- Cline points here
+#                127.0.0.1:1234  (LM Studio bridge - separate engine, NOT cluster-wide)
+# Engine       : bundled Ollama on 127.0.0.1:11435 (engines\ollama.json runtime.port)
+# Backends     : Ollama and LM Studio ONLY (no NIM/vLLM)
+# Clustering   : six-digit PIN pairing on a trusted local network; mixed OS ok;
+#                each request routes to ONE node (no GPU pooling / no sharding)
+# Security     : PAIR accepts requests only from the local system; read
+#                SECURITY.md before pairing on untrusted networks.
+
+LatestVersion: v0.1.1
+ReleasesUrl: https://github.com/NVIDIA/Personal-AI-Router/releases
+ReleasesApi: https://api.github.com/repos/NVIDIA/Personal-AI-Router/releases/latest
+
+Hardware:
+  Gpu: NVIDIA GeForce RTX 3070 Laptop GPU
+  VramTotalGB: 8
+  VramInUseGB: 4   # Broadcast + desktop reserve ~4GB
+  MaxModelClass: 8B Q4 (fits) / 12B+ (does not fit)
+
+Models:                       # sized for 8GB VRAM with ~4GB reserved
+  - qwen2.5-coder:7b          # ~4.7GB - strong coding model (Cline act mode)
+  - qwen3:4b                  # ~2.6GB - lightweight (Cline plan mode / fast path)
+
+Cline:
+  BaseUrl: http://127.0.0.1:11434/v1
+  PlanModel: qwen3:4b
+  ActModel: qwen2.5-coder:7b
+  ApiKey: local-pair
+  ContextWindow: 32768        # realistic served window on 8GB VRAM
+
+ClusterIntent:                # optional future nodes, paired via PIN
+  - Windows-laptop (this machine, RTX 3070 Laptop 8GB)
+  # - WSL Ubuntu-26.04: same physical GPU - no VRAM gain; only pair if running
+  #   PAIR in the distro for Linux-side clients (service-binaries-linux-x64.zip)
+  # - Other LAN machines running PAIR appear under Nodes and pair via PIN

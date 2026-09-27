@@ -1,0 +1,30 @@
+{
+  // Vitest Explorer Configuration for nuxt4-templates
+  "vitest.explorer": {
+    "enabled": true
+  },
+  
+  // Vitest Extension Settings
+  "vitest.commandLine": "npm test",
+  "vitest.include": [
+    "**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx,vue}"
+  ],
+  "vitest.exclude": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/.nuxt/**",
+    "**/coverage/**",
+    "**/.output/**"
+  ],
+  
+  // File associations
+  "files.associations": {
+    "*.test.ts": "typescript",
+    "*.test.js": "javascript",
+    "*.spec.ts": "typescript",
+    "*.spec.js": "javascript",
+    "*.test.vue": "vue",
+    "*.spec.vue": "vue"
+  }
+}
+

@@ -1,0 +1,26 @@
+MANUAL FIX INSTRUCTIONS FOR POWERSHELL VALIDATESET ERROR
+========================================================
+
+PROBLEM:
+The PowerShell script "D:\DevOptimizer\dev-optimizer-fixed.ps1" has a ValidateSet parameter that doesn't include "Diagnostics" mode.
+
+ERROR MESSAGE:
+Cannot validate argument on parameter 'Mode'. The argument "Diagnostics" does not belong to the set "Menu,Basic,Full,Custom,CursorOnly,Clean,Smart,Docker,DeepClean,Network,CursorAI,VSCode,GPU"
+
+SOLUTION:
+1. Open the file: D:\DevOptimizer\dev-optimizer-fixed.ps1
+2. Find the line that contains: ValidateSet("Menu","Basic","Full","Custom","CursorOnly","Clean","Smart","Docker","DeepClean","Network","CursorAI","VSCode","GPU")
+3. Change it to: ValidateSet("Menu","Basic","Full","Custom","CursorOnly","Clean","Smart","Docker","DeepClean","Network","CursorAI","VSCode","GPU","Diagnostics")
+4. Save the file
+
+ALTERNATIVE SOLUTION:
+1. Open PowerShell as Administrator
+2. Run: Get-Content "D:\DevOptimizer\dev-optimizer-fixed.ps1" | ForEach-Object { $_ -replace 'ValidateSet\("Menu","Basic","Full","Custom","CursorOnly","Clean","Smart","Docker","DeepClean","Network","CursorAI","VSCode","GPU"\)', 'ValidateSet("Menu","Basic","Full","Custom","CursorOnly","Clean","Smart","Docker","DeepClean","Network","CursorAI","VSCode","GPU","Diagnostics")' } | Set-Content "D:\DevOptimizer\dev-optimizer-fixed.ps1"
+
+QUICK FIX COMMAND:
+powershell -Command "(Get-Content 'D:\DevOptimizer\dev-optimizer-fixed.ps1') -replace 'ValidateSet\(\"Menu\",\"Basic\",\"Full\",\"Custom\",\"CursorOnly\",\"Clean\",\"Smart\",\"Docker\",\"DeepClean\",\"Network\",\"CursorAI\",\"VSCode\",\"GPU\"\)', 'ValidateSet(\"Menu\",\"Basic\",\"Full\",\"Custom\",\"CursorOnly\",\"Clean\",\"Smart\",\"Docker\",\"DeepClean\",\"Network\",\"CursorAI\",\"VSCode\",\"GPU\",\"Diagnostics\")' | Set-Content 'D:\DevOptimizer\dev-optimizer-fixed.ps1'"
+
+TEST THE FIX:
+powershell -Command "& 'D:\DevOptimizer\dev-optimizer-fixed.ps1' -Mode 'Diagnostics'"
+
+If you still get errors, the script may need additional modifications to handle the Diagnostics mode properly.

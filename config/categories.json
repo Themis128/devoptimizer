@@ -1,0 +1,134 @@
+[
+    {
+        "name": "system-optimization",
+        "displayName": "System Optimization",
+        "description": "Tools and scripts for optimizing system performance, memory management, and resource utilization",
+        "icon": "⚡",
+        "order": 1,
+        "tags": ["performance", "memory", "cpu", "optimization", "tuning"],
+        "requiresAdmin": true,
+        "requiresWSL": false,
+        "requiresInternet": false
+    },
+    {
+        "name": "development",
+        "displayName": "Development Tools",
+        "description": "Scripts and utilities for software development, build automation, and code quality",
+        "icon": "💻",
+        "order": 2,
+        "tags": ["development", "build", "compile", "lint", "debug", "ide"],
+        "requiresAdmin": false,
+        "requiresWSL": false,
+        "requiresInternet": false
+    },
+    {
+        "name": "maintenance",
+        "displayName": "System Maintenance",
+        "description": "Routine maintenance tasks including cleanup, updates, and health checks",
+        "icon": "🔧",
+        "order": 3,
+        "tags": ["maintenance", "cleanup", "update", "health", "disk"],
+        "requiresAdmin": true,
+        "requiresWSL": false,
+        "requiresInternet": false
+    },
+    {
+        "name": "security",
+        "displayName": "Security & Hardening",
+        "description": "Security auditing, vulnerability scanning, and system hardening scripts",
+        "icon": "🛡️",
+        "order": 4,
+        "tags": ["security", "audit", "vulnerability", "hardening", "compliance", "firewall"],
+        "requiresAdmin": true,
+        "requiresWSL": false,
+        "requiresInternet": true
+    },
+    {
+        "name": "network",
+        "displayName": "Network Tools",
+        "description": "Network diagnostics, configuration, monitoring, and troubleshooting utilities",
+        "icon": "🌐",
+        "order": 5,
+        "tags": ["network", "diagnostics", "monitoring", "dns", "vpn", "proxy", "bandwidth"],
+        "requiresAdmin": false,
+        "requiresWSL": false,
+        "requiresInternet": true
+    },
+    {
+        "name": "storage",
+        "displayName": "Storage Management",
+        "description": "Disk management, backup, compression, and storage optimization tools",
+        "icon": "💾",
+        "order": 6,
+        "tags": ["storage", "disk", "backup", "compression", "cleanup", "defrag", "raid"],
+        "requiresAdmin": true,
+        "requiresWSL": false,
+        "requiresInternet": false
+    },
+    {
+        "name": "gaming",
+        "displayName": "Gaming Optimization",
+        "description": "Game performance tuning, launcher management, and gaming-specific optimizations",
+        "icon": "🎮",
+        "order": 7,
+        "tags": ["gaming", "performance", "fps", "launcher", "optimization", "directx", "gpu"],
+        "requiresAdmin": false,
+        "requiresWSL": false,
+        "requiresInternet": false
+    },
+    {
+        "name": "ai-ml",
+        "displayName": "AI & Machine Learning",
+        "description": "AI model management, training pipelines, inference optimization, and ML utilities",
+        "icon": "🤖",
+        "order": 8,
+        "tags": ["ai", "ml", "machine-learning", "model", "training", "inference", "llm", "gpu"],
+        "requiresAdmin": false,
+        "requiresWSL": true,
+        "requiresInternet": true
+    },
+    {
+        "name": "monitoring",
+        "displayName": "Monitoring & Observability",
+        "description": "System monitoring, metrics collection, alerting, and observability dashboards",
+        "icon": "📊",
+        "order": 9,
+        "tags": ["monitoring", "metrics", "alerting", "observability", "logging", "prometheus", "grafana"],
+        "requiresAdmin": false,
+        "requiresWSL": false,
+        "requiresInternet": false
+    },
+    {
+        "name": "backup-restore",
+        "displayName": "Backup & Restore",
+        "description": "Backup strategies, disaster recovery, snapshot management, and data protection",
+        "icon": "🔄",
+        "order": 10,
+        "tags": ["backup", "restore", "disaster-recovery", "snapshot", "replication", "archive"],
+        "requiresAdmin": true,
+        "requiresWSL": false,
+        "requiresInternet": false
+    },
+    {
+        "name": "utilities",
+        "displayName": "Utilities & Miscellaneous",
+        "description": "General-purpose utilities, helpers, and miscellaneous automation scripts",
+        "icon": "🛠️",
+        "order": 11,
+        "tags": ["utility", "helper", "automation", "script", "tool", "misc"],
+        "requiresAdmin": false,
+        "requiresWSL": false,
+        "requiresInternet": false
+    },
+    {
+        "name": "cleanup",
+        "displayName": "System & WSL Cleanup",
+        "description": "Safe cleanup scripts for Windows OS and WSL environments that remove temporary files, caches, and other non-essential data without affecting crucial user files or project code",
+        "icon": "🧹",
+        "order": 12,
+        "tags": ["cleanup", "clean", "temp", "cache", "wsl", "windows", "optimize", "diskspace"],
+        "requiresAdmin": false,
+        "requiresWSL": false,
+        "requiresInternet": false
+    }
+]

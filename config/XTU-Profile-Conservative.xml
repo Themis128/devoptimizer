@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Profile>
+    <Name>Conservative Overclock</Name>
+    <Description>Programmatically configured conservative overclock</Description>
+    <Settings>
+        <TurboBoostPowerMax>5</TurboBoostPowerMax>
+        <TurboBoostShortPowerMax>5</TurboBoostShortPowerMax>
+        <CoreVoltageOffset>10</CoreVoltageOffset>
+        <TurboBoostMax>100</TurboBoostMax>
+    </Settings>
+</Profile>

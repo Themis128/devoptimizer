@@ -1,0 +1,12 @@
+D:\DevOptimizer\app\launcher\obj\Release\net8.0-windows\win-x64\DevOptimizer.Launcher.GeneratedMSBuildEditorConfig.editorconfig
+D:\DevOptimizer\app\launcher\obj\Release\net8.0-windows\win-x64\DevOptimizer.Launcher.AssemblyInfoInputs.cache
+D:\DevOptimizer\app\launcher\obj\Release\net8.0-windows\win-x64\DevOptimizer.Launcher.AssemblyInfo.cs
+D:\DevOptimizer\app\launcher\obj\Release\net8.0-windows\win-x64\DevOptimizer.Launcher.csproj.CoreCompileInputs.cache
+D:\DevOptimizer\app\launcher\bin\Release\net8.0-windows\win-x64\DevOptimizer.exe
+D:\DevOptimizer\app\launcher\bin\Release\net8.0-windows\win-x64\DevOptimizer.deps.json
+D:\DevOptimizer\app\launcher\bin\Release\net8.0-windows\win-x64\DevOptimizer.runtimeconfig.json
+D:\DevOptimizer\app\launcher\bin\Release\net8.0-windows\win-x64\DevOptimizer.dll
+D:\DevOptimizer\app\launcher\obj\Release\net8.0-windows\win-x64\DevOptimizer.dll
+D:\DevOptimizer\app\launcher\obj\Release\net8.0-windows\win-x64\refint\DevOptimizer.dll
+D:\DevOptimizer\app\launcher\obj\Release\net8.0-windows\win-x64\DevOptimizer.Launcher.genruntimeconfig.cache
+D:\DevOptimizer\app\launcher\obj\Release\net8.0-windows\win-x64\ref\DevOptimizer.dll

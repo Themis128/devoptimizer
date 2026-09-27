@@ -1,0 +1,80 @@
+{
+  "description": "Essential development tools for DevOptimizer",
+  "packages": [
+    {
+      "name": "Visual Studio Code",
+      "id": "Microsoft.VisualStudioCode",
+      "category": "IDE"
+    },
+    {
+      "name": "Git",
+      "id": "Git.Git",
+      "category": "Version Control"
+    },
+    {
+      "name": "Python",
+      "id": "Python.Python.3.12",
+      "category": "Runtime"
+    },
+    {
+      "name": "Node.js LTS",
+      "id": "OpenJS.NodeJS.LTS",
+      "category": "Runtime"
+    },
+    {
+      "name": "PowerShell 7",
+      "id": "Microsoft.PowerShell",
+      "category": "Runtime"
+    },
+    {
+      "name": "Windows Terminal",
+      "id": "Microsoft.WindowsTerminal",
+      "category": "Terminal"
+    },
+    {
+      "name": "jq",
+      "id": "jqlang.jq",
+      "category": "Utilities"
+    },
+    {
+      "name": "yq",
+      "id": "mikefarah.yq",
+      "category": "Utilities"
+    },
+    {
+      "name": "curl",
+      "id": "curl.curl",
+      "category": "Utilities"
+    },
+    {
+      "name": "7-Zip",
+      "id": "7zip.7zip",
+      "category": "Archive"
+    },
+    {
+      "name": "Sysinternals Suite",
+      "id": "Microsoft.Sysinternals.ProcessExplorer",
+      "category": "System Tools"
+    },
+    {
+      "name": "Process Monitor",
+      "id": "Microsoft.Sysinternals.ProcessMonitor",
+      "category": "System Tools"
+    },
+    {
+      "name": "AutoRuns",
+      "id": "Microsoft.Sysinternals.AutoRuns",
+      "category": "System Tools"
+    },
+    {
+      "name": "SigCheck",
+      "id": "Microsoft.Sysinternals.SigCheck",
+      "category": "System Tools"
+    },
+    {
+      "name": "Handle",
+      "id": "Microsoft.Sysinternals.Handle",
+      "category": "System Tools"
+    }
+  ]
+}

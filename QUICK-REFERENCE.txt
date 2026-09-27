@@ -1,0 +1,61 @@
+﻿╔═══════════════════════════════════════════════════════════════════╗
+║         VS CODE INSIDERS MONITORING - QUICK REFERENCE             ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+📍 LOCATION: D:\DevOptimizer\
+
+🚨 EMERGENCY CLEANUP (VS Code stuck right now):
+   .\Cleanup-VSCodeInsiders.ps1
+
+🧪 TEST MODE (see what would happen - safe):
+   .\Start-VSCodeMonitor-TEST.ps1
+
+✅ PRODUCTION MODE (recommended for daily use):
+   .\Start-VSCodeMonitor-PROD.ps1
+
+⚡ AGGRESSIVE MODE (limited RAM systems):
+   .\Start-VSCodeMonitor-AGGRESSIVE.ps1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 THRESHOLDS (Standard Mode):
+   • Max Total Memory: 4 GB
+   • Max Per Process: 1 GB  
+   • Max Process Count: 15
+   • Check Every: 30 seconds
+
+🛡️ WHAT IT PROTECTS AGAINST:
+   ✓ Too many VS Code processes spawning
+   ✓ Individual processes consuming excessive memory
+   ✓ Total VS Code memory exceeding system capacity
+   ✓ System freezes due to VS Code resource exhaustion
+
+📝 LOGS: D:\DevOptimizer\logs\vscode-monitor-YYYYMMDD.log
+📖 DOCS: D:\DevOptimizer\README-VSCode-Monitor.md
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚙️ VS CODE SETTINGS OPTIMIZED:
+   ✓ Terminal scrollback reduced (10K → 3K lines)
+   ✓ Shell history reduced (1K → 500 commands)
+   ✓ MCP auto-start changed to manual
+   ✓ Persistent sessions disabled
+   ✓ Cygwin Bash profile added
+
+💡 CYGWIN TERMINAL: 
+   Available in VS Code Insiders terminal dropdown
+   Location: C:\cygwin64\bin\bash.exe
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 RECOMMENDED WORKFLOW:
+   1. Start VS Code Insiders
+   2. Open PowerShell as Admin
+   3. cd D:\DevOptimizer
+   4. .\Start-VSCodeMonitor-PROD.ps1
+   5. Minimize PowerShell window
+   6. Work normally - monitor protects you!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Created: 2026-02-07 | Athens, Greece | Themistoklis Baltzakis

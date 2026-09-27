@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>DevOptimizer</AssemblyName>
+    <RootNamespace>DevOptimizer.Launcher</RootNamespace>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>..\DevOptimizer.ico</ApplicationIcon>
+    <Version>2.0.0</Version>
+    <Product>DevOptimizer</Product>
+    <Company>DevOptimizer</Company>
+    <!-- Framework-dependent single file: tiny exe, uses the installed .NET 8 desktop runtime.
+         Switch SelfContained to true for a portable (but ~100 MB) build. -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+</Project>
