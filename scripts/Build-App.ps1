@@ -2,7 +2,8 @@
 <#
 .SYNOPSIS
     Builds the DevOptimizer Windows 11 application artifacts:
-    a multi-resolution icon and the single-file launcher EXE.
+    a multi-resolution icon, the single-file launcher EXE, and the
+    C# WPF shell (DevOptimizer.App) published framework-dependent with ReadyToRun.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts\Build-App.ps1
@@ -135,6 +136,17 @@ if (-not $SkipExe) {
     if (-not (Test-Path $exe)) { throw "Launcher exe missing after publish: $exe" }
     $mb = [Math]::Round((Get-Item $exe).Length / 1MB, 2)
     Write-Host ("[exe]   {0} ({1} MB)" -f $exe, $mb)
+
+    # C# WPF shell: framework-dependent publish with ReadyToRun, laid out next to the
+    # launcher (apphost exe + app dll + deps/runtimeconfig + package assemblies).
+    $appProject = Join-Path $root 'app\DevOptimizer.App\DevOptimizer.App.csproj'
+    if (-not (Test-Path $appProject)) { throw "App project not found: $appProject" }
+    dotnet publish $appProject -c Release -r win-x64 --self-contained false -p:PublishReadyToRun=true -o $binDir --nologo -v m
+    if ($LASTEXITCODE -ne 0) { throw "App publish failed with exit code $LASTEXITCODE" }
+    $appExe = Join-Path $binDir 'DevOptimizer.App.exe'
+    if (-not (Test-Path $appExe)) { throw "App exe missing after publish: $appExe" }
+    $appMb = [Math]::Round((Get-Item $appExe).Length / 1MB, 2)
+    Write-Host ("[app]   {0} ({1} MB)" -f $appExe, $appMb)
 }
 
 Write-Host 'Build-App: OK'

@@ -1,0 +1,157 @@
+<Window x:Class="DevOptimizer.App.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DevOptimizer"
+        Width="1280"
+        Height="820"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </Window.Resources>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Top bar: search text drives MainViewModel.SearchText live (Task 2 semantics). -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <TextBlock DockPanel.Dock="Right"
+                       Text="{Binding StatusText}"
+                       VerticalAlignment="Center"
+                       Margin="12,0,0,0"
+                       Foreground="#8A8A98" />
+            <TextBox Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalContentAlignment="Center"
+                     FontSize="14"
+                     Padding="6,4" />
+        </DockPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="230" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="400" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Sidebar: All + categories with live counts. -->
+            <ListBox Grid.Column="0"
+                     ItemsSource="{Binding Categories}"
+                     SelectedItem="{Binding SelectedCategory}"
+                     DisplayMemberPath="Display"
+                     Margin="0,0,8,0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+
+            <!-- Command list: virtualized (349 commands). -->
+            <ListBox Grid.Column="1"
+                     ItemsSource="{Binding FilteredCommands}"
+                     SelectedItem="{Binding SelectedCommand}"
+                     Margin="0,0,8,0"
+                     ScrollViewer.CanContentScroll="True"
+                     VirtualizingStackPanel.IsVirtualizing="True"
+                     VirtualizingPanel.VirtualizationMode="Recycling">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding Description}" Foreground="#8A8A98" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <Border Grid.Column="1"
+                                    Background="#4A3B2A"
+                                    CornerRadius="3"
+                                    Padding="4,1"
+                                    Margin="6,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding RequiresAdmin, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="ADMIN" FontSize="10" Foreground="#D7BA7D" />
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- Detail panel + run controls + output pane. -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="0,0,0,6">
+                    <TextBlock Text="{Binding SelectedCommand.Name}"
+                               FontSize="17"
+                               FontWeight="SemiBold"
+                               Foreground="#4EC9B0"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding SelectedCommand.CategoryAndEntry}" Foreground="#569CD6" />
+                    <Border Background="#4A3B2A"
+                            CornerRadius="3"
+                            Padding="4,1"
+                            HorizontalAlignment="Left"
+                            Margin="0,4,0,0"
+                            Visibility="{Binding ShowElevatedButton, Converter={StaticResource BoolToVisibility}, FallbackValue=Collapsed}">
+                        <TextBlock Text="Requires administrator privileges" FontSize="11" Foreground="#D7BA7D" />
+                    </Border>
+                    <TextBlock Text="{Binding SelectedCommand.Description}" TextWrapping="Wrap" Margin="0,6,0,0" />
+                    <TextBlock Text="SCRIPT PATH" Foreground="#8A8A98" FontSize="10.5" Margin="0,10,0,0" />
+                    <TextBlock Text="{Binding SelectedCommand.Path}" Foreground="#9CDCFE" TextWrapping="Wrap" />
+                    <TextBlock Text="TAGS" Foreground="#8A8A98" FontSize="10.5" Margin="0,8,0,0" />
+                    <TextBlock Text="{Binding SelectedCommand.TagsDisplay}" Foreground="#9CDCFE" TextWrapping="Wrap" />
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,6,0,6">
+                    <StackPanel>
+                        <TextBlock Text="PARAMETERS"
+                                   Foreground="#8A8A98"
+                                   FontSize="10.5"
+                                   Margin="0,0,0,4"
+                                   Visibility="{Binding HasParameters, Converter={StaticResource BoolToVisibility}, FallbackValue=Collapsed}" />
+                        <ItemsControl ItemsSource="{Binding ParameterInputs}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="0,2">
+                                        <TextBlock Text="{Binding Signature}" ToolTip="{Binding Description}" />
+                                        <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="2" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <UniformGrid Grid.Row="2" Columns="3" Margin="0,4,0,4">
+                    <Button Command="{Binding RunCommand}" Content="Run" Padding="10,4" Margin="0,0,4,0" />
+                    <Button Command="{Binding RunElevatedCommand}"
+                            Content="Elevated"
+                            Padding="10,4"
+                            Margin="0,0,4,0"
+                            Visibility="{Binding ShowElevatedButton, Converter={StaticResource BoolToVisibility}, FallbackValue=Collapsed}" />
+                    <CheckBox Content="Dry run"
+                              IsChecked="{Binding DryRun, Mode=TwoWay}"
+                              VerticalContentAlignment="Center"
+                              Margin="8,0,0,0" />
+                </UniformGrid>
+
+                <TextBox Grid.Row="3"
+                         Text="{Binding OutputText, Mode=OneWay}"
+                         IsReadOnly="True"
+                         FontFamily="Consolas"
+                         Height="180"
+                         VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Auto"
+                         TextWrapping="NoWrap"
+                         Background="#1E1E1E"
+                         Foreground="#D4D4D4" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

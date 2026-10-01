@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DevOptimizer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("2.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.0.0+e3c84e5722bcbd9066a93e40c0625de9f616eaa7")]
 [assembly: System.Reflection.AssemblyProductAttribute("DevOptimizer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DevOptimizer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("2.0.0.0")]

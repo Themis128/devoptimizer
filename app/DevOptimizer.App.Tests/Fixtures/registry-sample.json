@@ -1,0 +1,156 @@
+{
+  "commands": [
+    {
+      "name": "cleanup-temp-files",
+      "path": "scripts/cleanup-temp-files.ps1",
+      "category": "cleanup",
+      "description": "Removes temporary files from the system",
+      "requiresAdmin": false,
+      "entryPoint": "powershell",
+      "parameters": [
+        {
+          "name": "TargetDir",
+          "type": "string",
+          "required": true,
+          "description": "Directory to clean"
+        }
+      ],
+      "tags": [ "temp", "disk" ],
+      "metadata": {
+        "created": "2026-01-01T00:00:00.0000000+00:00",
+        "modified": "2026-01-01T00:00:00.0000000+00:00",
+        "sourceUrl": "https://github.com/devoptimizer/devoptimizer",
+        "version": "1.0.0",
+        "author": "DevOptimizer"
+      }
+    },
+    {
+      "name": "disk-status",
+      "path": "scripts/disk-status.ps1",
+      "category": "utilities",
+      "description": "Reports a cleanup status summary for the selected disk",
+      "requiresAdmin": false,
+      "entryPoint": "powershell",
+      "parameters": [],
+      "tags": [ "disk" ],
+      "metadata": {
+        "created": "2026-01-01T00:00:00.0000000+00:00",
+        "modified": "2026-01-01T00:00:00.0000000+00:00",
+        "sourceUrl": "https://github.com/devoptimizer/devoptimizer",
+        "version": "1.0.0",
+        "author": "DevOptimizer"
+      }
+    },
+    {
+      "name": "admin-cleanup-elevated",
+      "path": "scripts/admin-cleanup-elevated.ps1",
+      "category": "cleanup",
+      "description": "Elevated junk removal",
+      "requiresAdmin": true,
+      "entryPoint": "powershell",
+      "parameters": [],
+      "tags": [],
+      "metadata": {
+        "created": "2026-01-01T00:00:00.0000000+00:00",
+        "modified": "2026-01-01T00:00:00.0000000+00:00",
+        "sourceUrl": "https://github.com/devoptimizer/devoptimizer",
+        "version": "1.0.0",
+        "author": "DevOptimizer"
+      }
+    },
+    {
+      "name": "junk-sweeper",
+      "path": "scripts/junk-sweeper.ps1",
+      "category": "cleanup",
+      "description": "Removes junk folders",
+      "requiresAdmin": false,
+      "entryPoint": "powershell",
+      "parameters": [],
+      "tags": [ "junk" ],
+      "metadata": {
+        "created": "2026-01-01T00:00:00.0000000+00:00",
+        "modified": "2026-01-01T00:00:00.0000000+00:00",
+        "sourceUrl": "https://github.com/devoptimizer/devoptimizer",
+        "version": "1.0.0",
+        "author": "DevOptimizer"
+      }
+    },
+    {
+      "name": "cleanup-tools-launcher",
+      "path": "bat/cleanup-tools-launcher.bat",
+      "category": "utilities",
+      "description": "Launches helper utilities",
+      "requiresAdmin": false,
+      "entryPoint": "cmd",
+      "parameters": [],
+      "tags": [ "launcher" ],
+      "metadata": {
+        "created": "2026-01-01T00:00:00.0000000+00:00",
+        "modified": "2026-01-01T00:00:00.0000000+00:00",
+        "sourceUrl": "https://github.com/devoptimizer/devoptimizer",
+        "version": "1.0.0",
+        "author": "DevOptimizer"
+      }
+    },
+    {
+      "name": "safe-purge",
+      "path": "scripts/safe-purge.ps1",
+      "category": "maintenance",
+      "description": "Safe removal flow for user caches",
+      "requiresAdmin": false,
+      "entryPoint": "powershell",
+      "parameters": [],
+      "tags": [ "cleanup", "safe" ],
+      "metadata": {
+        "created": "2026-01-01T00:00:00.0000000+00:00",
+        "modified": "2026-01-01T00:00:00.0000000+00:00",
+        "sourceUrl": "https://github.com/devoptimizer/devoptimizer",
+        "version": "1.0.0",
+        "author": "DevOptimizer"
+      }
+    },
+    {
+      "name": "net-reset",
+      "path": "bat/net-reset.bat",
+      "category": "network",
+      "description": "Resets network adapters",
+      "requiresAdmin": false,
+      "entryPoint": "cmd",
+      "parameters": [],
+      "tags": [ "network" ],
+      "metadata": {
+        "created": "2026-01-01T00:00:00.0000000+00:00",
+        "modified": "2026-01-01T00:00:00.0000000+00:00",
+        "sourceUrl": "https://github.com/devoptimizer/devoptimizer",
+        "version": "1.0.0",
+        "author": "DevOptimizer"
+      }
+    },
+    {
+      "name": "monitor-cpu",
+      "path": "scripts/monitor-cpu.ps1",
+      "category": "monitoring",
+      "description": "Tracks CPU load",
+      "requiresAdmin": false,
+      "entryPoint": "powershell",
+      "parameters": [],
+      "tags": [],
+      "metadata": {
+        "created": "2026-01-01T00:00:00.0000000+00:00",
+        "modified": "2026-01-01T00:00:00.0000000+00:00",
+        "sourceUrl": "https://github.com/devoptimizer/devoptimizer",
+        "version": "1.0.0",
+        "author": "DevOptimizer"
+      }
+    }
+  ],
+  "generated": "2026-01-01T00:00:00.0000000+00:00",
+  "categories": [
+    { "name": "cleanup", "commandCount": 3, "lastUpdated": "2026-01-01T00:00:00.0000000+00:00" },
+    { "name": "utilities", "commandCount": 2, "lastUpdated": "2026-01-01T00:00:00.0000000+00:00" },
+    { "name": "maintenance", "commandCount": 1, "lastUpdated": "2026-01-01T00:00:00.0000000+00:00" },
+    { "name": "network", "commandCount": 1, "lastUpdated": "2026-01-01T00:00:00.0000000+00:00" },
+    { "name": "monitoring", "commandCount": 1, "lastUpdated": "2026-01-01T00:00:00.0000000+00:00" }
+  ],
+  "version": "1.0.0"
+}
