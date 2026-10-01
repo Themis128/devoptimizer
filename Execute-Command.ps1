@@ -136,21 +136,37 @@ if ($cmd.requiresAdmin -and -not $NoAdminCheck) {
     $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     if (-not $isAdmin) {
         Write-Log "Command requires admin privileges, re-launching elevated..." "WARN"
-        
-        # Re-launch elevated
-        $psPath = (Get-Process -Id $PID).Path
-        $args = "-Command `"& '$((Get-Location).Path)\Execute-Command.ps1' -Command '$Command' -Parameters $($Parameters | ConvertTo-Json -Compress) -RegistryPath '$RegistryPath' -LogPath '$LogPath' -Timeout $Timeout -NoAdminCheck`""
-        Start-Process powershell -ArgumentList $args -Verb RunAs -Wait
-        
-        # Check if elevated process created a log
+
+        # Re-launch elevated. The child command ships base64-encoded (-EncodedCommand):
+        # a plain -Command re-quote broke on empty hashtables ({} binds as a ScriptBlock
+        # and the child crashed invisibly at parameter binding while this parent still
+        # reported success). The child deserializes the JSON itself — a string cannot
+        # bind [hashtable] directly.
+        $json = if ($Parameters.Count) { $Parameters | ConvertTo-Json -Compress } else { '{}' }
+        $json = $json.Replace("'", "''")
+        $child = "`$p = @{}; ('$json' | ConvertFrom-Json).PSObject.Properties | ForEach-Object { `$p[`$_.Name] = `$_.Value }; " +
+                 "& '$PSCommandPath' -Command '$Command' -Parameters `$p -RegistryPath '$RegistryPath' -LogPath '$LogPath' -Timeout $Timeout -NoAdminCheck"
+        $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($child))
+        $elevated = Start-Process powershell -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded) -Verb RunAs -Wait -PassThru
+
+        # The elevated child re-runs this script (its log lands in LogPath); propagate
+        # its real exit code instead of unconditional success.
         $result = @{
-            success = $true
+            success = ($elevated.ExitCode -eq 0)
             elevated = $true
-            message = "Command launched with admin privileges"
+            exitCode = $elevated.ExitCode
+            message = "Command relaunched with admin privileges"
             executionId = $executionId
             logFile = $logFile
         }
-        if ($PassThru) { return $result } else { exit 0 }
+        if ($elevated.ExitCode -ne 0) {
+            Write-Log "Elevated child exited with code $($elevated.ExitCode)" "ERROR"
+            $result.error = "Elevated child exited with code $($elevated.ExitCode)"
+        }
+        if ($PassThru) { return $result } else {
+            if ($elevated.ExitCode -ne 0) { exit 1 }
+            exit 0
+        }
     }
 }
 
@@ -284,6 +300,16 @@ try {
     Add-Content -Path $logFile -Value $stdout -Encoding UTF8
     Add-Content -Path $logFile -Value "=== STDERR ===" -Encoding UTF8
     Add-Content -Path $logFile -Value $stderr -Encoding UTF8
+
+    # Forward to the output stream: app-run runners capture the invoked script's
+    # streams (*>&1), so without this the per-run log shows only the structured
+    # INFO lines while the script's own output stays confined to $logFile.
+    # -PassThru callers must get exactly the result object (its .output field
+    # already carries this text) — extra stream objects would wrap it in an array.
+    if (-not $PassThru) {
+        if ($stdout) { $stdout }
+        if ($stderr) { $stderr }
+    }
     
     $result = @{
         success = ($exitCode -eq 0)
