@@ -62,9 +62,12 @@ internal static class Program
             return 2;
         }
 
+        // Absolute system interpreter — never resolved via PATH (CWE-427).
+        string powershell = Path.Combine(
+            Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
         var psi = new ProcessStartInfo
         {
-            FileName = "powershell.exe",
+            FileName = powershell,
             UseShellExecute = false,
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden,

@@ -74,6 +74,18 @@ $lastCode = $LASTEXITCODE
 "exitOk=$ok code=$lastCode" | Out-File -LiteralPath $doneFile -Encoding ASCII
 """;
 
+    // Interpreters resolved to their absolute system location — never via PATH, so a
+    // planted powershell.exe/cmd.exe on the search path cannot be substituted (CWE-427).
+    internal static string PowerShellPath { get; } = Path.Combine(
+        Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
+
+    internal static string CmdPath { get; } = Path.Combine(Environment.SystemDirectory, "cmd.exe");
+
+    // The /k and -File command lines are built as raw argument strings (ShellExecute/runas
+    // requires it), so the launch path must carry no shell metacharacters that could split
+    // the command line (CWE-78) — on top of the quote/newline guard below.
+    private static readonly char[] ShellMetacharacters = { '&', '|', '<', '>', '^', '%', '!' };
+
     private static readonly UTF8Encoding Utf8WithBom = new(encoderShouldEmitUTF8Identifier: true);
 
     private static readonly JsonSerializerOptions IndentedJson = new() { WriteIndented = true };
@@ -178,6 +190,11 @@ $lastCode = $LASTEXITCODE
             throw new ArgumentException("Launch path contains command-line quoting characters.", nameof(path));
         }
 
+        if (path.IndexOfAny(ShellMetacharacters) >= 0)
+        {
+            throw new ArgumentException("Launch path contains shell metacharacters.", nameof(path));
+        }
+
         var psi = new ProcessStartInfo
         {
             UseShellExecute = true, // Start-Process defaults to ShellExecute; required for Verb/WindowStyle
@@ -186,25 +203,25 @@ $lastCode = $LASTEXITCODE
         switch (mode)
         {
             case RunnerLaunchMode.PowerShellHidden:
-                psi.FileName = "powershell.exe";
+                psi.FileName = PowerShellPath;
                 psi.Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{path}\"";
                 psi.WindowStyle = ProcessWindowStyle.Hidden;
                 break;
 
             case RunnerLaunchMode.PowerShellElevated:
-                psi.FileName = "powershell.exe";
+                psi.FileName = PowerShellPath;
                 psi.Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{path}\"";
                 psi.Verb = "runas"; // DevOptimizer-App.ps1:401
                 break;
 
             case RunnerLaunchMode.CmdConsoleVisible:
-                psi.FileName = "cmd.exe";
+                psi.FileName = CmdPath;
                 psi.Arguments = $"/k \"{path}\"";
                 psi.WorkingDirectory = Path.GetDirectoryName(path) ?? string.Empty; // DevOptimizer-App.ps1:331
                 break;
 
             case RunnerLaunchMode.CmdConsoleElevated:
-                psi.FileName = "cmd.exe";
+                psi.FileName = CmdPath;
                 psi.Arguments = $"/k \"{path}\"";
                 psi.Verb = "runas"; // DevOptimizer-App.ps1:330
                 break;
@@ -241,6 +258,7 @@ $lastCode = $LASTEXITCODE
     public RunArtifacts? Start(CommandDefinition command, IReadOnlyDictionary<string, object?>? parameters, bool elevated, bool dryRun)
     {
         var targetPath = GetTargetPath(_repoRoot, command.Path);
+        RequireInsideRepoRoot(targetPath);
         var launchMode = DecideLaunchMode(command.EntryPoint, elevated, dryRun, ReadBatchTextSafely(targetPath));
 
         if (launchMode is RunnerLaunchMode.CmdConsoleVisible or RunnerLaunchMode.CmdConsoleElevated)
@@ -272,6 +290,19 @@ $lastCode = $LASTEXITCODE
         catch (IOException)
         {
             return null;
+        }
+    }
+
+    // Containment (CWE-22): a registry command may only launch inside the repo root, so a
+    // tampered registry entry cannot point the runner at an arbitrary executable.
+    private void RequireInsideRepoRoot(string targetPath)
+    {
+        var fullTarget = Path.GetFullPath(targetPath);
+        var fullRoot = Path.GetFullPath(_repoRoot).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                       + Path.DirectorySeparatorChar;
+        if (!fullTarget.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException($"Command target escapes the hub root: {targetPath}", nameof(targetPath));
         }
     }
 }

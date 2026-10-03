@@ -181,7 +181,9 @@ public class CommandRunnerServiceTests
     {
         var psi = CommandRunnerService.BuildStartInfo(RunnerLaunchMode.PowerShellHidden, @"D:\repo\logs\app-runs\run-x.runner.ps1");
 
-        Assert.Equal("powershell.exe", psi.FileName);
+        // Interpreters are absolute system paths — never resolved via PATH.
+        Assert.Equal(CommandRunnerService.PowerShellPath, psi.FileName);
+        Assert.True(Path.IsPathRooted(psi.FileName));
         Assert.Equal("-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"D:\\repo\\logs\\app-runs\\run-x.runner.ps1\"", psi.Arguments);
         Assert.True(psi.UseShellExecute);
         Assert.Equal(string.Empty, psi.Verb);
@@ -194,7 +196,7 @@ public class CommandRunnerServiceTests
         // DevOptimizer-App.ps1:400-402 — elevated runner launches via ShellExecute runas.
         var psi = CommandRunnerService.BuildStartInfo(RunnerLaunchMode.PowerShellElevated, @"D:\repo\logs\app-runs\run-x.runner.ps1");
 
-        Assert.Equal("powershell.exe", psi.FileName);
+        Assert.Equal(CommandRunnerService.PowerShellPath, psi.FileName);
         Assert.Equal("-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"D:\\repo\\logs\\app-runs\\run-x.runner.ps1\"", psi.Arguments);
         Assert.Equal("runas", psi.Verb);
         Assert.True(psi.UseShellExecute);
@@ -207,7 +209,8 @@ public class CommandRunnerServiceTests
         // DevOptimizer-App.ps1:331 — visible cmd.exe /k, working directory = bat's parent.
         var psi = CommandRunnerService.BuildStartInfo(RunnerLaunchMode.CmdConsoleVisible, @"D:\repo\portable\tool.bat");
 
-        Assert.Equal("cmd.exe", psi.FileName);
+        Assert.Equal(CommandRunnerService.CmdPath, psi.FileName);
+        Assert.True(Path.IsPathRooted(psi.FileName));
         Assert.Equal("/k \"D:\\repo\\portable\\tool.bat\"", psi.Arguments);
         Assert.Equal(@"D:\repo\portable", psi.WorkingDirectory);
         Assert.Equal(string.Empty, psi.Verb);
@@ -221,11 +224,34 @@ public class CommandRunnerServiceTests
         // DevOptimizer-App.ps1:330 — elevated interactive bat: cmd.exe /k via runas.
         var psi = CommandRunnerService.BuildStartInfo(RunnerLaunchMode.CmdConsoleElevated, @"D:\repo\portable\tool.bat");
 
-        Assert.Equal("cmd.exe", psi.FileName);
+        Assert.Equal(CommandRunnerService.CmdPath, psi.FileName);
         Assert.Equal("/k \"D:\\repo\\portable\\tool.bat\"", psi.Arguments);
         Assert.Equal("runas", psi.Verb);
         Assert.True(psi.UseShellExecute);
         Assert.Equal(ProcessWindowStyle.Normal, psi.WindowStyle);
+    }
+
+    [Fact]
+    public void BuildStartInfo_MetacharacterPath_Throws()
+    {
+        // The /k and -File argument strings are raw command lines — shell metacharacters
+        // in the launch path must be rejected before a process can be spawned.
+        foreach (var bad in new[] { @"D:\repo\tool&calc.bat", @"D:\rep|o\tool.bat", @"D:\repo\to>ol.bat", @"D:\repo\%PATH%\tool.bat" })
+        {
+            Assert.ThrowsAny<ArgumentException>(() =>
+                CommandRunnerService.BuildStartInfo(RunnerLaunchMode.CmdConsoleVisible, bad));
+            Assert.ThrowsAny<ArgumentException>(() =>
+                CommandRunnerService.BuildStartInfo(RunnerLaunchMode.PowerShellHidden, bad));
+        }
+    }
+
+    [Fact]
+    public void BuildStartInfo_QuoteAndNewlinePath_StillThrows()
+    {
+        Assert.ThrowsAny<ArgumentException>(() =>
+            CommandRunnerService.BuildStartInfo(RunnerLaunchMode.CmdConsoleVisible, @"D:\repo\to""ol.bat"));
+        Assert.ThrowsAny<ArgumentException>(() =>
+            CommandRunnerService.BuildStartInfo(RunnerLaunchMode.PowerShellHidden, "D:\\repo\\to\nol.bat"));
     }
 
     // ------------------------------------------------------------------
