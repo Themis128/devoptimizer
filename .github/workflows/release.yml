@@ -34,7 +34,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-          cache: true
+          # cache: true requires packages.lock.json (not present)
 
       - name: Determine version
         id: version
@@ -109,6 +109,14 @@ jobs:
           path: |
             ./artifacts/app/**
             ./artifacts/launcher/**
+
+      - name: Verify artifacts for release
+        run: |
+          $appFiles = Get-ChildItem ./artifacts/app -Recurse -File | Select-Object -First 5
+          $launcherFiles = Get-ChildItem ./artifacts/launcher -Recurse -File | Select-Object -First 5
+          Write-Host "App artifacts: $($appFiles.Count) files"
+          Write-Host "Launcher artifacts: $($launcherFiles.Count) files"
+          if (-not $appFiles -or -not $launcherFiles) { throw "Missing artifacts" }
 
       - name: Create GitHub Release
         if: github.event_name == 'workflow_dispatch'

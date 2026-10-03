@@ -42,14 +42,14 @@ jobs:
         run: dotnet build app/DevOptimizer.App/DevOptimizer.App.csproj --no-restore -c Release
 
       - name: Test (xUnit)
-        run: dotnet test app/DevOptimizer.App.Tests/DevOptimizer.App.Tests.csproj --no-build -c Release --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+        run: dotnet test app/DevOptimizer.App.Tests/DevOptimizer.App.Tests.csproj --no-build -c Release --logger "trx;LogFileName=test-results.trx" --results-directory ${{ github.workspace }}/TestResults
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: xunit-test-results
-          path: app/DevOptimizer.App.Tests/TestResults/*.trx
+          path: ${{ github.workspace }}/TestResults/*.trx
 
   test-hub:
     name: Test Script Hub (Pester + Syntax)
