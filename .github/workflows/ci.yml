@@ -24,6 +24,7 @@ jobs:
     defaults:
       run:
         shell: pwsh
+        working-directory: ${{ github.workspace }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,7 +33,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-          cache: true
+          # cache: true requires packages.lock.json (not present)
 
       - name: Restore
         run: dotnet restore app/DevOptimizer.App/DevOptimizer.App.csproj
@@ -41,7 +42,7 @@ jobs:
         run: dotnet build app/DevOptimizer.App/DevOptimizer.App.csproj --no-restore -c Release
 
       - name: Test (xUnit)
-        run: dotnet test app/DevOptimizer.App.Tests/DevOptimizer.App.Tests.csproj --no-build -c Release --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test app/DevOptimizer.App.Tests/DevOptimizer.App.Tests.csproj --no-build -c Release --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
 
       - name: Upload test results
         if: always()
@@ -57,21 +58,19 @@ jobs:
     defaults:
       run:
         shell: pwsh
+        working-directory: ${{ github.workspace }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run Pester tests (CI mode)
+      - name: Run Pester tests (CI mode, skip machine-specific)
         run: |
           cd scripts
-          .\Test-App.ps1 -CI
-        env:
-          DEVOPT_ROOT: ${{ env.DEVOPT_ROOT }}
+          # Skip AppPackage tests (HKCU Uninstall, Start Menu) - machine-specific
+          .\Test-App.ps1 -CI -Tag '!AppPackage'
 
       - name: Validate all scripts syntax (612 scripts)
-        run: |
-          cd ${{ env.DEVOPT_ROOT }}
-          .\validate-all-scripts.ps1
+        run: .\validate-all-scripts.ps1
 
   lint-registry:
     name: Lint Registry (Discover + Build + Validate)
@@ -80,23 +79,19 @@ jobs:
     defaults:
       run:
         shell: pwsh
+        working-directory: ${{ github.workspace }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Discover scripts
-        run: |
-          cd ${{ env.DEVOPT_ROOT }}
-          .\Discover-Scripts.ps1 -OutputPath config/discovered-scripts.json -PassThru
+        run: .\Discover-Scripts.ps1 -OutputPath config/discovered-scripts.json -PassThru
 
       - name: Build and validate registry
-        run: |
-          cd ${{ env.DEVOPT_ROOT }}
-          .\Build-Registry.ps1 -DiscoveryPath config/discovered-scripts.json -Validate -Force
+        run: .\Build-Registry.ps1 -DiscoveryPath config/discovered-scripts.json -Validate -Force
 
       - name: Verify registry counts
         run: |
-          cd ${{ env.DEVOPT_ROOT }}
           $registry = Get-Content config/hub-registry.json -Raw -Encoding UTF8 | ConvertFrom-Json
           $cmdCount = $registry.commands.Count
           $missingDesc = ($registry.commands | Where-Object { -not $_.description -or $_.description.Trim() -eq '' }).Count
