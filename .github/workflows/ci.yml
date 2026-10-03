@@ -85,10 +85,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Discover scripts
-        run: .\Discover-Scripts.ps1 -OutputPath config/discovered-scripts.json -PassThru
+        run: .\Discover-Scripts.ps1 -RootPath ${{ github.workspace }} -OutputPath config/discovered-scripts.json -PassThru
 
       - name: Build and validate registry
-        run: .\Build-Registry.ps1 -DiscoveryPath config/discovered-scripts.json -Validate -Force
+        run: .\Build-Registry.ps1 -DiscoveryPath config/discovered-scripts.json -Validate -Force -RootPath ${{ github.workspace }}
 
       - name: Verify registry counts
         run: |

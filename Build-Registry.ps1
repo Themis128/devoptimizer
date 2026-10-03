@@ -24,11 +24,14 @@
 .PARAMETER Force
     If specified, overwrites existing registry without prompting.
 
+.PARAMETER RootPath
+    Root directory of DevOptimizer installation. Defaults to current directory.
+
 .EXAMPLE
     .\Build-Registry.ps1 -DiscoveryPath "config\discovered-scripts.json" -Validate
 
 .EXAMPLE
-    .\Build-Registry.ps1 -Validate -Force
+    .\Build-Registry.ps1 -Validate -Force -RootPath "D:\DevOptimizer"
 #>
 
 [CmdletBinding()]
@@ -46,10 +49,14 @@ param(
     [switch]$Validate,
 
     [Parameter()]
-    [switch]$Force
+    [switch]$Force,
+
+    [Parameter()]
+    [string]$RootPath = (Get-Location).Path
 )
 
-$RootPath = "D:\DevOptimizer"
+# Normalize RootPath
+$RootPath = $RootPath.TrimEnd('\')
 $fullSchemaPath = Join-Path $RootPath $SchemaPath
 $fullOutputPath = Join-Path $RootPath $OutputPath
 
