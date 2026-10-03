@@ -78,11 +78,18 @@ $fullOutputPath = Join-Path $RootPath $OutputPath
 
     Write-Host "[REGISTRY] Building registry from $($discovery.Statistics.TotalScripts) discovered scripts..." -ForegroundColor Green
 
-    # Convert Categories from hashtable to lookup hashtable
+    # Convert Categories from hashtable/PSCustomObject to lookup hashtable
     $categoryLookup = @{}
-    if ($discovery['Categories']) {
-        foreach ($catName in $discovery['Categories'].Keys) {
-            $categoryLookup[$catName] = $discovery['Categories'][$catName]
+    if ($discovery.Categories) {
+        if ($discovery.Categories -is [System.Collections.Hashtable]) {
+            foreach ($catName in $discovery.Categories.Keys) {
+                $categoryLookup[$catName] = $discovery.Categories[$catName]
+            }
+        } else {
+            # PSCustomObject from JSON
+            foreach ($catName in $discovery.Categories.PSObject.Properties.Name) {
+                $categoryLookup[$catName] = $discovery.Categories.$catName
+            }
         }
     }
 
@@ -94,7 +101,7 @@ $allItems += $discovery.Tools
 $allItems += $discovery.Portable
 
 # Group by category
-$categoryGroups = $allItems | Group-Object { $_.Item('Category') }
+$categoryGroups = $allItems | Group-Object { $_.Category }
 
 $commandsArray = @()
 $categoriesArray = @()
@@ -121,9 +128,9 @@ foreach ($group in $categoryGroups) {
         # Command IDs must be schema-valid kebab-case (^[a-z0-9-]+$). Filenames with
         # emoji/non-ASCII (e.g. '📋-UI-ACCESS-GUIDE-Admin.bat') are stripped to their
         # ASCII core; an empty result skips the file rather than emitting an invalid ID.
-        $baseId = ($item.Item('Name').ToLower() -replace '[^a-z0-9 _-]', '') -replace '\s+', '-'
+        $baseId = ($item.Name.ToLower() -replace '[^a-z0-9 _-]', '') -replace '\s+', '-'
         if (-not $baseId -or $baseId -notmatch '^[a-z0-9-]+$') {
-            Write-Host "[REGISTRY] Skipping '$($item.Item('Name'))': filename yields no valid command id" -ForegroundColor Yellow
+            Write-Host "[REGISTRY] Skipping '$($item.Name)': filename yields no valid command id" -ForegroundColor Yellow
             continue
         }
         # Ensure unique command IDs
@@ -145,31 +152,31 @@ foreach ($group in $categoryGroups) {
             "node" = "node"
             "wsl" = "wsl"
         }
-        $entryPoint = if ($entryPointMap.ContainsKey($item.Item('Type'))) { $entryPointMap[$item.Item('Type')] } else { "powershell" }
-        if ($item.Item('Extension') -eq ".bat" -or $item.Item('Extension') -eq ".cmd") { $entryPoint = "cmd" }
-        if ($item.Item('Extension') -eq ".py") { $entryPoint = "python" }
-        if ($item.Item('Extension') -eq ".sh") { $entryPoint = "bash" }
+        $entryPoint = if ($entryPointMap.ContainsKey($item.Type)) { $entryPointMap[$item.Type] } else { "powershell" }
+        if ($item.Extension -eq ".bat" -or $item.Extension -eq ".cmd") { $entryPoint = "cmd" }
+        if ($item.Extension -eq ".py") { $entryPoint = "python" }
+        if ($item.Extension -eq ".sh") { $entryPoint = "bash" }
         
         # Transform parameters to schema format
         $schemaParams = @()
-        if ($item.Item('Parameters')) {
-            foreach ($param in $item.Item('Parameters')) {
+        if ($item.Parameters) {
+            foreach ($param in $item.Parameters) {
                 # Discovery parses comment-based help; multi-function scripts can yield
                 # garbage entries. Enforce the schema's parameter-name pattern.
-                $paramName = [string]$param.Item('Name')
+                $paramName = [string]$param.Name
                 if ($paramName -notmatch '^[A-Za-z][A-Za-z0-9_]*$') { continue }
                 $schemaParam = @{
                     name = $paramName
-                    type = if ($param.Item('Type')) { $param.Item('Type') } else { "string" }
-                    description = if ($param.Item('Description')) { $param.Item('Description') } else { "" }
-                    required = $param.Item('Required') -eq $true
+                    type = if ($param.Type) { $param.Type } else { "string" }
+                    description = if ($param.Description) { $param.Description } else { "" }
+                    required = $param.Required -eq $true
                 }
-                if ($param.Item('Default')) { $schemaParam.default = $param.Item('Default') }
-                if ($param.Item('Enum')) { $schemaParam.enum = $param.Item('Enum') }
-                if ($param.Item('MinLength')) { $schemaParam.minLength = $param.Item('MinLength') }
-                if ($param.Item('MaxLength')) { $schemaParam.maxLength = $param.Item('MaxLength') }
-                if ($param.Item('Minimum')) { $schemaParam.minimum = $param.Item('Minimum') }
-                if ($param.Item('Maximum')) { $schemaParam.maximum = $param.Item('Maximum') }
+                if ($param.Default) { $schemaParam.default = $param.Default }
+                if ($param.Enum) { $schemaParam.enum = $param.Enum }
+                if ($param.MinLength) { $schemaParam.minLength = $param.MinLength }
+                if ($param.MaxLength) { $schemaParam.maxLength = $param.MaxLength }
+                if ($param.Minimum) { $schemaParam.minimum = $param.Minimum }
+                if ($param.Maximum) { $schemaParam.maximum = $param.Maximum }
                 $schemaParams += $schemaParam
             }
         }
@@ -177,15 +184,15 @@ foreach ($group in $categoryGroups) {
         # Build metadata object per schema
         $now = (Get-Date).ToString("o")
         $metadata = @{
-            author = if ($item.Item('Author')) { $item.Item('Author') } else { "Unknown" }
-            created = if ($item.Item('LastModified')) { $item.Item('LastModified') } else { $now }
-            modified = if ($item.Item('LastModified')) { $item.Item('LastModified') } else { $now }
-            version = if ($item.Item('Version')) { $item.Item('Version') } else { "1.0.0" }
+            author = if ($item.Author) { $item.Author } else { "Unknown" }
+            created = if ($item.LastModified) { $item.LastModified } else { $now }
+            modified = if ($item.LastModified) { $item.LastModified } else { $now }
+            version = if ($item.Version) { $item.Version } else { "1.0.0" }
             sourceUrl = "https://github.com/devoptimizer/devoptimizer"
         }
-        if ($item.Item('License')) { $metadata.license = $item.Item('License') }
-        if ($item.Item('Dependencies')) { $metadata.dependencies = $item.Item('Dependencies') }
-        if ($item.Item('TestedOn')) { $metadata.testedOn = $item.Item('TestedOn') }
+        if ($item.License) { $metadata.license = $item.License }
+        if ($item.Dependencies) { $metadata.dependencies = $item.Dependencies }
+        if ($item.TestedOn) { $metadata.testedOn = $item.TestedOn }
         
         # Elevation metadata: honor the target script's own '#Requires -RunAsAdministrator'
         # so registry metadata matches actual runtime requirements (Execute-Command.ps1
@@ -195,14 +202,14 @@ foreach ($group in $categoryGroups) {
         # discovery source (bool vs string 'False'; extension '.ps1' vs 'ps1') -
         # normalize both, and never trust truthiness of a non-empty string.
         $requiresAdmin = $false
-        $metaAdmin = $item.Item('RequiresAdmin')
+        $metaAdmin = $item.RequiresAdmin
         if ($metaAdmin -is [bool]) { $requiresAdmin = $metaAdmin }
         elseif ($metaAdmin -is [string]) { $requiresAdmin = ($metaAdmin -match '^(?i)true$') }
         elseif ($metaAdmin -is [int]) { $requiresAdmin = ($metaAdmin -ne 0) }
 
-        $ext = ([string]$item.Item('Extension')).TrimStart('.')
+        $ext = ([string]$item.Extension).TrimStart('.')
         if (-not $requiresAdmin -and $ext -eq 'ps1') {
-            $targetScript = Join-Path $RootPath $item.Item('RelativePath')
+            $targetScript = Join-Path $RootPath $item.RelativePath
             if (Test-Path -LiteralPath $targetScript) {
                 $targetText = Get-Content -LiteralPath $targetScript -Raw -ErrorAction SilentlyContinue
                 if ($targetText -match '(?im)^\s*#\s*requires\s+-RunAsAdministrator') { $requiresAdmin = $true }
@@ -211,17 +218,17 @@ foreach ($group in $categoryGroups) {
 
         # Description: cap to the schema's 500-char limit (discovery can glue whole
         # function bodies from multi-function scripts into one description).
-        $desc = if ($item.Item('Description')) { $item.Item('Description') } else { "No description available" }
+        $desc = if ($item.Description) { $item.Description } else { "No description available" }
         if ($desc.Length -gt 500) { $desc = $desc.Substring(0, 497) + '...' }
 
         $command = @{
             name = $cmdId
             category = $catName
-            path = $item.Item('RelativePath')
+            path = $item.RelativePath
             description = $desc
             parameters = $schemaParams
             requiresAdmin = $requiresAdmin
-            tags = @(if ($item.Item('Tags')) { $item.Item('Tags') } else { @() })
+            tags = @(if ($item.Tags) { $item.Tags } else { @() })
             entryPoint = $entryPoint
             metadata = $metadata
         }

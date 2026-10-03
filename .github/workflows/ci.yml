@@ -70,7 +70,7 @@ jobs:
           .\Test-App.ps1 -CI -Tag '!AppPackage'
 
       - name: Validate all scripts syntax (612 scripts)
-        run: .\validate-all-scripts.ps1
+        run: .\scripts\check-all-syntax.ps1 -RootPath ${{ github.workspace }}
 
   lint-registry:
     name: Lint Registry (Discover + Build + Validate)
