@@ -140,14 +140,34 @@ if ($cmd.requiresAdmin -and -not $NoAdminCheck) {
         # Re-launch elevated. The child command ships base64-encoded (-EncodedCommand):
         # a plain -Command re-quote broke on empty hashtables ({} binds as a ScriptBlock
         # and the child crashed invisibly at parameter binding while this parent still
-        # reported success). The child deserializes the JSON itself — a string cannot
+        # reported success). The child deserializes the JSON itself - a string cannot
         # bind [hashtable] directly.
         $json = if ($Parameters.Count) { $Parameters | ConvertTo-Json -Compress } else { '{}' }
         $json = $json.Replace("'", "''")
+        # Child logs into a dedicated subdir keyed by THIS parent's executionId, so the
+        # parent can forward the child's captured output unambiguously even when several
+        # elevated runs overlap (each parent reads only its own subdir).
+        $childLogPath = "logs\executions\elevated-$executionId"
         $child = "`$p = @{}; ('$json' | ConvertFrom-Json).PSObject.Properties | ForEach-Object { `$p[`$_.Name] = `$_.Value }; " +
-                 "& '$PSCommandPath' -Command '$Command' -Parameters `$p -RegistryPath '$RegistryPath' -LogPath '$LogPath' -Timeout $Timeout -NoAdminCheck"
+                 "& '$PSCommandPath' -Command '$Command' -Parameters `$p -RegistryPath '$RegistryPath' -LogPath '$childLogPath' -Timeout $Timeout -NoAdminCheck"
         $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($child))
-        $elevated = Start-Process powershell -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded) -Verb RunAs -Wait -PassThru
+        $elevated = Start-Process powershell -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded) -Verb RunAs -Wait -PassThru -WindowStyle Hidden
+
+        # Forward the elevated child's captured output into this process's output stream:
+        # the app-runner path captures streams (*>&1) into the per-run log, and without
+        # this the run log shows only the relaunch marker while the scan output stays in
+        # the child's own execution log.
+        $childDir = Join-Path $RootPath $childLogPath
+        $childStdoutFile = Get-ChildItem $childDir -Filter 'execution-*.log.stdout' -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTime -Descending | Select-Object -First 1
+        if ($childStdoutFile) {
+            $childStdout = Get-Content $childStdoutFile.FullName -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
+            $childStderrPath = $childStdoutFile.FullName -replace '\.stdout$', '.stderr'
+            $childStderr = Get-Content $childStderrPath -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
+            if ($childStdout) { "=== ELEVATED CHILD STDOUT ==="; $childStdout }
+            if ($childStderr) { "=== ELEVATED CHILD STDERR ==="; $childStderr }
+            Write-Log "Elevated child output forwarded from $childLogPath" "DEBUG"
+        }
 
         # The elevated child re-runs this script (its log lands in LogPath); propagate
         # its real exit code instead of unconditional success.
