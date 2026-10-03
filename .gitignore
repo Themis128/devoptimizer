@@ -51,3 +51,11 @@ Thumbs.db
 $RECYCLE.BIN/
 *.backup
 *.backup-*
+
+# --- app build intermediates (shipped app/bin payload stays tracked) ---
+app/DevOptimizer.App/bin/
+app/DevOptimizer.App/obj/
+app/DevOptimizer.App.Tests/bin/
+app/DevOptimizer.App.Tests/obj/
+app/launcher/bin/
+app/launcher/obj/
