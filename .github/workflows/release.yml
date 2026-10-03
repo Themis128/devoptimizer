@@ -1,0 +1,123 @@
+name: Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 2.1.0). If empty, uses csproj version.'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-release:
+    name: Build Release Artifacts
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed for version tags
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+          cache: true
+
+      - name: Determine version
+        id: version
+        run: |
+          if ("${{ github.event.inputs.version }}") {
+            $ver = "${{ github.event.inputs.version }}"
+          } else {
+            $csproj = [xml](Get-Content app/DevOptimizer.App/DevOptimizer.App.csproj -Raw)
+            $ver = $csproj.Project.PropertyGroup.Version
+          }
+          Write-Host "version=$ver" >> $env:GITHUB_OUTPUT
+
+      - name: Build WPF App (Release)
+        run: |
+          dotnet build app/DevOptimizer.App/DevOptimizer.App.csproj -c Release --no-restore
+          dotnet build app/launcher/DevOptimizer.Launcher.csproj -c Release --no-restore
+
+      - name: Publish Launcher (single-file, framework-dependent)
+        run: |
+          dotnet publish app/launcher/DevOptimizer.Launcher.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o ./artifacts/launcher
+
+      - name: Publish App (framework-dependent)
+        run: |
+          dotnet publish app/DevOptimizer.App/DevOptimizer.App.csproj -c Release -r win-x64 --self-contained false -o ./artifacts/app
+
+      # ---------------------------------------------------------------------------
+      # VELPACK PACKAGING — Phase 3 (per architecture plan)
+      # ---------------------------------------------------------------------------
+      # When Velopack is integrated (Phase 3), uncomment and configure.
+      # Based on velopack/velopack release workflow patterns:
+      # Uses `vpk` (Velopack CLI) for packaging native installers.
+      #
+      # - name: Install Velopack CLI
+      #   run: dotnet tool install --global Velopack.Cli
+      #
+      # - name: Create Velopack release (MSIX + EXE + RELEASES file)
+      #   run: |
+      #     vpk pack `
+      #       --input ./artifacts/app `
+      #       --output ./artifacts/velopack `
+      #       --version ${{ steps.version.outputs.version }} `
+      #       --id DevOptimizer `
+      #       --name "DevOptimizer" `
+      #       --publisher "DevOptimizer" `
+      #       --description "Windows maintenance and dev-tooling suite" `
+      #       --icon ./DevOptimizer.ico `
+      #       --framework net8.0-windows `
+      #       --runtime win-x64 `
+      #       --self-contained false
+      #
+      # - name: Upload Velopack artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: velopack-release-${{ steps.version.outputs.version }}
+      #     path: ./artifacts/velopack/**
+      #
+      # - name: Create GitHub Release with Velopack artifacts
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     tag_name: v${{ steps.version.outputs.version }}
+      #     name: DevOptimizer v${{ steps.version.outputs.version }}
+      #     files: |
+      #       ./artifacts/velopack/*.exe
+      #       ./artifacts/velopack/*.msix
+      #       ./artifacts/velopack/RELEASES
+      # ---------------------------------------------------------------------------
+
+      - name: Upload App artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: devoptimizer-app-${{ steps.version.outputs.version }}
+          path: |
+            ./artifacts/app/**
+            ./artifacts/launcher/**
+
+      - name: Create GitHub Release
+        if: github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: DevOptimizer v${{ steps.version.outputs.version }}
+          draft: true
+          generate_release_notes: true
+          files: |
+            ./artifacts/app/**
+            ./artifacts/launcher/**

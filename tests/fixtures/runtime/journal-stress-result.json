@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "engineIdentity": {
+    "name": "zcode-cli",
+    "version": "0.15.2",
+    "artifactSha256": "0f2ab95e39876fd639a15eb207fd42ca692d145f44ae5093714071a07de9c16e"
+  },
+  "os": {
+    "platform": "win32",
+    "release": "10.0.26220",
+    "arch": "x64",
+    "nodeVersion": "v26.7.0"
+  },
+  "fsKind": "local",
+  "localSingleHost": true,
+  "testScriptSha256": "036fdf287bb6c2faa80e158aad7d980fc4975d4bbba07d102c1b76f5650d135f",
+  "capabilitiesSha256": "b5c9a69fb328ba5657e5b6a5650fa7769456a55ac0b51f3016473dfbd17f8bab",
+  "journalSchemaVersion": 1,
+  "startedAtMs": 1790949027200,
+  "finishedAtMs": 1790949027667,
+  "journalEvidence": {
+    "liveJournalSha256": "33007b78bd10ab540f2741fec6e20c6efaa558bb3d502ece950d1678b9205201",
+    "rotatedArchiveSha256": "f67c5a9fe5badac18cc8afefc50c4fa5b0ee2d95bdbece7b52f8d3ee8c0983f3"
+  },
+  "testVariant": "win32-worker-threads (child_process.spawn unavailable per local security policy)",
+  "cases": [
+    {
+      "name": "parallel-append",
+      "expectedCount": 8,
+      "actualCount": 8,
+      "verdict": "PASS"
+    },
+    {
+      "name": "torn-tail-repair",
+      "expectedCount": 9,
+      "actualCount": 9,
+      "verdict": "PASS"
+    },
+    {
+      "name": "owner-token-release",
+      "expectedCount": 1,
+      "actualCount": 1,
+      "verdict": "PASS"
+    },
+    {
+      "name": "stale-owner-lock-reclamation",
+      "expectedCount": 2,
+      "actualCount": 2,
+      "verdict": "PASS"
+    },
+    {
+      "name": "mid-file-corruption-blocking",
+      "expectedCount": 1,
+      "actualCount": 1,
+      "verdict": "PASS"
+    },
+    {
+      "name": "legal-transition-semantics",
+      "expectedCount": 1,
+      "actualCount": 1,
+      "verdict": "PASS"
+    },
+    {
+      "name": "completed-journal-rotation",
+      "expectedCount": 1,
+      "actualCount": 1,
+      "verdict": "PASS"
+    }
+  ],
+  "overall": "PASS"
+}

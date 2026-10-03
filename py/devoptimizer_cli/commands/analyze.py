@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 from typing import Optional, List
 
+from devoptimizer_cli.paths import safe_open_write
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -183,7 +184,7 @@ Format your response as JSON with this structure:
 
         # Save analysis
         output.parent.mkdir(parents=True, exist_ok=True)
-        with open(output, 'w') as f:
+        with safe_open_write(output) as f:
             json.dump(analysis_data, f, indent=2)
 
         console.print(f"✓ Analysis saved to: {output}", style="green")
@@ -359,7 +360,7 @@ Format your response as JSON with this structure:
             analysis_data["critical_issues"] = []
             analysis_data["recommendations"] = []
 
-        with open(output, 'w') as f:
+        with safe_open_write(output) as f:
             json.dump(analysis_data, f, indent=2)
 
         console.print(f"✓ Log analysis saved to: {output}", style="green")

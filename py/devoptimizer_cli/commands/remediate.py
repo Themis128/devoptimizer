@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 from typing import Optional, List
 
+from devoptimizer_cli.paths import safe_open_write
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -247,7 +248,7 @@ def cleanup(
     results_file = Path("D:/DevOptimizer/logs/cleanup_results.json")
     results_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(results_file, 'w') as f:
+    with safe_open_write(results_file) as f:
         json.dump(cleanup_results, f, indent=2)
 
     # Display summary
@@ -424,7 +425,7 @@ def optimize(
     results_file = Path("D:/DevOptimizer/logs/optimization_results.json")
     results_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(results_file, 'w') as f:
+    with safe_open_write(results_file) as f:
         json.dump(optimization_results, f, indent=2)
 
     # Display summary
@@ -538,7 +539,7 @@ def defrag(
 
     results_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(results_file, 'w') as f:
+    with safe_open_write(results_file) as f:
         json.dump(defrag_results, f, indent=2)
 
     console.print(f"✓ Results saved to: {results_file}", style="green")

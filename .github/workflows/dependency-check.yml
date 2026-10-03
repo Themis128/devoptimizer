@@ -1,0 +1,105 @@
+name: Dependency Security Check
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly Monday 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  dotnet-vuln-scan:
+    name: Scan .NET Dependencies
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+          cache: true
+
+      - name: Restore
+        run: dotnet restore app/DevOptimizer.App/DevOptimizer.App.csproj
+
+      - name: Check for vulnerable packages
+        id: vuln
+        run: |
+          $hasVuln = $false
+          $allOutput = @()
+          
+          foreach ($proj in @(
+            "app/DevOptimizer.App/DevOptimizer.App.csproj",
+            "app/launcher/DevOptimizer.Launcher.csproj",
+            "app/DevOptimizer.App.Tests/DevOptimizer.App.Tests.csproj"
+          )) {
+            $result = dotnet list $proj package --vulnerable --include-transitive 2>&1
+            $allOutput += $result
+            if ($result -match 'has known vulnerabilities') {
+              $hasVuln = $true
+            }
+          }
+          
+          $output = $allOutput -join "`n"
+          Write-Host "Vulnerability scan complete."
+          
+          if ($hasVuln) {
+            Write-Host "VULNERABILITIES_FOUND=true" >> $env:GITHUB_OUTPUT
+            Write-Host "vuln_output<<EOF" >> $env:GITHUB_OUTPUT
+            Write-Host "$output" >> $env:GITHUB_OUTPUT
+            Write-Host "EOF" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "VULNERABILITIES_FOUND=false" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Create GitHub Issue for vulnerabilities
+        if: steps.vuln.outputs.VULNERABILITIES_FOUND == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `${{ steps.vuln.outputs.vuln_output }}`;
+            const title = `[Dependency Check] Vulnerable packages detected - $(date -u +"%Y-%m-%d")`;
+            const body = `## Vulnerable .NET Packages Detected\n\nAutomated weekly dependency check found vulnerable packages.\n\n\`\`\`\n${output}\n\`\`\`\n\n---\n*Run: \`dotnet list package --vulnerable --include-transitive\`*\n*Workflow: \${{ github.workflow }} #\${{ github.run_number }}*`;
+            
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['dependencies', 'security']
+            });
+            
+            const existing = issues.find(i => i.title.includes('Vulnerable packages detected'));
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body: body,
+                state: 'open'
+              });
+              console.log('Updated existing issue #' + existing.number);
+            } else {
+              const { data: issue } = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['dependencies', 'security']
+              });
+              console.log('Created new issue #' + issue.number);
+            }
+
+  # Node.js audit skipped - no package.json found in repo
+  # If Node deps are added later, add a job here with: npm audit --audit-level=high

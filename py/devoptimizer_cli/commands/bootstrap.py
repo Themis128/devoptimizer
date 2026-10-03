@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 from typing import Optional, List
 
+from devoptimizer_cli.paths import safe_open_write
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -173,7 +174,7 @@ def install_tools(
     results_file = Path("D:/DevOptimizer/logs/installation_results.json")
     results_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(results_file, 'w') as f:
+    with safe_open_write(results_file) as f:
         json.dump(installation_results, f, indent=2)
 
     # Display summary
@@ -286,7 +287,7 @@ def setup_python(
             requirements_file = Path("D:/DevOptimizer/py/requirements.txt")
 
             try:
-                with open(requirements_file, 'w') as f:
+                with safe_open_write(requirements_file) as f:
                     f.write('\n'.join(requirements))
 
                 # Install dependencies
@@ -318,7 +319,7 @@ def setup_python(
     results_file = Path("D:/DevOptimizer/logs/python_setup_results.json")
     results_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(results_file, 'w') as f:
+    with safe_open_write(results_file) as f:
         json.dump(setup_results, f, indent=2)
 
     console.print(f"✓ Setup results saved to: {results_file}", style="green")
@@ -432,7 +433,7 @@ def setup_git(
     results_file = Path("D:/DevOptimizer/logs/git_setup_results.json")
     results_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(results_file, 'w') as f:
+    with safe_open_write(results_file) as f:
         json.dump(setup_results, f, indent=2)
 
     console.print(f"✓ Git setup results saved to: {results_file}", style="green")

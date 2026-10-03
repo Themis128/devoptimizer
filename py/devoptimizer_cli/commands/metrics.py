@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from devoptimizer_cli.paths import safe_open_write
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -116,7 +117,7 @@ def collect(
 
     # Save metrics to file
     try:
-        with open(output, 'w') as f:
+        with safe_open_write(output) as f:
             json.dump(metrics_data, f, indent=2)
         console.print(f"✓ Metrics saved to: {output}", style="green")
     except Exception as e:
@@ -218,7 +219,7 @@ def start_logman(
             "\\System\\Processor Queue Length"
         ]
 
-        with open(counter_file, 'w') as f:
+        with safe_open_write(counter_file) as f:
             f.write('\n'.join(default_counters))
 
         counters = str(counter_file)

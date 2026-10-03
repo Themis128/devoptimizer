@@ -10,6 +10,7 @@ import platform
 from pathlib import Path
 from typing import Optional, List
 
+from devoptimizer_cli.paths import safe_open_write
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -272,7 +273,7 @@ def audit(
     audit_results["recommendations"] = recommendations
 
     # Save results
-    with open(output, 'w') as f:
+    with safe_open_write(output) as f:
         json.dump(audit_results, f, indent=2)
 
     # Display summary
@@ -476,7 +477,7 @@ def harden(
     results_file = Path("D:/DevOptimizer/security/hardening_results.json")
     results_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(results_file, 'w') as f:
+    with safe_open_write(results_file) as f:
         json.dump(hardening_results, f, indent=2)
 
     # Display summary
@@ -588,7 +589,7 @@ def scan_malware(
             console.print(f"✗ Unexpected error during scan: {e}", style="red")
 
     # Save results
-    with open(output, 'w') as f:
+    with safe_open_write(output) as f:
         json.dump(scan_results, f, indent=2)
 
     # Display summary
