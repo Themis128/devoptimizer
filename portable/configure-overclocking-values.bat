@@ -1,3 +1,4 @@
+:: SYNOPSIS: Configures overclocking values.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

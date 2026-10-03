@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: prerequisites-checker.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

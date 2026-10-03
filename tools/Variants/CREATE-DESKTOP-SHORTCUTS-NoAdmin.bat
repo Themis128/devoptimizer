@@ -1,3 +1,4 @@
+:: SYNOPSIS: Creates desktop shortcuts noadmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

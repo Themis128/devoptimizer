@@ -1,3 +1,4 @@
+:: SYNOPSIS: Checks mcp health.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

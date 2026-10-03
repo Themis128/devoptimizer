@@ -1,3 +1,4 @@
+:: SYNOPSIS: Removes duplicate bat files.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

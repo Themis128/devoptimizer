@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: 00-SETUP-GLOBAL-ACCESS-IMPROVED-NoAdmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

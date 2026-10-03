@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Fixes bom.
+.DESCRIPTION
+    Fixes bom.
+#>
+
 $targets = @(
     'D:\DevOptimizer\ps\Bootstrap-DevEnvironment.ps1',
     'D:\DevOptimizer\ps\Collect-Metrics.ps1',

@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: simple-dual-version-creator.
+.DESCRIPTION
+    DevOptimizer automation script: simple-dual-version-creator.
+#>
+
 # Simple Dual Version Creator for DevOptimizer
 # Creates admin and no-admin versions of batch scripts
 

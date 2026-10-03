@@ -1,3 +1,4 @@
+:: SYNOPSIS: Configures xtu v7 14 2 67.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

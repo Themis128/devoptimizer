@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: gpu-nvidia-broadcast-optimization.
+.DESCRIPTION
+    DevOptimizer automation script: gpu-nvidia-broadcast-optimization.
+#>
+
 # Dual GPU & NVIDIA Broadcast Optimization Functions - Latest 2024/2025
 
 function Get-GPUInformation {

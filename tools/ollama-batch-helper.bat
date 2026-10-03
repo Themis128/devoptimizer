@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: ollama-batch-helper.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

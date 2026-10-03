@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Windows 11 health snapshot: SMART, Defender, PnP devices, services, event-log errors.
+.DESCRIPTION
+    Windows 11 health snapshot: SMART, Defender, PnP devices, services, event-log errors.
+#>
+
 # Read-only Windows 11 health snapshot - no changes made
 $ErrorActionPreference = 'SilentlyContinue'
 Write-Host '=== WINDOWS 11 HEALTH SNAPSHOT ===' -ForegroundColor Cyan

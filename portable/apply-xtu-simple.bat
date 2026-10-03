@@ -1,3 +1,4 @@
+:: SYNOPSIS: Applies xtu simple.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

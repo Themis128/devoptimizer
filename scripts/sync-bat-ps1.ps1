@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: sync-bat-ps1.
+.DESCRIPTION
+    DevOptimizer automation script: sync-bat-ps1.
+#>
+
 param(
     [string]$Root = "D:\DevOptimizer",
     [string]$OutputFolder = "D:\DevOptimizer\portable"

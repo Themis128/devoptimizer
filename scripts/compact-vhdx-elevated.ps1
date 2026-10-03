@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: compact-vhdx-elevated.
+.DESCRIPTION
+    DevOptimizer automation script: compact-vhdx-elevated.
+#>
+
 # VHDX Compaction - MUST RUN AS ADMINISTRATOR
 
 $vhdx = "C:\Users\tbaltzakis\AppData\Local\wsl\{12c19879-cec8-4dd1-9fe4-7049940b6a2f}\ext4.vhdx"

@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: power-management.
+.DESCRIPTION
+    DevOptimizer automation script: power-management.
+#>
+
 # Power Management and Performance Configuration Functions
 
 function Get-PowerPlans {

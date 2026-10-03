@@ -1,4 +1,11 @@
-﻿# Update All Ollama Scripts to Use Multi-Model System
+﻿<#
+.SYNOPSIS
+    Updates all ollama scripts.
+.DESCRIPTION
+    Updates all ollama scripts.
+#>
+
+# Update All Ollama Scripts to Use Multi-Model System
 # PowerShell script to automatically convert hardcoded ollama run calls
 
 param(

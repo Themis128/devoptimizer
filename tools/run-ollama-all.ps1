@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Runs ollama all.
+.DESCRIPTION
+    Runs ollama all.
+#>
+
 # Ollama Multi-Model Runner for DevOptimizer - REST-First with Laptop Optimization
 # Executable script to run prompts across all installed Ollama models
 

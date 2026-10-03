@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: shutdown-and-compact.
+.DESCRIPTION
+    DevOptimizer automation script: shutdown-and-compact.
+#>
+
 Write-Host "=== Shutting down WSL ===" -ForegroundColor Cyan
 wsl --shutdown
 Start-Sleep 3

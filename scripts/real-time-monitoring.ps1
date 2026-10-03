@@ -1,4 +1,11 @@
-﻿# DevOptimizer Real-time Monitoring Module
+﻿<#
+.SYNOPSIS
+    DevOptimizer automation script: real-time-monitoring.
+.DESCRIPTION
+    DevOptimizer automation script: real-time-monitoring.
+#>
+
+# DevOptimizer Real-time Monitoring Module
 # Advanced system monitoring and analytics for the DevOptimizer Enhanced Suite
 
 param(

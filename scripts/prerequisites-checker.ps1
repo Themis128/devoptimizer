@@ -1,4 +1,11 @@
-﻿#Requires -RunAsAdministrator
+﻿<#
+.SYNOPSIS
+    DevOptimizer automation script: prerequisites-checker.
+.DESCRIPTION
+    DevOptimizer automation script: prerequisites-checker.
+#>
+
+#Requires -RunAsAdministrator
 
 # Prerequisites Checker and Installer Script
 # Comprehensive system for checking and installing required tools and dependencies

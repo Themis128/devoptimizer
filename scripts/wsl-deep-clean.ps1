@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: wsl-deep-clean.
+.DESCRIPTION
+    DevOptimizer automation script: wsl-deep-clean.
+#>
+
 # WSL Ubuntu Deep Clean
 # Run this to thoroughly clean WSL Ubuntu environment
 

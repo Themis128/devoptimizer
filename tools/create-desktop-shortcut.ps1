@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Creates desktop shortcut.
+.DESCRIPTION
+    Creates desktop shortcut.
+#>
+
 # Create Desktop Shortcut for DevOptimizer Master Launcher
 # Creates a red-colored desktop shortcut with proper encoding
 

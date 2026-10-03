@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: organize-files.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

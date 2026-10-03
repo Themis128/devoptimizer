@@ -1,3 +1,4 @@
+:: SYNOPSIS: Updates ollama scripts.
 @echo off
 REM Update All Ollama Scripts to Use Multi-Model System
 REM Automatically converts hardcoded ollama run calls to use the new multi-model system

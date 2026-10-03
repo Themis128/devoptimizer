@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: ollama-rest.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Checks broken refs.
+.DESCRIPTION
+    Checks broken refs.
+#>
+
 # Find all broken script references: .bat/.cmd -> .ps1 targets, registry entries -> files
 $root = 'D:\DevOptimizer'
 $problems = @()

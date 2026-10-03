@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: OPTIMIZE-TIMEOUT-DELAYS-Admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

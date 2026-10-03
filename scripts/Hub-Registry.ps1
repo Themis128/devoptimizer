@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: Hub-Registry.
+.DESCRIPTION
+    DevOptimizer automation script: Hub-Registry.
+#>
+
 # =====================================================
 # DEVOPTIMIZER HUB REGISTRY MANAGEMENT v4.0
 # Centralized registry management for hub discovery

@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: MAKE-ALL-BAT-OPERATIONAL-Admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

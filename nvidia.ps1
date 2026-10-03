@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     NVIDIA GPU Optimizer - Activates and optimizes GPU for heavy workloads

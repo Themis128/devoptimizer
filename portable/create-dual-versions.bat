@@ -1,3 +1,4 @@
+:: SYNOPSIS: Creates dual versions.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

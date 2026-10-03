@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: ENHANCED-SYSTEM-DIAGNOSTICS-NoAdmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: compact-wsl-vhdx.
+.DESCRIPTION
+    DevOptimizer automation script: compact-wsl-vhdx.
+#>
+
 Write-Host "=== Compacting WSL vhdx ===" -ForegroundColor Cyan
 $vhdxPath = 'C:\Users\tbaltzakis\AppData\Local\wsl\{12c19879-cec8-4dd1-9fe4-7049940b6a2f}\ext4.vhdx'
 Write-Host "Compacting: $vhdxPath"

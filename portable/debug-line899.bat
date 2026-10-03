@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: debug-line899.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

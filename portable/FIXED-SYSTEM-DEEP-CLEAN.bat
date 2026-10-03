@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: FIXED-SYSTEM-DEEP-CLEAN.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

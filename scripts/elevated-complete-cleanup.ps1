@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Elevated complete cleanup: DISM component store, WU cache, Delivery Optimization, shadow copies, VHDX compaction. Requires admin.
+.DESCRIPTION
+    Elevated complete cleanup: DISM component store, WU cache, Delivery Optimization, shadow copies, VHDX compaction. Requires admin.
+#>
+
 # Elevated Complete Cleanup Script
 # Runs all admin-required tasks: VHDX compaction + Windows 11 Admin Cleanup
 # MUST be run as Administrator (Start-Process -Verb RunAs)
@@ -31,58 +38,13 @@ function MB { param($b) [math]::Round($b/1MB, 1) }
 if (-not $SkipVhdx) {
     Write-Host "`n=== PART 1: WSL/DOCKER VHDX COMPACTION ===" -ForegroundColor Magenta
 
-    # All WSL distro disks + Docker's data disk
-    $vhdxPaths = @(Get-ChildItem "$env:LOCALAPPDATA\wsl" -Recurse -Filter *.vhdx -Force -ErrorAction SilentlyContinue |
-                   Select-Object -ExpandProperty FullName)
-    $dockerDisk = "$env:LOCALAPPDATA\Docker\wsl\disk\docker_data.vhdx"
-    if (Test-Path $dockerDisk) { $vhdxPaths += $dockerDisk }
-
-    if ($vhdxPaths.Count -eq 0) {
-        Write-Host "No VHDX files found - skipping compaction" -ForegroundColor Red
-    } else {
-        # Kill WSL/Docker processes that might hold the disks
-        Write-Host "Killing WSL/Docker processes holding VHDX..." -ForegroundColor Yellow
-        $processes = @("vmmemWSL", "vmmem", "wslhost", "wslrelay", "wslservice", "com.docker.backend", "Docker Desktop", "docker-agent")
-        foreach ($proc in $processes) {
-            Get-Process -Name $proc -ErrorAction SilentlyContinue | ForEach-Object {
-                Write-Host "  Killing $($_.ProcessName) (PID $($_.Id))..."
-                try { Stop-Process -Id $_.Id -Force -ErrorAction Stop } catch { }
-            }
-        }
-
-        # Ensure WSL is fully stopped
-        Write-Host "`nEnsuring WSL shutdown..." -ForegroundColor Yellow
-        wsl --shutdown 2>&1 | Out-Null
-        Start-Sleep 3
-
-        foreach ($vhdxPath in $vhdxPaths) {
-            if (-not (Test-Path $vhdxPath)) { continue }
-            Write-Host "`n--- Compacting: $vhdxPath ---" -ForegroundColor Cyan
-            $sizeBefore = (Get-Item $vhdxPath).Length
-            Write-Host "Size before: $(GB $sizeBefore) GB" -ForegroundColor Cyan
-
-            Write-Host "Running Optimize-VHD (this may take a few minutes)..." -ForegroundColor Yellow
-            try {
-                Optimize-VHD -Path $vhdxPath -Mode Full -ErrorAction Stop | Out-Null
-                $sizeAfter = (Get-Item $vhdxPath).Length
-                Write-Host "VHDX compaction: SUCCESS" -ForegroundColor Green
-                Write-Host "  Before: $(GB $sizeBefore) GB | After: $(GB $sizeAfter) GB | Freed: $(GB ($sizeBefore - $sizeAfter)) GB" -ForegroundColor Green
-            } catch {
-                Write-Host "VHDX compaction: FAILED - $($_.Exception.Message)" -ForegroundColor Red
-                Write-Host "Trying alternative: Mount-VHD -> Optimize -> Dismount..." -ForegroundColor Yellow
-                try {
-                    Mount-VHD -Path $vhdxPath -ReadOnly -ErrorAction Stop
-                    Optimize-VHD -Path $vhdxPath -Mode Full -ErrorAction Stop
-                    Dismount-VHD -Path $vhdxPath -ErrorAction Stop
-                    $sizeAfter = (Get-Item $vhdxPath).Length
-                    Write-Host "VHDX compaction (alt): SUCCESS" -ForegroundColor Green
-                    Write-Host "  Before: $(GB $sizeBefore) GB | After: $(GB $sizeAfter) GB | Freed: $(GB ($sizeBefore - $sizeAfter)) GB" -ForegroundColor Green
-                } catch {
-                    Write-Host "VHDX compaction (alt): FAILED - $($_.Exception.Message)" -ForegroundColor Red
-                }
-            }
-        }
-    }
+    # Devin-safe compaction (2026-09-29): delegates to the standalone script, which
+    # gates on Devin.exe/devin-server (defers instead of killing active sessions),
+    # releases the disks by polling for exclusive access instead of sleep-3, and
+    # restarts Docker + WSL afterward (the old inline version left them dead).
+    # -ForceAll: the 15-day cadence compacts regardless of the 10 GB growth threshold.
+    & (Join-Path $PSScriptRoot 'Invoke-VhdxCompaction.ps1') -AsLibrary -ForceAll
+    Write-Host ("PART 1 result: {0}" -f $global:LAST_VHDX_COMPACTION.status) -ForegroundColor Cyan
 }
 
 # ================================================================

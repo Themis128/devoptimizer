@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: ollama-performance-scorer-NoAdmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

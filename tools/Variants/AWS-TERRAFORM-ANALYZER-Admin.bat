@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: AWS-TERRAFORM-ANALYZER-Admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Extended cleanup (weekly): deeper user-level sweeps beyond the daily safe cleanup.
+.DESCRIPTION
+    Extended cleanup (weekly): deeper user-level sweeps beyond the daily safe cleanup.
+#>
+
 #requires -Version 5.1
 # CATEGORY: cleanup
 # Extended Windows 11 cleanup - user-level, age-gated.

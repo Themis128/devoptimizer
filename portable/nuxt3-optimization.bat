@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: nuxt3-optimization.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

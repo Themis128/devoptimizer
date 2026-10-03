@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: validate-system.
+.DESCRIPTION
+    DevOptimizer automation script: validate-system.
+#>
+
 # DevOptimizer System Validation Script
 # Comprehensive testing of all DevOptimizer functionality
 

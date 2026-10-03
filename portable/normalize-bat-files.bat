@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: normalize-bat-files.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

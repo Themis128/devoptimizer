@@ -1,3 +1,4 @@
+:: SYNOPSIS: Collects metrics.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: CURSOR-AI-ESSENTIAL-TOOLS-NoAdmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

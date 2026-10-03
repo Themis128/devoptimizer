@@ -1,3 +1,4 @@
+:: SYNOPSIS: Applies xtu overclock.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

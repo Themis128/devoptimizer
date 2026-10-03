@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: AWS-IAC-MANAGER-Admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

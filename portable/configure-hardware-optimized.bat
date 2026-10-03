@@ -1,3 +1,4 @@
+:: SYNOPSIS: Configures hardware optimized.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

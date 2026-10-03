@@ -1,3 +1,4 @@
+:: SYNOPSIS: Configures intel xtu programmatic.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

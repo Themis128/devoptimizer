@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     DevOptimizer Script Hub - Auto-Discovery Engine
     Scans scripts/, modules/, tools/, portable/ directories to build a dynamic registry of available commands.
@@ -124,11 +124,11 @@ function Extract-ScriptMetadata {
         # Extract metadata from comment-based help (PowerShell)
         if ($metadata.Extension -eq ".ps1") {
             # .SYNOPSIS
-            if ($content -match '(?s)\.SYNOPSIS\s*\n\s*(.+?)\s*\n\s*\.(?:DESCRIPTION|PARAMETER|EXAMPLE|$)') {
+            if ($content -match '(?s)\.SYNOPSIS\s*\n\s*(.+?)\s*\n\s*(?:\.(?:DESCRIPTION|PARAMETER|EXAMPLE)|#>|$)') {
                 $metadata.Description = $matches[1].Trim()
             }
             # .DESCRIPTION
-            if ($content -match '(?s)\.DESCRIPTION\s*\n\s*(.+?)\s*\n\s*\.(?:PARAMETER|EXAMPLE|$)') {
+            if ($content -match '(?s)\.DESCRIPTION\s*\n\s*(.+?)\s*\n\s*(?:\.(?:PARAMETER|EXAMPLE)|#>|$)') {
                 $metadata.Description = $matches[1].Trim()
             }
             # .PARAMETER

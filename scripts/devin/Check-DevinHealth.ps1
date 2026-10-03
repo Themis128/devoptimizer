@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Devin Desktop health check: bundles, tasks, MCP servers, maintenance-report status.
+.DESCRIPTION
+    Devin Desktop health check: bundles, tasks, MCP servers, maintenance-report status.
+#>
+
 # Check-DevinHealth.ps1 - health check + repair for Devin Desktop's WSL remote
 # (devin-server in ~/.devin-server inside Ubuntu-26.04).
 #

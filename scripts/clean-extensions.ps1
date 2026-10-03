@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Cleans up extensions.
+.DESCRIPTION
+    Cleans up extensions.
+#>
+
 # Clean VS Code extensions in WSL
 # CATEGORY: cleanup
 wsl -d Ubuntu-26.04 -e bash -c '

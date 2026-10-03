@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: onedrive-repair.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

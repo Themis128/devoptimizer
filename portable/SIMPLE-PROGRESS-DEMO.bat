@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: SIMPLE-PROGRESS-DEMO.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

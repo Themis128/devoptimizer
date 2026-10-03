@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Checks reboot status.
+.DESCRIPTION
+    Checks reboot status.
+#>
+
 # Read-only check: uptime, build, pending reboot markers, key services
 $os = Get-CimInstance Win32_OperatingSystem
 $boot = $os.LastBootUpTime

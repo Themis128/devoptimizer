@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: VS-Code-Cleanup-Launcher.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

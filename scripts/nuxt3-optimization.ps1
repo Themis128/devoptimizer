@@ -1,4 +1,11 @@
-﻿# Nuxt 3 Optimization Functions - Latest 2024/2025 Best Practices
+﻿<#
+.SYNOPSIS
+    DevOptimizer automation script: nuxt3-optimization.
+.DESCRIPTION
+    DevOptimizer automation script: nuxt3-optimization.
+#>
+
+# Nuxt 3 Optimization Functions - Latest 2024/2025 Best Practices
 
 function Get-Nuxt3Environment {
     Write-Log "Analyzing Nuxt 3 development environment..." -Level "INFO"

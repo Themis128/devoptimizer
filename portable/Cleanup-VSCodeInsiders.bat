@@ -1,3 +1,4 @@
+:: SYNOPSIS: Cleans up vscodeinsiders.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

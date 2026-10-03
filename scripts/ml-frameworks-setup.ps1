@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: ml-frameworks-setup.
+.DESCRIPTION
+    DevOptimizer automation script: ml-frameworks-setup.
+#>
+
 #Requires -RunAsAdministrator
 
 # Machine Learning Frameworks Setup Script

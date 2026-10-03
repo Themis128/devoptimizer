@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: scan-nuxt-projects.
+.DESCRIPTION
+    DevOptimizer automation script: scan-nuxt-projects.
+#>
+
 # Analyze D:\Nuxt Projects: per-project node_modules size + last real source activity
 $root = 'D:\Nuxt Projects'
 foreach ($proj in (Get-ChildItem $root -Directory -ErrorAction SilentlyContinue)) {

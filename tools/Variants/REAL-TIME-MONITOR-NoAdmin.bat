@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: REAL-TIME-MONITOR-NoAdmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

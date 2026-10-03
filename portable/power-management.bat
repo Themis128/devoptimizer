@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: power-management.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

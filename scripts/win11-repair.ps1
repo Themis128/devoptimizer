@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: win11-repair.
+.DESCRIPTION
+    DevOptimizer automation script: win11-repair.
+#>
+
 # Elevated Windows 11 repair - run via UAC (Start-Process -Verb RunAs)
 # Fixes: orphaned PRI-Driver service (13x boot failures), system file
 # integrity (DISM RestoreHealth + SFC), read-only chkdsk scan of C:.

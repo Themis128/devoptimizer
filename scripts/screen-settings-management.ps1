@@ -1,4 +1,11 @@
-﻿# Screen Settings Management Functions - Latest 2024/2025
+﻿<#
+.SYNOPSIS
+    DevOptimizer automation script: screen-settings-management.
+.DESCRIPTION
+    DevOptimizer automation script: screen-settings-management.
+#>
+
+# Screen Settings Management Functions - Latest 2024/2025
 
 Add-Type -TypeDefinition @"
 using System;

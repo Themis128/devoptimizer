@@ -1,4 +1,4 @@
-# Create Desktop Shortcut for DevOptimizer with Ollama Integration
+﻿# Create Desktop Shortcut for DevOptimizer with Ollama Integration
 # Creates a shortcut on the user's desktop that launches the enhanced DevOptimizer system
 
 param(

@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: AWS-POWERSHELL-MODULES-DOWNLOADER-NoAdmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

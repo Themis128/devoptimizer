@@ -1,3 +1,4 @@
+:: SYNOPSIS: Applies msi xtu config.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

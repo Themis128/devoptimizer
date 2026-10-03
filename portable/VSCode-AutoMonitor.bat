@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: VSCode-AutoMonitor.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

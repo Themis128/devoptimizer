@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Admin cleanup suite run elevated: DISM, update caches, shadow-copy pruning.
+.DESCRIPTION
+    Admin cleanup suite run elevated: DISM, update caches, shadow-copy pruning.
+#>
+
 # Windows 11 Admin Cleanup - Run Elevated
 $ErrorActionPreference = 'Continue'
 

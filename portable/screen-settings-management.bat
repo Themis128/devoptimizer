@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: screen-settings-management.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

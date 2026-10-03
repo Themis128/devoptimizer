@@ -1,4 +1,4 @@
-# Direct Overclocking Configuration
+﻿# Direct Overclocking Configuration
 # This script directly applies overclocking settings
 
 param(

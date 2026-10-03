@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: self-healing-system-template-Admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

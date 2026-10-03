@@ -1,4 +1,11 @@
-﻿# Enhanced System Health Check
+﻿<#
+.SYNOPSIS
+    Enhanced system health report: hardware, services, event logs, performance counters.
+.DESCRIPTION
+    Enhanced system health report: hardware, services, event logs, performance counters.
+#>
+
+# Enhanced System Health Check
 # Improved version with better error handling and compatibility
 
 param(

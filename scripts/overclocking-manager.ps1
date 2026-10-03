@@ -1,4 +1,11 @@
-﻿# Overclocking Management Script
+﻿<#
+.SYNOPSIS
+    DevOptimizer automation script: overclocking-manager.
+.DESCRIPTION
+    DevOptimizer automation script: overclocking-manager.
+#>
+
+# Overclocking Management Script
 # Shows current status, provides recommendations, and helps manage overclocking
 
 param(

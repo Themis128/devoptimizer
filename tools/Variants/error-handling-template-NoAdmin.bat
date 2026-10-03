@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: error-handling-template-NoAdmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

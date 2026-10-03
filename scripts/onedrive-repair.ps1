@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: onedrive-repair.
+.DESCRIPTION
+    DevOptimizer automation script: onedrive-repair.
+#>
+
 # OneDrive Reparse Point Repair Script
 # Fixes 0x80071128/0x80071129 errors by handling broken reparse points
 

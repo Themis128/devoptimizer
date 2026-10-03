@@ -1,4 +1,11 @@
-﻿# Windows Features Management Functions
+﻿<#
+.SYNOPSIS
+    DevOptimizer automation script: windows-features.
+.DESCRIPTION
+    DevOptimizer automation script: windows-features.
+#>
+
+# Windows Features Management Functions
 
 function Get-WindowsFeatures {
     Write-Log "Getting Windows Features status..." -Level "INFO"

@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: copy-menu-to-desktop-now.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

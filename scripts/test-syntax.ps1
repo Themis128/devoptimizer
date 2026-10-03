@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Tests syntax.
+.DESCRIPTION
+    Tests syntax.
+#>
+
 # DevOptimizer Unified Central Launcher
 # PowerShell version with full Unicode support and enhanced functionality
 

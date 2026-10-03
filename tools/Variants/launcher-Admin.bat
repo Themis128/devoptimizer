@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: launcher-Admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

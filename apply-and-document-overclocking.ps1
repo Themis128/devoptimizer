@@ -1,4 +1,4 @@
-# Apply and Document Overclocking Configuration
+﻿# Apply and Document Overclocking Configuration
 # This script applies settings from CONFIGURATION-SUMMARY.md and documents all changes
 # WARNING: This modifies system settings. Use at your own risk.
 

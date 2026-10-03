@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: UNIFIED-LAUNCHER-NoAdmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

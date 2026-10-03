@@ -1,4 +1,11 @@
-﻿# DevOptimizer Unified Central Launcher
+﻿<#
+.SYNOPSIS
+    DevOptimizer automation script: UNIFIED-LAUNCHER.
+.DESCRIPTION
+    DevOptimizer automation script: UNIFIED-LAUNCHER.
+#>
+
+# DevOptimizer Unified Central Launcher
 # PowerShell version with full Unicode support and enhanced functionality
 
 param(

@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: scan-d-usage.
+.DESCRIPTION
+    DevOptimizer automation script: scan-d-usage.
+#>
+
 # Read-only: size of D:\ top-level directories (PS 5.1 compatible)
 $root = 'D:\'
 $results = foreach ($dir in (Get-ChildItem $root -Directory -Force -ErrorAction SilentlyContinue)) {

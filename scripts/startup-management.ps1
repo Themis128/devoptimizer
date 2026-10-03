@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: startup-management.
+.DESCRIPTION
+    DevOptimizer automation script: startup-management.
+#>
+
 # Startup Programs Management and Optimization Functions
 
 function Get-StartupPrograms {

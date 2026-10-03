@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: AUTO-RECOVERY-SYSTEM-Admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

@@ -1,4 +1,11 @@
-﻿# DevOptimizer System - Ollama Real-Time Analytics Dashboard
+﻿<#
+.SYNOPSIS
+    DevOptimizer automation script: ollama-analytics-dashboard.
+.DESCRIPTION
+    DevOptimizer automation script: ollama-analytics-dashboard.
+#>
+
+# DevOptimizer System - Ollama Real-Time Analytics Dashboard
 # Interactive real-time monitoring dashboard for Ollama operations
 
 param(

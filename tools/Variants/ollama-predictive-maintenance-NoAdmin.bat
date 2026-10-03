@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: ollama-predictive-maintenance-NoAdmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

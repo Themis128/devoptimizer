@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: Insider-Automation.
+.DESCRIPTION
+    DevOptimizer automation script: Insider-Automation.
+#>
+
 # =====================================================
 # WINDOWS INSIDER AUTOMATION POWERSHELL MODULE v4.0
 # Advanced automation functionality for Windows Insider

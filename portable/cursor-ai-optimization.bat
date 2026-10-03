@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: cursor-ai-optimization.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

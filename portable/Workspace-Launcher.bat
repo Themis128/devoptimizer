@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: Workspace-Launcher.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

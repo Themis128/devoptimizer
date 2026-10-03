@@ -1,4 +1,11 @@
-﻿# Security Hardening and Audit Functions
+﻿<#
+.SYNOPSIS
+    DevOptimizer automation script: security-functions.
+.DESCRIPTION
+    DevOptimizer automation script: security-functions.
+#>
+
+# Security Hardening and Audit Functions
 function Test-SystemSecurity {
     Write-Log "Starting comprehensive security audit..." -Level "INFO"
     

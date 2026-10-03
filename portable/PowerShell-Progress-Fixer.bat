@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: PowerShell-Progress-Fixer.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

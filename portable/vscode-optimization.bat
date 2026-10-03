@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: vscode-optimization.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

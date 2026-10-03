@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: 01-Quick-Optimization-Admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

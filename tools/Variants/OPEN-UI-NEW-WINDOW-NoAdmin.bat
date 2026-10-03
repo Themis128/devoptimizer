@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: OPEN-UI-NEW-WINDOW-NoAdmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

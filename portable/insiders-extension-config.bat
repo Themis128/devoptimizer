@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: insiders-extension-config.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

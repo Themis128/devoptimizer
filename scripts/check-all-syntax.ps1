@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Checks all syntax.
+.DESCRIPTION
+    Checks all syntax.
+#>
+
 $files = Get-ChildItem 'D:\DevOptimizer' -Recurse -Include '*.ps1' -File -ErrorAction SilentlyContinue |
     Where-Object { $_.FullName -notmatch '\\backups\\|\\backup-|\\logs\\|\\node_modules\\|\\.zcode\\' }
 

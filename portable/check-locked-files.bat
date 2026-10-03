@@ -1,3 +1,4 @@
+:: SYNOPSIS: Checks locked files.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

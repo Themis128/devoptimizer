@@ -1,4 +1,4 @@
-# Configure Overclocking Tools Script
+﻿# Configure Overclocking Tools Script
 # This script configures MSI Afterburner and Intel XTU with optimal settings
 
 Write-Host "=== Overclocking Tools Configuration Script ===" -ForegroundColor Cyan

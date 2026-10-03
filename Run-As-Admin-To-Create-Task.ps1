@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # RUN THIS FROM AN ELEVATED POWERSHELL WINDOW (Right-click → Run as Administrator)
 # ============================================================
 # This creates a scheduled task that runs every 15 days as SYSTEM (highest privileges)

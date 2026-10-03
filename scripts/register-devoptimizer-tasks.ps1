@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Registers devoptimizer tasks.
+.DESCRIPTION
+    Registers devoptimizer tasks.
+#>
+
 #requires -Version 5.1
 # CATEGORY: cleanup
 # Registers the DevOptimizer cleanup scheduled tasks and enables Storage Sense.

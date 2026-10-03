@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: admin-cleanup-run-as-admin.
 @echo off
 title Windows 11 Admin Cleanup - Run as Administrator
 echo ============================================================

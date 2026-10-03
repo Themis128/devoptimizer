@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: CURSOR-AI-GIT-CACHE-CLEAR-NoAdmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

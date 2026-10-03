@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Registers wsl prewarm.
+.DESCRIPTION
+    Registers wsl prewarm.
+#>
+
 # Register-WSL-PreWarm.ps1 - boots the Ubuntu-26.04 distro 15s after logon so
 # Devin Desktop / VS Code remote sessions connect instantly instead of racing
 # WSL's ~90s cold boot (root cause of the "Remote Extension host terminated

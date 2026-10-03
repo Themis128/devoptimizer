@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Creates dual versions.
+.DESCRIPTION
+    Creates dual versions.
+#>
+
 # Create Dual Versions Script for DevOptimizer
 # Automatically creates admin and no-admin versions of all batch scripts
 

@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: advanced-error-handling-template-Admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

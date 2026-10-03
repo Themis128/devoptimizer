@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: 02-Ultra-Performance-Admin.
 @echo off 
 setlocal EnableExtensions EnableDelayedExpansion 
 set "SCRIPT_DIR=%~dp0" 

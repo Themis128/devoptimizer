@@ -1,3 +1,4 @@
+:: SYNOPSIS: Cleans up cdrive.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

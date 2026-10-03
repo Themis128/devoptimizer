@@ -1,3 +1,4 @@
+:: SYNOPSIS: Creates desktop shortcut.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

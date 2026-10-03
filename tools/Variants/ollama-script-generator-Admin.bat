@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: ollama-script-generator-Admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

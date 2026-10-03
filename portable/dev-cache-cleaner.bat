@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: dev-cache-cleaner.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

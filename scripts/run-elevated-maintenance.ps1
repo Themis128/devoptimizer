@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Runs elevated maintenance.
+.DESCRIPTION
+    Runs elevated maintenance.
+#>
+
 # Elevated maintenance - run via Task Scheduler with full admin token
 # (schtasks /RL HIGHEST). Writes progress to D:\DevOptimizer\logs\elevated-20260906.log
 # and a .done marker when finished.

@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: FIXED-SYSTEM-DEEP-CLEAN.
+.DESCRIPTION
+    DevOptimizer automation script: FIXED-SYSTEM-DEEP-CLEAN.
+#>
+
 # Fixed System Deep Clean Script
 # Enhanced Windows 11 Development Optimizer v3.1
 

@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    DevOptimizer automation script: optimizer.
+.DESCRIPTION
+    DevOptimizer automation script: optimizer.
+#>
+
 # DevOptimizer Global Launcher
 param(
     [switch]$Help,

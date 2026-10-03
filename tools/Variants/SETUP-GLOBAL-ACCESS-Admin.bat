@@ -1,3 +1,4 @@
+:: SYNOPSIS: Sets up global access admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

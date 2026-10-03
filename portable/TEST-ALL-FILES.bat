@@ -1,3 +1,4 @@
+:: SYNOPSIS: Tests all files.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

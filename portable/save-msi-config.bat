@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: save-msi-config.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

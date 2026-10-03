@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: PRODUCTION-REALTIME-FIXER.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

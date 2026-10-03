@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Windows Update cache and component cleanup.
+.DESCRIPTION
+    Windows Update cache and component cleanup.
+#>
+
 # Windows Update Cleanup and Troubleshooting Functions
 # CATEGORY: cleanup
 

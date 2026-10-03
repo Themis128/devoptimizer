@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     DevOptimizer Script Hub - Registry Builder
     Builds the hub registry from discovered scripts, validates against schema, and writes hub-registry.json.

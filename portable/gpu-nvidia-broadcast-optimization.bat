@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: gpu-nvidia-broadcast-optimization.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

@@ -1,4 +1,4 @@
-# Playwright Helper Scripts Generator
+﻿# Playwright Helper Scripts Generator
 # Creates three essential scripts for Playwright testing
 
 $timestamp = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'

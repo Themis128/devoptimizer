@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: simple-dual-version-creator.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Registers bat sync task.
+.DESCRIPTION
+    Registers bat sync task.
+#>
+
 param(
     [string]$Root = "D:\DevOptimizer",
     [string]$TaskName = "DevOptimizer\\BAT-Sync",

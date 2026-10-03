@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Read-only Win11 cleanup status assessment: drives, temp, dev caches, browser data, VHDX sizes, Docker usage.
+.DESCRIPTION
+    Read-only Win11 cleanup status assessment: drives, temp, dev caches, browser data, VHDX sizes, Docker usage.
+#>
+
 #requires -Version 5.1
 # CATEGORY: cleanup
 # Read-only assessment: does Windows 11 need a cleanup?

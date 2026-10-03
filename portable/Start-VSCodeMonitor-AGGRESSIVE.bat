@@ -1,3 +1,4 @@
+:: SYNOPSIS: Starts vscodemonitor aggressive.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: copy-to-desktop.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

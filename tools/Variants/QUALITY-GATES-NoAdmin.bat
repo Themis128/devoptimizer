@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: QUALITY-GATES-NoAdmin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

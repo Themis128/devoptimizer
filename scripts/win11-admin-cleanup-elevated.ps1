@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Windows 11 admin cleanup (elevated): component store, update cache, Delivery Optimization, oldest shadow copy.
+.DESCRIPTION
+    Windows 11 admin cleanup (elevated): component store, update cache, Delivery Optimization, oldest shadow copy.
+#>
+
 # Windows 11 Admin Cleanup - MUST RUN AS ADMINISTRATOR
 
 # Verify admin

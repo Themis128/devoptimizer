@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: devoptimizer-backend.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

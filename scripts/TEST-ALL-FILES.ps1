@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Tests all files.
+.DESCRIPTION
+    Tests all files.
+#>
+
 param(
     [switch]$Detailed,
     [switch]$FixIssues

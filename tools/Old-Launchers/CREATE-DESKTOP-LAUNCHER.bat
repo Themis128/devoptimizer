@@ -1,3 +1,4 @@
+:: SYNOPSIS: Creates desktop launcher.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 setlocal enabledelayedexpansion

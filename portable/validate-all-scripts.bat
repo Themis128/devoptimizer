@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: validate-all-scripts.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

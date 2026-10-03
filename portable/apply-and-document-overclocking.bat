@@ -1,3 +1,4 @@
+:: SYNOPSIS: Applies and document overclocking.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

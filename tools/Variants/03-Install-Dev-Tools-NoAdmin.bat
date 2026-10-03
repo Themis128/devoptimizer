@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: 03-Install-Dev-Tools-NoAdmin.
 @echo off 
 setlocal EnableExtensions EnableDelayedExpansion 
 set "SCRIPT_DIR=%~dp0" 

@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: sync-bat-ps1.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

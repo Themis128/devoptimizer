@@ -1,4 +1,4 @@
-# Create Scheduled Task for DevOptimizer Elevated Cleanup
+﻿# Create Scheduled Task for DevOptimizer Elevated Cleanup
 # Runs every 15 days with SYSTEM privileges (highest/admin)
 
 $action = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument '-ExecutionPolicy Bypass -File "D:\DevOptimizer\scripts\elevated-complete-cleanup.ps1"'

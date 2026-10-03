@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: 06-System-Health-Check-Admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

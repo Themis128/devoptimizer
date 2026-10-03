@@ -1,3 +1,4 @@
+:: SYNOPSIS: Runs ollama all models admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 REM Ollama Multi-Model Runner for DevOptimizer

@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Checks updates.
+.DESCRIPTION
+    Checks updates.
+#>
+
 $session = New-Object -ComObject Microsoft.Update.Session
 $searcher = $session.CreateUpdateSearcher()
 $result = $searcher.Search("IsInstalled=0")

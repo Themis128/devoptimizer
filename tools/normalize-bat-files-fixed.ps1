@@ -1,4 +1,11 @@
-﻿# Batch File Normalization Script for DevOptimizer
+﻿<#
+.SYNOPSIS
+    DevOptimizer automation script: normalize-bat-files-fixed.
+.DESCRIPTION
+    DevOptimizer automation script: normalize-bat-files-fixed.
+#>
+
+# Batch File Normalization Script for DevOptimizer
 # Fixes encoding, headers, paths, and standardizes all .bat files
 
 param(

@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: CURSOR-AI-COMPLETE-OPTIMIZER-Admin.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

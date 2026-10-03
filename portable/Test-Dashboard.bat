@@ -1,3 +1,4 @@
+:: SYNOPSIS: Tests dashboard.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"

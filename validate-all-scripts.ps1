@@ -1,4 +1,4 @@
-# Comprehensive Script Validation Tool
+﻿# Comprehensive Script Validation Tool
 # Validates PowerShell (.ps1) and Batch (.bat) scripts for syntax errors
 
 param(

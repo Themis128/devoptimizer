@@ -1,3 +1,4 @@
+:: SYNOPSIS: DevOptimizer automation script: UNIVERSAL-DESKTOP-LAUNCHER.
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
