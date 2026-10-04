@@ -66,7 +66,7 @@ if (Test-Path $wuPath) {
 Write-Host "`n--- [5] Delivery Optimization Cache ---" -ForegroundColor Cyan
 try {
     Write-Host "Running: Delete-DeliveryOptimizationCache" -ForegroundColor Yellow
-    Delete-DeliveryOptimizationCache -ErrorAction Stop
+    Delete-DeliveryOptimizationCache -Force -ErrorAction Stop
     Write-Host "[5] Delivery Optimization cache: CLEARED" -ForegroundColor Green
 } catch {
     $msg = $_.Exception.Message.Split("`n")[0]
@@ -76,7 +76,7 @@ try {
 # 6. Shadow Copies (oldest)
 Write-Host "`n--- [6] Shadow Copies (oldest) ---" -ForegroundColor Cyan
 Write-Host "Running: vssadmin delete shadows /for=c: /oldest" -ForegroundColor Yellow
-$vssResult = vssadmin delete shadows /for=c: /oldest 2>&1
+$vssResult = vssadmin delete shadows /for=c: /oldest /quiet 2>&1
 $vssResult | ForEach-Object { Write-Host "  $_" }
 if ($LASTEXITCODE -eq 0) { Write-Host "[6] Oldest shadow copy: DELETED" -ForegroundColor Green }
 else { Write-Host "[6] Shadow copy: EXIT CODE $LASTEXITCODE (may be none)" -ForegroundColor DarkGray }

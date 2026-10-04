@@ -21,7 +21,10 @@
     Directory for execution logs. Defaults to logs\executions
 
 .PARAMETER Timeout
-    Execution timeout in seconds. Default: 300 (5 minutes).
+    Execution timeout in seconds. Default: 0 = wait indefinitely.
+    Only enforced when explicitly set to a positive value; on expiry the command's
+    process tree is killed and the run fails with exit code 124.
+    (Before 2026-10-04 this parameter was accepted but never enforced.)
 
 .PARAMETER NoAdminCheck
     Skip admin privilege check (use with caution).
@@ -57,7 +60,7 @@ param(
     [string]$LogPath = "logs\executions",
 
     [Parameter()]
-    [int]$Timeout = 300,
+    [int]$Timeout = 0,
 
     [Parameter()]
     [switch]$NoAdminCheck,
@@ -303,12 +306,24 @@ Write-Log "Starting process: $interpreter $($scriptArgs -join ' ')"
 $startTime = Get-Date
 
 try {
-    $process = Start-Process -FilePath $interpreter -ArgumentList $scriptArgs -Wait -NoNewWindow -PassThru -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
-    $exitCode = $process.ExitCode
+    $process = Start-Process -FilePath $interpreter -ArgumentList $scriptArgs -NoNewWindow -PassThru -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
+    $null = $process.Handle  # open the handle while the child is alive; without this ExitCode reads as null after exit (PS 5.1 + -NoNewWindow + redirect)
+    $timedOut = $false
+    if ($Timeout -gt 0) {
+        if (-not $process.WaitForExit($Timeout * 1000)) {
+            $timedOut = $true
+            Write-Log "Command exceeded -Timeout $Timeout seconds; killing process tree (pid $($process.Id))" "ERROR"
+            taskkill /PID $process.Id /T /F 2>&1 | Out-Null
+            $process.WaitForExit(10000) | Out-Null
+        }
+    } else {
+        $process.WaitForExit()
+    }
+    $exitCode = if ($timedOut) { 124 } else { $process.ExitCode }
     $endTime = Get-Date
     $duration = ($endTime - $startTime).TotalSeconds
-    
-    Write-Log "Process exited with code: $exitCode (Duration: $("{0:N2}" -f $duration)s)"
+
+    Write-Log "Process exited with code: $exitCode (Duration: $("{0:N2}" -f $duration)s)$(if ($timedOut) { ' [TIMED OUT]' })"
     
     # Read output from logs
     $stdout = Get-Content $stdoutLog -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
@@ -339,11 +354,12 @@ try {
         logFile = $logFile
         command = $cmd.name
         output = $output
+        timeout = $timedOut
     }
-    
+
     if ($exitCode -ne 0) {
         Write-Log "Command failed with exit code $exitCode" "ERROR"
-        $result.error = "Command exited with code $exitCode"
+        $result.error = if ($timedOut) { "Command exceeded timeout of ${Timeout}s and was killed (exit 124)" } else { "Command exited with code $exitCode" }
     }
     
 } catch {
