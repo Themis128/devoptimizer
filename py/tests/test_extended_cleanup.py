@@ -16,6 +16,7 @@ from devoptimizer_cli.commands.cleanup.cleanup import (
     get_chromium_cache_dirs,
     run_extended_cleanup,
 )
+from devoptimizer_cli.core.paths import get_logs_dir
 
 
 class TestExtendedCleanupParams:
@@ -79,6 +80,16 @@ class TestIsProcessRunning:
             
             result = await is_process_running(["chrome"])
             assert result is True
+    
+    @pytest.mark.asyncio
+    async def test_process_not_in_list(self):
+        with patch('devoptimizer_cli.commands.cleanup.cleanup.run_command') as mock_run:
+            mock_result = MagicMock()
+            mock_result.stdout = "other.exe"
+            mock_run.return_value = mock_result
+            
+            result = await is_process_running(["chrome", "firefox"])
+            assert result is False
 
 
 class TestPruneFiles:
@@ -173,7 +184,7 @@ class TestRunExtendedCleanup:
                     with patch('devoptimizer_cli.commands.cleanup.cleanup.get_chromium_cache_dirs') as mock_chrome:
                         mock_chrome.return_value = []
                         
-                        with patch('devoptimizer_cli.commands.cleanup.cleanup.get_logs_dir') as mock_logs:
+                        with patch('devoptimizer_cli.core.paths.get_logs_dir') as mock_logs:
                             mock_logs.return_value = Path("D:/DevOptimizer/logs")
                             
                             result = await run_extended_cleanup({"dry_run": True})
@@ -196,7 +207,7 @@ class TestRunExtendedCleanup:
                     with patch('devoptimizer_cli.commands.cleanup.cleanup.get_chromium_cache_dirs') as mock_chrome:
                         mock_chrome.return_value = []
                         
-                        with patch('devoptimizer_cli.commands.cleanup.cleanup.get_logs_dir') as mock_logs:
+                        with patch('devoptimizer_cli.core.paths.get_logs_dir') as mock_logs:
                             mock_logs.return_value = Path("D:/DevOptimizer/logs")
                             
                             with patch('devoptimizer_cli.commands.cleanup.cleanup.shutil.move'):
