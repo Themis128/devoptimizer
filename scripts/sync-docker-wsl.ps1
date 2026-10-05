@@ -43,6 +43,7 @@ function Note-Event { param($msg)
 }
 
 # --- [1] Guards ---------------------------------------------------------------
+Log '--- sync run started ---'
 if (-not (Get-Process vmmemWSL -ErrorAction SilentlyContinue)) {
     Log 'WSL VM not running (skipped - no wake)'
     exit 0

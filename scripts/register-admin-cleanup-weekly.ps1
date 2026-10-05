@@ -1,3 +1,14 @@
+<#
+.SYNOPSIS
+    Registers the \DevOptimizer\Admin-Cleanup-Weekly scheduled task (Sundays 03:00, elevated).
+.DESCRIPTION
+    Must run elevated (RunLevel Highest registration). Creates the weekly task that runs
+    win11-admin-cleanup-scheduled.ps1 (DISM component cleanup + RestoreHealth + SFC + WU
+    cache) and appends the registration result to logs\register-admin-cleanup-weekly.log.
+#>
+#requires -Version 5.1
+# CATEGORY: maintenance
+
 # Registers \DevOptimizer\Admin-Cleanup-Weekly (Sundays 03:00, elevated).
 # Must run elevated. Result appended to logs\register-admin-cleanup-weekly.log.
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
