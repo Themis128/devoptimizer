@@ -50,10 +50,16 @@ $settings = New-ScheduledTaskSettingsSet -WakeToRun -StartWhenAvailable `
     -RestartCount 8 -RestartInterval (New-TimeSpan -Minutes 30) `
     -ExecutionTimeLimit (New-TimeSpan -Hours 2) -MultipleInstances IgnoreNew
 
+# 2026-10-05: SYSTEM-principal registrations GHOST on this Insider build (task
+# invisible from standard sessions and does not persist). Interactive + Highest
+# for the owning user persists (proven by Admin-Cleanup-Weekly) and still runs
+# elevated at 03:45 unattended as long as the user is logged on.
+$principal = New-ScheduledTaskPrincipal -UserId 'tbaltzakis' -LogonType Interactive -RunLevel Highest
+
 $ok = $false
 try {
     Register-ScheduledTask -TaskPath $taskPath -TaskName $taskName -Action $action -Trigger $trigger `
-        -Settings $settings -User 'SYSTEM' -RunLevel Highest -Force -ErrorAction Stop | Out-Null
+        -Settings $settings -Principal $principal -Force -ErrorAction Stop | Out-Null
     $ok = $true
 } catch {
     Write-Host "REGISTER FAILED: $($_.Exception.Message)" -ForegroundColor Red
@@ -80,7 +86,7 @@ if ($ok -and $TriggerNow) {
     Write-Host $triggerNowResult
 }
 
-Write-Host "Registered $taskPath$taskName - daily 03:45 vhdx compaction as SYSTEM."
+Write-Host "Registered $taskPath$taskName - daily 03:45 vhdx compaction as $taskName principal (tbaltzakis, Highest)."
 Write-Host 'Devin gates: skips (and retries 8x30min) whenever Devin.exe or devin-server is active.'
 Write-Host 'Growth threshold: 10 GB since last successful compaction. Docker + WSL restart afterward.'
 [pscustomobject]@{ ok = $ok; elevatedView = $elevatedView; triggerNow = $triggerNowResult; at = (Get-Date).ToString('o') } |
