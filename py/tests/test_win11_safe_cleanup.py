@@ -139,5 +139,62 @@ class TestCleanupParams:
         assert params.skip_recycle_bin is True
 
 
+class TestWin11AdminCleanup:
+    """Test win11-admin-cleanup command."""
+    
+    @pytest.mark.asyncio
+    async def test_admin_params_default(self):
+        """Test default admin params."""
+        from devoptimizer_cli.commands.cleanup.cleanup import AdminCleanupParams
+        params = AdminCleanupParams()
+        assert params.dry_run is False
+        assert params.skip_dism is False
+        assert params.skip_sfc is False
+        assert params.skip_wu_cache is False
+        assert params.skip_do_cache is False
+        assert params.skip_shadow is False
+        assert params.skip_windows_old is False
+    
+    @pytest.mark.asyncio
+    async def test_admin_params_custom(self):
+        """Test custom admin params."""
+        from devoptimizer_cli.commands.cleanup.cleanup import AdminCleanupParams
+        params = AdminCleanupParams(
+            dry_run=True,
+            skip_dism=True,
+            skip_sfc=True,
+            skip_wu_cache=True,
+            skip_do_cache=True,
+            skip_shadow=True,
+            skip_windows_old=True,
+        )
+        assert params.dry_run is True
+        assert params.skip_dism is True
+        assert params.skip_sfc is True
+        assert params.skip_wu_cache is True
+        assert params.skip_do_cache is True
+        assert params.skip_shadow is True
+        assert params.skip_windows_old is True
+    
+    @pytest.mark.asyncio
+    async def test_run_admin_cleanup_dry_run(self):
+        """Test admin cleanup dry run."""
+        from devoptimizer_cli.commands.cleanup.cleanup import run_admin_cleanup
+        
+        result = await run_admin_cleanup({
+            "dry_run": True,
+            "skip_dism": True,
+            "skip_sfc": True,
+            "skip_wu_cache": True,
+            "skip_do_cache": True,
+            "skip_shadow": True,
+            "skip_windows_old": True,
+        })
+        
+        assert result.exit_code == 0
+        assert "[DRY RUN]" in result.stdout
+        assert "No commands will be executed" in result.stdout
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
