@@ -21,6 +21,7 @@ from typing import Any
 
 from devoptimizer_cli.core.executor import run_command, run_elevated
 from devoptimizer_cli.core.logging import get_logger
+from devoptimizer_cli.core.paths import get_logs_dir
 from devoptimizer_cli.models.command import CommandResult
 
 log = get_logger(__name__)
@@ -412,7 +413,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _ds(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
 
     # --- Dev caches (user-level) ---
     output_lines.append("\n--- Dev caches (user-level) ---")
@@ -429,13 +430,13 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _ds(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
     
     # Ollama models (report-only, not auto-cleaned)
     ollama = Path.home() / ".ollama" / "models"
     size = await _ds(ollama)
     val, unit = _fmt_bytes(size)
-    output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}} (report-only, not auto-cleaned)".format("Ollama models", val, unit))
+    output_lines.append("{0:<44} : {1:>8} {2} (report-only, not auto-cleaned)".format("Ollama models", val, unit))
 
     # --- Browser caches (Chrome/Edge) ---
     output_lines.append("\n--- Browser caches (Chrome/Edge) ---")
@@ -454,9 +455,9 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     cleanable = cleanable - edge_full + edge_cache
     
     val, unit = _fmt_bytes(chrome_cache)
-    output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}} (precise, cleanable subset)".format("Chrome cache subset", val, unit))
+    output_lines.append("{0:<44} : {1:>8} {2} (precise, cleanable subset)".format("Chrome cache subset", val, unit))
     val, unit = _fmt_bytes(edge_cache)
-    output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}} (precise, cleanable subset)".format("Edge cache subset", val, unit))
+    output_lines.append("{0:<44} : {1:>8} {2} (precise, cleanable subset)".format("Edge cache subset", val, unit))
 
     # --- VS Code / Electron ---
     output_lines.append("\n--- VS Code / Electron ---")
@@ -468,7 +469,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _vs_code_cache_size(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
     
     electron_apps = [
         ("Discord", Path(os.environ.get("APPDATA", "")) / "discord", False),
@@ -480,14 +481,14 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         if size > 0:
             cleanable += size
             val, unit = _fmt_bytes(size)
-            output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+            output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
 
     # --- Recycle bin ---
     output_lines.append("\n--- Recycle bin ---")
     rb_size = await _ds(Path("C:\\$Recycle.Bin"))
     cleanable += rb_size
     val, unit = _fmt_bytes(rb_size)
-    output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}} (readable subset)".format("C:\\$Recycle.Bin", val, unit))
+    output_lines.append("{0:<44} : {1:>8} {2} (readable subset)".format("C:\\$Recycle.Bin", val, unit))
 
     # --- System caches (best effort without admin) ---
     output_lines.append("\n--- System caches (best effort without admin) ---")
@@ -498,7 +499,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     for label, path in sys_caches:
         size = await _ds(path)
         val, unit = _fmt_bytes(size)
-        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
 
     # --- VHDX backing disks ---
     output_lines.append("\n--- VHDX backing disks ---")
@@ -514,7 +515,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
                         size = vhdx.stat().st_size
                         rel = vhdx.relative_to(Path(os.environ.get("LOCALAPPDATA", "")))
                         val, unit = _fmt_bytes(size)
-                        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(str(rel).replace("\\", "/"), val, unit))
+                        output_lines.append("{0:<44} : {1:>8} {2}".format(str(rel).replace("\\", "/"), val, unit))
                     except (PermissionError, OSError):
                         continue
             except Exception:
@@ -528,7 +529,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
             try:
                 size = path.stat().st_size
                 val, unit = _fmt_bytes(size)
-                output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(fname, val, unit))
+                output_lines.append("{0:<44} : {1:>8} {2}".format(fname, val, unit))
             except (PermissionError, OSError):
                 pass
 
@@ -1110,7 +1111,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _ds(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
 
     # --- Dev caches (user-level) ---
     output_lines.append("\n--- Dev caches (user-level) ---")
@@ -1127,13 +1128,13 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _ds(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
     
     # Ollama models (report-only, not auto-cleaned)
     ollama = Path.home() / ".ollama" / "models"
     size = await _ds(ollama)
     val, unit = _fmt_bytes(size)
-    output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}} (report-only, not auto-cleaned)".format("Ollama models", val, unit))
+    output_lines.append("{0:<44} : {1:>8} {2} (report-only, not auto-cleaned)".format("Ollama models", val, unit))
 
     # --- Browser caches (Chrome/Edge) ---
     output_lines.append("\n--- Browser caches (Chrome/Edge) ---")
@@ -1152,9 +1153,9 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     cleanable = cleanable - edge_full + edge_cache
     
     val, unit = _fmt_bytes(chrome_cache)
-    output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}} (precise, cleanable subset)".format("Chrome cache subset", val, unit))
+    output_lines.append("{0:<44} : {1:>8} {2} (precise, cleanable subset)".format("Chrome cache subset", val, unit))
     val, unit = _fmt_bytes(edge_cache)
-    output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}} (precise, cleanable subset)".format("Edge cache subset", val, unit))
+    output_lines.append("{0:<44} : {1:>8} {2} (precise, cleanable subset)".format("Edge cache subset", val, unit))
 
     # --- VS Code / Electron ---
     output_lines.append("\n--- VS Code / Electron ---")
@@ -1166,7 +1167,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _vs_code_cache_size(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
     
     electron_apps = [
         ("Discord", Path(os.environ.get("APPDATA", "")) / "discord", False),
@@ -1178,14 +1179,14 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         if size > 0:
             cleanable += size
             val, unit = _fmt_bytes(size)
-            output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+            output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
 
     # --- Recycle bin ---
     output_lines.append("\n--- Recycle bin ---")
     rb_size = await _ds(Path("C:\\$Recycle.Bin"))
     cleanable += rb_size
     val, unit = _fmt_bytes(rb_size)
-    output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}} (readable subset)".format("C:\\$Recycle.Bin", val, unit))
+    output_lines.append("{0:<44} : {1:>8} {2} (readable subset)".format("C:\\$Recycle.Bin", val, unit))
 
     # --- System caches (best effort without admin) ---
     output_lines.append("\n--- System caches (best effort without admin) ---")
@@ -1196,7 +1197,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     for label, path in sys_caches:
         size = await _ds(path)
         val, unit = _fmt_bytes(size)
-        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
 
     # --- VHDX backing disks ---
     output_lines.append("\n--- VHDX backing disks ---")
@@ -1212,7 +1213,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
                         size = vhdx.stat().st_size
                         rel = vhdx.relative_to(Path(os.environ.get("LOCALAPPDATA", "")))
                         val, unit = _fmt_bytes(size)
-                        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(str(rel).replace("\\", "/"), val, unit))
+                        output_lines.append("{0:<44} : {1:>8} {2}".format(str(rel).replace("\\", "/"), val, unit))
                     except (PermissionError, OSError):
                         continue
             except Exception:
@@ -1226,7 +1227,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
             try:
                 size = path.stat().st_size
                 val, unit = _fmt_bytes(size)
-                output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(fname, val, unit))
+                output_lines.append("{0:<44} : {1:>8} {2}".format(fname, val, unit))
             except (PermissionError, OSError):
                 pass
 
@@ -1905,7 +1906,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _ds(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
 
     # --- Dev caches (user-level) ---
     output_lines.append("\n--- Dev caches (user-level) ---")
@@ -1922,13 +1923,13 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _ds(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
     
     # Ollama models (report-only, not auto-cleaned)
     ollama = Path.home() / ".ollama" / "models"
     size = await _ds(ollama)
     val, unit = _fmt_bytes(size)
-    output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}} (report-only, not auto-cleaned)".format("Ollama models", val, unit))
+    output_lines.append("{0:<44} : {1:>8} {2} (report-only, not auto-cleaned)".format("Ollama models", val, unit))
 
     # --- Browser caches (Chrome/Edge) ---
     output_lines.append("\n--- Browser caches (Chrome/Edge) ---")
@@ -1947,9 +1948,9 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     cleanable = cleanable - edge_full + edge_cache
     
     val, unit = _fmt_bytes(chrome_cache)
-    output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}} (precise, cleanable subset)".format("Chrome cache subset", val, unit))
+    output_lines.append("{0:<44} : {1:>8} {2} (precise, cleanable subset)".format("Chrome cache subset", val, unit))
     val, unit = _fmt_bytes(edge_cache)
-    output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}} (precise, cleanable subset)".format("Edge cache subset", val, unit))
+    output_lines.append("{0:<44} : {1:>8} {2} (precise, cleanable subset)".format("Edge cache subset", val, unit))
 
     # --- VS Code / Electron ---
     output_lines.append("\n--- VS Code / Electron ---")
@@ -1961,7 +1962,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _vs_code_cache_size(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
     
     electron_apps = [
         ("Discord", Path(os.environ.get("APPDATA", "")) / "discord", False),
@@ -1973,14 +1974,14 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         if size > 0:
             cleanable += size
             val, unit = _fmt_bytes(size)
-            output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+            output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
 
     # --- Recycle bin ---
     output_lines.append("\n--- Recycle bin ---")
     rb_size = await _ds(Path("C:\\$Recycle.Bin"))
     cleanable += rb_size
     val, unit = _fmt_bytes(rb_size)
-    output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}} (readable subset)".format("C:\\$Recycle.Bin", val, unit))
+    output_lines.append("{0:<44} : {1:>8} {2} (readable subset)".format("C:\\$Recycle.Bin", val, unit))
 
     # --- System caches (best effort without admin) ---
     output_lines.append("\n--- System caches (best effort without admin) ---")
@@ -1991,7 +1992,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     for label, path in sys_caches:
         size = await _ds(path)
         val, unit = _fmt_bytes(size)
-        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(label, val, unit))
+        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
 
     # --- VHDX backing disks ---
     output_lines.append("\n--- VHDX backing disks ---")
@@ -2007,7 +2008,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
                         size = vhdx.stat().st_size
                         rel = vhdx.relative_to(Path(os.environ.get("LOCALAPPDATA", "")))
                         val, unit = _fmt_bytes(size)
-                        output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(str(rel).replace("\\", "/"), val, unit))
+                        output_lines.append("{0:<44} : {1:>8} {2}".format(str(rel).replace("\\", "/"), val, unit))
                     except (PermissionError, OSError):
                         continue
             except Exception:
@@ -2021,7 +2022,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
             try:
                 size = path.stat().st_size
                 val, unit = _fmt_bytes(size)
-                output_lines.append(f"{{0,-44}} : {{1,>8}} {{2}}".format(fname, val, unit))
+                output_lines.append("{0:<44} : {1:>8} {2}".format(fname, val, unit))
             except (PermissionError, OSError):
                 pass
 

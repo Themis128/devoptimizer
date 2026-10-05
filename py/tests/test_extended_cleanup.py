@@ -161,10 +161,10 @@ class TestGetChromiumCacheDirs:
         (profile1 / "Cache").mkdir()
         
         result = await get_chromium_cache_dirs(tmp_path)
-        assert len(result) == 5  # Default: Cache, Code Cache, GPUCache, Service Worker/CacheStorage, Service Worker/ScriptCache
-        # Note: GPUCache and Service Worker dirs don't exist so won't be added
-        # Actually the function adds all 5 for Default + 2 for Profile 1 = 7 if they all exist
-        # Let's check what actually gets added
+        # Only dirs that exist are returned: Default(Cache, Code Cache) + Profile 1(Cache).
+        assert len(result) == 3
+        assert (tmp_path / "Default" / "Cache") in result
+        assert (tmp_path / "Profile 1" / "Cache") in result
 
 
 class TestRunExtendedCleanup:
