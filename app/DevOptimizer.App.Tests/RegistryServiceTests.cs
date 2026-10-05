@@ -168,14 +168,14 @@ public class RegistryServiceTests
         var livePath = Path.Combine(repoRoot!, "config", "hub-registry.json");
         var snapshot = new RegistryService().LoadSnapshot(livePath);
 
-        Assert.Equal(368, snapshot.Commands.Count);
+        Assert.Equal(369, snapshot.Commands.Count);
 
         var expectedCounts = new Dictionary<string, int>
         {
             ["utilities"] = 190,
             ["cleanup"] = 66,
             ["ai-ml"] = 40,
-            ["maintenance"] = 23,
+            ["maintenance"] = 24,
             ["gaming"] = 18,
             ["system-optimization"] = 10,
             ["development"] = 9,
