@@ -93,31 +93,48 @@ Write-Log "=== SocialAuto Maintenance - zero-downtime pass - $(Get-Date -Format 
 if ($ReportOnly) { Write-Log "[MODE] report-only: no prunes, no cache drop" }
 
 # --- 0. Preflight (tolerates the engine still booting when this pass fires as
-#        a logon catch-up: wait up to ~2 minutes for docker to answer) ---
-$ping = Invoke-Wsl 'echo ok'
-if ($ping -notmatch 'ok') {
+#        a logon catch-up: wait up to ~8 minutes for docker to answer) ---
+$ping = @(Invoke-Wsl 'echo ok') | Where-Object { $_ -match '^ok$' }
+if (-not $ping) {
     Write-Log "[FAIL] WSL distro '$distro' unreachable - maintenance aborted (platform itself is untouched)."
     exit 1
 }
+# Accept ONLY a clean version line. When the distro's docker shim is missing
+# (WSL-integration cold-start race, hit 2026-10-06 04:00), wsl.exe relays the
+# "docker could not be found" text on STDOUT - and -notmatch applied to an
+# array FILTERS elements instead of testing, so the error text used to pass
+# this check and every later count parsed the error lines as data.
 $engineOk = $false
 $serverVersion = ''
-for ($i = 0; $i -lt 12; $i++) {
+for ($i = 0; $i -lt 48; $i++) {
     $serverVersion = Invoke-Wsl 'docker version --format {{.Server.Version}} 2>/dev/null || echo DOWN'
-    if ($serverVersion -notmatch 'DOWN' -and $serverVersion) { $engineOk = $true; break }
-    if ($i -eq 0) { Write-Log "[WAIT] docker engine not answering yet - waiting up to 2 minutes ..." }
+    $verLine = @($serverVersion) | Where-Object { $_ -match '^\s*\d+(\.\d+){1,3}\s*$' } | Select-Object -First 1
+    if ($verLine) { $engineOk = $true; $serverVersion = $verLine.Trim(); break }
+    if ($i -eq 0) { Write-Log "[WAIT] docker engine/CLI not answering yet - waiting up to 8 minutes ..." }
     Start-Sleep -Seconds 10
 }
 if (-not $engineOk) {
-    Write-Log "[FAIL] Docker engine not responsive inside WSL after 2 minutes - maintenance aborted."
+    Write-Log "[FAIL] Docker engine/CLI not responsive inside WSL after 8 minutes - maintenance aborted."
     exit 1
 }
 Write-Log "[ OK ] WSL + docker engine responsive (server $serverVersion)"
 
 # --- 1. Stack snapshot (before) ---
+# Only a pure-digit line is a count; anything else on stdout is error text,
+# never data. -1 = unreadable, which aborts the pass below.
+function Get-StackCount([string]$wslCmd) {
+    $digits = @(Invoke-Wsl $wslCmd) | Where-Object { $_ -match '^\s*\d+\s*$' } | Select-Object -Last 1
+    if ($null -ne $digits) { return [int]($digits.Trim()) }
+    return -1
+}
 $before = [ordered]@{
-    running   = [int](Invoke-Wsl 'docker ps -q | wc -l').Trim()
-    unhealthy = [int](Invoke-Wsl 'docker ps --filter health=unhealthy -q | wc -l').Trim()
-    exited    = [int](Invoke-Wsl 'docker ps -a --filter status=exited -q | wc -l').Trim()
+    running   = Get-StackCount 'docker ps -q | wc -l'
+    unhealthy = Get-StackCount 'docker ps --filter health=unhealthy -q | wc -l'
+    exited    = Get-StackCount 'docker ps -a --filter status=exited -q | wc -l'
+}
+if (($before.running -lt 0) -or ($before.unhealthy -lt 0) -or ($before.exited -lt 0)) {
+    Write-Log "[FAIL] could not read stack counts (docker CLI missing inside distro?) - aborting."
+    exit 1
 }
 Write-Log "[ OK ] stack before: $($before.running) running / $($before.unhealthy) unhealthy / $($before.exited) exited"
 
@@ -154,7 +171,10 @@ if ($ReportOnly) {
 }
 
 # --- 3. Unhealthy containers (report / opt-in remediate) ---
-$unhealthy = @(Invoke-Wsl "docker ps --filter health=unhealthy --format '{{.Names}}|{{.Status}}'") | Where-Object { $_ }
+# Keep only real "name|status" lines: if docker is missing mid-run, WSL's
+# error text must not be reported as a (phantom) unhealthy container.
+$unhealthy = @(Invoke-Wsl "docker ps --filter health=unhealthy --format '{{.Names}}|{{.Status}}'") |
+    Where-Object { $_ -match '^[A-Za-z0-9][A-Za-z0-9_.\-]+\|' }
 if ($unhealthy.Count -gt 0) {
     foreach ($u in $unhealthy) {
         $name = ($u -split '\|')[0]
@@ -219,9 +239,13 @@ Write-Log "       logging: options (max-size/max-file) at the next planned recre
 
 # --- 7. Stack snapshot (after) + verdict ---
 $after = [ordered]@{
-    running   = [int](Invoke-Wsl 'docker ps -q | wc -l').Trim()
-    unhealthy = [int](Invoke-Wsl 'docker ps --filter health=unhealthy -q | wc -l').Trim()
-    exited    = [int](Invoke-Wsl 'docker ps -a --filter status=exited -q | wc -l').Trim()
+    running   = Get-StackCount 'docker ps -q | wc -l'
+    unhealthy = Get-StackCount 'docker ps --filter health=unhealthy -q | wc -l'
+    exited    = Get-StackCount 'docker ps -a --filter status=exited -q | wc -l'
+}
+if (($after.running -lt 0) -or ($after.unhealthy -lt 0) -or ($after.exited -lt 0)) {
+    Write-Log "[FAIL] could not read post-pass stack counts - investigate (platform state unknown)."
+    exit 1
 }
 Write-Log "[ OK ] stack after: $($after.running) running / $($after.unhealthy) unhealthy / $($after.exited) exited"
 if ($after.running -lt $before.running) {
