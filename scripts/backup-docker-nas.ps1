@@ -18,7 +18,7 @@
 # CATEGORY: docker
 param(
     [string]$StagingRoot = 'D:\DevOptimizer\backups\nas-staging',
-    [string]$NasDir = 'devoptimizer-backups',
+    [string]$NasDir = '/srv/dev-disk-by-uuid-fa6231ab-eae7-40ea-a4b6-400f767a89d7/devoptimizer-backups',
     [int]$KeepNightly = 7,
     [int]$KeepWeekly = 4,
     [int]$MaxNightlyVolumeGB = 2,
@@ -47,8 +47,8 @@ docker info 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) { Log 'docker engine not reachable (skipped)'; exit 0 }
 ssh -o BatchMode=yes -o ConnectTimeout=10 omv 'echo nas-ok' 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) { NoteFail 'NAS ssh unreachable (skipped run)'; exit 0 }
-$nasFree = ssh -o BatchMode=yes omv 'df -h / | tail -1 | awk "{print \$4}"' 2>$null
-Log ("nas reachable, root free: {0}" -f ($nasFree -join '').Trim())
+$nasFree = ssh -o BatchMode=yes omv 'df -h / | tail -1' 2>$null
+Log ("nas reachable, root: {0}" -f ($nasFree -join '').Trim())
 
 if ($VerifyOnly) {
     Log ("VERIFY-ONLY: weekly={0}; volumes: {1}; postgres container: {2}" -f $weekly,
@@ -111,7 +111,8 @@ foreach ($vol in (docker volume ls -q 2>$null)) {
     $out = Join-Path $nightlyDir ("vol-{0}-{1}.tar.gz" -f ($vol -replace '[^a-zA-Z0-9_-]', '_'), $dateTag)
     docker run --rm -v ("{0}:/data:ro" -f $vol) -v ("{0}:/backup" -f $nightlyDir) $tinyImage tar czf ("/backup/{0}" -f (Split-Path $out -Leaf)) -C /data . 2>$null | Out-Null
     if ((Test-Path $out) -and ((Get-Item $out).Length -gt 100)) { $files += $out; $tarred++ }
-    else { NoteFail ("volume tar failed or empty: {0}" -f $vol) }
+    elseif (Test-Path $out) { Log ("volume {0}: empty (ok)" -f $vol) }
+    else { NoteFail ("volume tar failed: {0}" -f $vol) }
 }
 Log ("volumes tarred: {0} of {1}" -f $tarred, (docker volume ls -q 2>$null | Measure-Object).Count)
 
@@ -120,7 +121,7 @@ $wslOut = Join-Path $nightlyDir ("wsl-{0}-{1}.tar.gz" -f $(if ($weekly) { 'home'
 if ($weekly) {
     $cmd = "tar czf - -C /home/tbaltzakis --exclude='node_modules' --exclude='.cache' --exclude='.local' --exclude='.cargo' --exclude='.rustup' --exclude='.npm' --exclude='.vscode-server' --exclude='.next' --exclude='__pycache__' --exclude='target' ."
 } else {
-    $cmd = "tar czf - -C /home/tbaltzakis cu130-slim/docker-compose.yml cu130-slim/.env cloudless.gr backups 2>/dev/null"
+    $cmd = "tar czf - -C /home/tbaltzakis cu130-slim/docker-compose.yml cu130-slim/.env cloudless.gr 2>/dev/null"
 }
 & wsl.exe -d Ubuntu-26.04 -e sh -lc $cmd > $wslOut 2>$null
 if ((Test-Path $wslOut) -and ((Get-Item $wslOut).Length -gt 1KB)) { $files += $wslOut; Log ("wsl layer OK: {0:N1} MB" -f ((Get-Item $wslOut).Length/1MB)) }
