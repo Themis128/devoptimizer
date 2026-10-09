@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Read-only Win11 cleanup status assessment: drives, temp, dev caches, browser data, VHDX sizes, Docker usage."""
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
+from pathlib import Path
+from typing import Optional
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from pathlib import Path
 from py.cleanup.utils import (
@@ -23,8 +25,16 @@ def add_clean(bytes_val: int):
 def row(label: str, path: Optional[Path]) -> int:
     """Print a row and return size in bytes."""
     global cleanable_bytes
-    if not path or not path.exists():
+    if not path:
         print(f"{label:<44} : (not present)")
+        return 0
+    
+    try:
+        if not path.exists():
+            print(f"{label:<44} : (not present)")
+            return 0
+    except PermissionError:
+        print(f"{label:<44} : (access denied)")
         return 0
     
     size = dir_size(path)
@@ -164,13 +174,18 @@ def main():
     
     # ─── Docker ───
     write_header("Docker (if running)")
-    result = run_command(["docker", "version", "--format", "{{.Server.Version}}"])
-    if result.returncode == 0:
-        df_result = run_command(["docker", "system", "df"])
-        if df_result.returncode == 0:
-            print(df_result.stdout.strip())
-    else:
-        write_info("Docker daemon not running - skipped")
+    try:
+        result = run_command(["docker", "version", "--format", "{{.Server.Version}}"])
+        if result.returncode == 0:
+            df_result = run_command(["docker", "system", "df"])
+            if df_result.returncode == 0:
+                print(df_result.stdout.strip())
+            else:
+                write_info("Docker system df failed")
+        else:
+            write_info("Docker daemon not running - skipped")
+    except Exception as e:
+        write_warn(f"Docker check failed: {e}")
     
     # ─── Verdict ───
     write_header("Verdict")

@@ -2,7 +2,19 @@
 """Dev cache cleaner - admin-level cache cleaning (DISM, WU, Delivery Optimization, etc.)."""
 import sys
 import ctypes
-sys.path.insert(0, str(Path(__file__).parent.parent))
+import shutil
+import time
+from pathlib import Path
+from datetime import datetime, timedelta
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+from py.cleanup.utils import (
+    Colors, mb, gb, get_free_space,
+    write_header, write_done, write_warn, write_info, write_error,
+    SYSTEMROOT, run_command
+)
+
+Colors.enable()
 
 from pathlib import Path
 from py.cleanup.utils import (

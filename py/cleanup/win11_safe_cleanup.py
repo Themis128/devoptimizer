@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Windows 11 safe cleanup for DevOptimizer (non-admin scope)."""
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
+import shutil
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 from py.cleanup.utils import (
     Colors, mb, gb, fmt_bytes, dir_size, get_free_space,
     write_header, write_done, write_warn, write_info, write_error,
-    TEMP, LOCALAPPDATA, SYSTEMROOT, run_command
+    TEMP, LOCALAPPDATA, SYSTEMROOT, run_command, safe_path
 )
 
 Colors.enable()
@@ -15,18 +16,16 @@ Colors.enable()
 
 def clean_directory(path: Path, label: str) -> int:
     """Clean a directory, return bytes freed."""
-    if not path.exists():
+    if not path or not path.exists():
         return 0
     
     size = dir_size(path)
-    freed = 0
     
     try:
         for entry in path.iterdir():
             try:
                 if entry.is_file():
                     entry.unlink(missing_ok=True)
-                    freed += entry.stat().st_size
                 elif entry.is_dir():
                     shutil.rmtree(entry, ignore_errors=True)
             except (OSError, PermissionError):
@@ -40,8 +39,6 @@ def clean_directory(path: Path, label: str) -> int:
 
 
 def main():
-    import shutil
-    
     before = get_free_space("C:")
     print(f"{Colors.MAGENTA}=== Windows 11 Safe Cleanup ==={Colors.RESET}")
     print(f"C: free before: {gb(before):.2f} GB\n")

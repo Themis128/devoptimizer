@@ -129,15 +129,20 @@ def prune_files(path: Path, days: int, dry_run: bool = False) -> int:
     return freed
 
 
-def run_command(cmd: List[str], capture: bool = True, timeout: int = 60) -> subprocess.CompletedProcess:
-    """Run a command and return CompletedProcess."""
+def run_command(cmd: List[str], capture: bool = True, timeout: int = 60, shell: bool = False, encoding: str = "utf-8") -> subprocess.CompletedProcess:
+    """Run a command and return CompletedProcess.
+    
+    Note: WSL commands like 'wsl -l -q' output UTF-16-LE on Windows.
+    Use encoding='utf-16-le' for such commands.
+    """
     try:
         return subprocess.run(
             cmd,
             capture_output=capture,
             text=True,
             timeout=timeout,
-            shell=False
+            shell=shell,
+            encoding=encoding
         )
     except subprocess.TimeoutExpired:
         return subprocess.CompletedProcess(cmd, -1, "", "Timeout")

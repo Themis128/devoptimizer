@@ -2,9 +2,10 @@
 """VHDX compaction for WSL/Docker disks. Can run as library (-AsLibrary) or standalone."""
 import sys
 import argparse
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
+import time
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 from py.cleanup.utils import (
     Colors, gb, get_free_space,
     write_header, write_done, write_warn, write_info, write_error,

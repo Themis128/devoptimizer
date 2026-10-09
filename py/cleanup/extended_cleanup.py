@@ -2,10 +2,11 @@
 """Extended cleanup (weekly): deeper user-level sweeps beyond the daily safe cleanup."""
 import sys
 import argparse
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
+import shutil
 from pathlib import Path
 from datetime import datetime, timedelta
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 from py.cleanup.utils import (
     Colors, mb, gb, dir_size, get_free_space, get_chromium_cache_dirs, prune_files,
     write_header, write_done, write_warn, write_info, write_error,

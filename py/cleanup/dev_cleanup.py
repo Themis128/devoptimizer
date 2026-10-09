@@ -3,9 +3,9 @@
 import sys
 import subprocess
 import shutil
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 from py.cleanup.utils import (
     Colors, mb, gb, dir_size, get_free_space, get_chromium_cache_dirs,
     write_header, write_done, write_warn, write_info, write_error,
