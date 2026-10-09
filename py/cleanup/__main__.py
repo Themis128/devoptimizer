@@ -4,7 +4,7 @@ import sys
 import subprocess
 from pathlib import Path
 
-SCRIPTS_DIR = Path(__file__).parent / "cleanup"
+SCRIPTS_DIR = Path(__file__).parent
 
 SCRIPTS = {
     "check": ("check_cleanup_status.py", "Read-only cleanup status assessment"),

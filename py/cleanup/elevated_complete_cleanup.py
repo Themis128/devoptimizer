@@ -16,15 +16,6 @@ from py.cleanup.utils import (
 
 Colors.enable()
 
-from pathlib import Path
-from py.cleanup.utils import (
-    Colors, mb, gb, get_free_space,
-    write_header, write_done, write_warn, write_info, write_error,
-    SYSTEMROOT, run_command
-)
-
-Colors.enable()
-
 
 def is_admin() -> bool:
     """Check if running as administrator."""

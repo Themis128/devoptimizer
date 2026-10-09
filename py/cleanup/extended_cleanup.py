@@ -174,7 +174,7 @@ def main():
                 except (OSError, PermissionError):
                     pass
         
-        write_done(f"Logs >{args.log_days}d moved to archive\          : {len(stale_logs)} file(s), {mb(l_freed):.1f} MB")
+        write_done(f"Logs >{args.log_days}d moved to archive          : {len(stale_logs)} file(s), {mb(l_freed):.1f} MB")
         
         # purge old archive
         a_cutoff = datetime.now() - timedelta(days=args.archive_days)
