@@ -17,6 +17,7 @@
 # CATEGORY: docker
 param(
     [switch]$Apply,
+    [switch]$Force,
     [string]$Distro = 'Ubuntu-26.04'
 )
 $ErrorActionPreference = 'SilentlyContinue'
@@ -27,8 +28,11 @@ Log ("--- bound-container-logs run started (Apply={0}) ---" -f [bool]$Apply)
 
 # --- [1] Gates -----------------------------------------------------------------
 if (Get-Process Devin -ErrorAction SilentlyContinue) { Log 'Devin.exe running - DEFERRED (exit 2)'; exit 2 }
-$devinSrv = & wsl.exe -d $Distro -e sh -lc 'pgrep -fc "devin-server" 2>/dev/null' 2>$null
-if ("$devinSrv".Trim() -match '^[1-9]') { Log 'devin-server alive in distro - DEFERRED (exit 2)'; exit 2 }
+$devinSrv = & wsl.exe -d $Distro -e sh -lc 'pgrep -fc "out/server-main.js" 2>/dev/null' 2>$null
+if ("$devinSrv".Trim() -match '^[1-9]') {
+    if ($Force) { Log 'devin-server alive but -Force given and Devin.exe closed - proceeding (server is a native WSL process; container recreate does not touch it)' }
+    else { Log 'devin-server alive in distro - DEFERRED (exit 2; use -Force only when Devin.exe is closed)'; exit 2 }
+}
 docker info 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) { Log 'docker engine not reachable (skipped)'; exit 0 }
 
@@ -49,9 +53,13 @@ foreach ($line in (docker ps -a --format '{{.Names}}' 2>$null)) {
 Log ("unbounded containers: {0} of {1}" -f $unbounded.Count, ((docker ps -a --format '{{.Names}}' 2>$null | Measure-Object).Count))
 $projects = @{}
 foreach ($c in $unbounded) {
-    $proj = (docker inspect $c --format '{{index .Labels "com.docker.compose.project"}}' 2>$null) -replace "`r", ''
-    $dir  = (docker inspect $c --format '{{index .Labels "com.docker.compose.project.working_dir"}}' 2>$null) -replace "`r", ''
-    if ($proj -and $dir) { $projects[$proj] = $dir }
+    # PS 5.1 native-arg quoting strips embedded quotes from --format templates
+    # ("function com not defined") - fetch labels as JSON instead.
+    $labels = $null
+    try { $labels = ((docker inspect $c --format '{{json .Config.Labels}}' 2>$null) -replace "`r", '') | ConvertFrom-Json } catch {}
+    $proj = $labels.'com.docker.compose.project'
+    $dir  = $labels.'com.docker.compose.project.working_dir'
+    if ($proj -and $dir) { $projects[$proj] = $dir } else { Log ("non-compose container (manual-only): {0}" -f $c) }
 }
 foreach ($k in $projects.Keys) { Log ("project {0} -> {1}" -f $k, $projects[$k]) }
 if (-not $Apply) { Log 'report-only (no -Apply). Review the plan above, then re-run with -Apply.'; exit 0 }

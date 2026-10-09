@@ -143,11 +143,23 @@ if ($ReportOnly) {
     $dangling = [int](Invoke-Wsl 'docker images -f dangling=true -q | wc -l').Trim()
     Write-Log "[ DRY ] would prune: $dangling dangling image(s), exited containers, build cache older than 7 days"
 } else {
-    $exitedBefore = $before.exited
-    if ($exitedBefore -gt 0) {
-        [void](Invoke-Wsl 'docker container prune -f')
-        $exitedAfter = [int](Invoke-Wsl 'docker ps -a --filter status=exited -q | wc -l').Trim()
-        Write-Log "[ OK ] pruned exited containers: $($exitedBefore - $exitedAfter) removed"
+    # Exited containers that must never be pruned: the cu130-slim compose
+    # project (stack-ops idle-sleep keeps most of it stopped on purpose -
+    # pruning them once deleted 16 sleeping containers incl. ComfyUI and all
+    # browser sidecars) and the Desktop model-runner container (outside
+    # compose, deleted by a prune once already). container prune honors
+    # label!= filters; docker ps does not, so counts are computed by
+    # subtracting protected IDs from the exited list.
+    $pruneFilters = '--filter "label!=com.docker.compose.project=cu130-slim" --filter "label!=com.docker.desktop.service=model-runner"'
+    $exitedIds = @(Invoke-Wsl 'docker ps -a --filter status=exited -q' | Where-Object { $_ -match '^[0-9a-f]+$' })
+    $protectedIds = @(
+        @(Invoke-Wsl 'docker ps -a --filter status=exited --filter "label=com.docker.compose.project=cu130-slim" -q') +
+        @(Invoke-Wsl 'docker ps -a --filter status=exited --filter "label=com.docker.desktop.service=model-runner" -q')
+    ) | Select-Object -Unique
+    $prunable = @($exitedIds | Where-Object { $protectedIds -notcontains $_ }).Count
+    if ($prunable -gt 0) {
+        [void](Invoke-Wsl "docker container prune -f $pruneFilters")
+        Write-Log "[ OK ] pruned exited containers: $prunable removed ($($protectedIds.Count) protected - stack-ops sleeping/compose + DMR runner)"
     } else {
         Write-Log "[ OK ] no exited containers to prune"
     }

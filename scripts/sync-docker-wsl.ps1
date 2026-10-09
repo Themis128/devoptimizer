@@ -64,9 +64,26 @@ if ($serverVer) {
 }
 
 # --- [3] Exited-container recovery (restart policies only) --------------------
+# stack-ops idle-sleep integration: containers fronted by the stack-ops wake
+# proxy are Exited *by design* when idle and wake on first request — never
+# resurrect them here. Fail-open: if stack-ops is unreachable its sleeper is
+# down too, so no managed container is legitimately asleep and the normal
+# resurrection path applies.
+$stackOpsManaged = @{}
+try {
+    $resp = Invoke-RestMethod -Uri 'http://127.0.0.1:8787/status' -TimeoutSec 5
+    foreach ($p in $resp.PSObject.Properties) {
+        $stackOpsManaged[$p.Name] = $true
+        if ($p.Value.container) { $stackOpsManaged[$p.Value.container] = $true }
+    }
+    if ($stackOpsManaged.Count -gt 0) {
+        Log ("stack-ops managing {0} container name(s) - excluded from exited recovery" -f $stackOpsManaged.Count)
+    }
+} catch { }
 $exited = (docker ps -a --filter status=exited --format '{{.Names}}') -replace "`r", "" | Where-Object { $_ }
 $candidates = @()
 foreach ($name in $exited) {
+    if ($stackOpsManaged.ContainsKey($name)) { continue }
     $policy = (docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' $name) -replace "`r", ""
     if ($policy -eq 'always' -or $policy -eq 'unless-stopped') { $candidates += $name }
 }

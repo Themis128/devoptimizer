@@ -168,7 +168,7 @@ public class RegistryServiceTests
         var livePath = Path.Combine(repoRoot!, "config", "hub-registry.json");
         var snapshot = new RegistryService().LoadSnapshot(livePath);
 
-        Assert.Equal(371, snapshot.Commands.Count);
+        Assert.Equal(372, snapshot.Commands.Count);
 
         var expectedCounts = new Dictionary<string, int>
         {
@@ -182,7 +182,7 @@ public class RegistryServiceTests
             ["docker"] = 3,
             ["network"] = 4,
             ["security"] = 4,
-            ["monitoring"] = 3,
+            ["monitoring"] = 4,
         };
         var actualCounts = snapshot.Commands
             .GroupBy(c => c.Category, StringComparer.OrdinalIgnoreCase)

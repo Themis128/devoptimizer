@@ -322,7 +322,7 @@ if ($WSLAvailable) {
                 @{ Cmd = "apt-get autoremove -y 2>/dev/null"; Desc = "apt autoremove" },
                 @{ Cmd = "rm -rf /tmp/* /var/tmp/* 2>/dev/null"; Desc = "temp folders" },
                 @{ Cmd = "journalctl --vacuum-time=7d 2>/dev/null"; Desc = "journald (7 days)" },
-                @{ Cmd = "docker system prune -f --volumes 2>/dev/null"; Desc = "docker system prune" },
+                @{ Cmd = "docker system prune -f --volumes --filter 'label!=com.docker.desktop.service=model-runner' --filter 'label!=com.docker.model-runner.role=model-storage' 2>/dev/null"; Desc = "docker system prune" },
                 
                 # Language package managers
                 @{ Cmd = "npm cache clean --force 2>/dev/null"; Desc = "npm cache" },

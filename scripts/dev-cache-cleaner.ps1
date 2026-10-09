@@ -468,7 +468,7 @@ function Clear-DockerCache {
     try {
         if (Get-Command docker -ErrorAction SilentlyContinue) {
             if (-not $DryRun) {
-                & docker system prune -f 2>$null
+                & docker system prune -f --filter "label!=com.docker.desktop.service=model-runner" --filter "label!=com.docker.model-runner.role=model-storage" 2>$null
                 Write-Log "Docker system prune completed" -Level "SUCCESS"
             } else {
                 Write-Log "DRY RUN: Would run docker system prune" -Level "INFO"
