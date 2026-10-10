@@ -23,9 +23,24 @@ param(
     [switch]$ApplySafeCleanup
 )
 
+function Show-Progress {
+    param([string]$Activity, [string]$Status, [int]$PercentComplete)
+    Write-Progress -Activity $Activity -Status $Status -PercentComplete $PercentComplete -CurrentOperation $Status
+}
+
+function Write-VerboseStep {
+    param([string]$Message)
+    Write-Host "[VERBOSE] $Message" -ForegroundColor Cyan
+}
+
 $ErrorActionPreference = 'SilentlyContinue'
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
 Write-Host "=== WSL & System Fine-Tune Status -- $stamp ==="
+
+Show-Progress -Activity "WSL System Status" -Status "Initializing..." -PercentComplete 0
+
+Show-Progress -Activity "WSL System Status" -Status "Checking host RAM..." -PercentComplete 10
+Write-VerboseStep "Checking host RAM and vmmemWSL process"
 
 # --- Host side -------------------------------------------------------------
 $os = Get-CimInstance Win32_OperatingSystem
@@ -34,6 +49,9 @@ $vmmem = Get-Process vmmemWSL -ErrorAction SilentlyContinue | Select-Object -Fir
 $vmmemGB = if ($vmmem) { [math]::Round($vmmem.WS / 1GB, 2) } else { $null }
 Write-Host ("Host RAM free : {0} GB of 31.7 GB" -f $hostFreeGB)
 Write-Host ("vmmemWSL      : " + $(if ($vmmemGB) { "{0} GB working set (WSL running)" -f $vmmemGB } else { "not running (skipping in-VM checks)" }))
+
+Show-Progress -Activity "WSL System Status" -Status "Checking WSL memory limits and swap pressure..." -PercentComplete 30
+Write-VerboseStep "Checking WSL memory limits and swap pressure"
 
 # --- In-VM limits & swap pressure ------------------------------------------
 if ($vmmem) {
@@ -58,6 +76,9 @@ if ($vmmem) {
     Write-Host "WSL limits    : n/a (VM down; .wslconfig memory=20GB swap=16GB applies at next start)"
 }
 
+Show-Progress -Activity "WSL System Status" -Status "Checking on-demand containers..." -PercentComplete 50
+Write-VerboseStep "Checking on-demand container status"
+
 # --- On-demand container set ------------------------------------------------
 $onDemand = @('local-diffusers', 'browser-novnc', 'facebook-browser-sidecar', 'languagetool', 'metabase', 'social-media-comfyui-gpu')
 $upNames = @(docker ps --format "{{.Names}}" 2>$null) -replace "`r", ""
@@ -68,6 +89,9 @@ foreach ($name in $onDemand) {
     $state = if ($upNames -contains $name) { "RUNNING (on-demand, started manually)" } else { "down (restart=no)" }
     Write-Host ("  on-demand   : {0,-28} {1}" -f $name, $state)
 }
+
+Show-Progress -Activity "WSL System Status" -Status "Checking Docker disk usage..." -PercentComplete 70
+Write-VerboseStep "Checking Docker disk usage"
 
 # --- Docker disk usage -------------------------------------------------------
 $df = docker system df --format "{{.Type}}|{{.Size}}|{{.Reclaimable}}" 2>$null
@@ -80,12 +104,18 @@ if ($df) {
     }
 }
 
+Show-Progress -Activity "WSL System Status" -Status "Running optional safe cleanup..." -PercentComplete 85
+Write-VerboseStep "Running optional safe cleanup (if requested)"
+
 # --- Optional safe cleanup ---------------------------------------------------
 if ($ApplySafeCleanup) {
     Write-Host ""
     Write-Host "=== Running user-level safe cleanup ==="
     & (Join-Path $PSScriptRoot 'win11-safe-cleanup.ps1')
 }
+
+Show-Progress -Activity "WSL System Status" -Status "Complete" -PercentComplete 100
+Write-VerboseStep "WSL system status check complete"
 
 Write-Host ""
 Write-Host "Done. Watchdog history: logs\wsl-memory-pressure.log (task \DevOptimizer\WSL-Memory-Watchdog, every 30 min)"

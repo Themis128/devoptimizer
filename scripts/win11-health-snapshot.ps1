@@ -9,7 +9,25 @@
 $ErrorActionPreference = 'SilentlyContinue'
 Write-Host '=== WINDOWS 11 HEALTH SNAPSHOT ===' -ForegroundColor Cyan
 
+# Progress bar helper
+function Show-Progress {
+    param(
+        [string]$Activity,
+        [string]$Status,
+        [int]$PercentComplete
+    )
+    Write-Progress -Activity $Activity -Status $Status -PercentComplete $PercentComplete -CurrentOperation $Status
+}
+
+# Verbose output helper
+function Write-VerboseStep {
+    param([string]$Message)
+    Write-Host "[VERBOSE] $Message" -ForegroundColor Cyan
+}
+
 # 1. Disks / storage health
+Write-VerboseStep "Checking disk/Storage health..."
+Show-Progress -Activity "Health Snapshot" -Status "Checking storage health" -PercentComplete 10
 Write-Host "`n-- Storage --"
 Get-PhysicalDisk | ForEach-Object { Write-Host ("{0}: Health={1} Op={2} Size={3:N0}GB" -f $_.FriendlyName, $_.HealthStatus, $_.OperationalStatus, ($_.Size/1GB)) }
 Get-Volume | Where-Object DriveLetter | ForEach-Object {
@@ -17,6 +35,8 @@ Get-Volume | Where-Object DriveLetter | ForEach-Object {
     Write-Host ("{0}: {1} free {2}% of {3:N0}GB" -f $_.DriveLetter, $_.FileSystem, $pct, ($_.Size/1GB)) }
 
 # 2. Pending reboot?
+Write-VerboseStep "Checking for pending reboots..."
+Show-Progress -Activity "Health Snapshot" -Status "Checking pending reboots" -PercentComplete 20
 $rb = @()
 if (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') { $rb += 'CBS' }
 if (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') { $rb += 'WU' }
@@ -25,10 +45,14 @@ if ($pendingRename) { $rb += 'FileRename' }
 Write-Host ("`n-- Reboot pending: {0} --" -f ($(if ($rb) { $rb -join ', ' } else { 'no' })))
 
 # 3. Windows Update service state
+Write-VerboseStep "Checking Windows Update service..."
+Show-Progress -Activity "Health Snapshot" -Status "Checking Windows Update service" -PercentComplete 30
 $wu = Get-Service wuauserv
 Write-Host ("WU service: {0}" -f $wu.Status)
 
 # 4. Defender
+Write-VerboseStep "Checking Windows Defender status..."
+Show-Progress -Activity "Health Snapshot" -Status "Checking Defender" -PercentComplete 40
 $mp = Get-MpComputerStatus
 Write-Host ("`n-- Defender: RealTime={0} Definitions={1} ({2}) --" -f $mp.RealTimeProtectionEnabled, $mp.AntivirusSignatureVersion, $mp.AntivirusSignatureLastUpdated)
 
