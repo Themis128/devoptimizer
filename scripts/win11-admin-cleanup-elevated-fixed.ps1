@@ -64,8 +64,8 @@ if (Test-Path $wuPath) {
 # 5. Delivery Optimization Cache
 Write-Host "`n--- [5] Delivery Optimization Cache ---" -ForegroundColor Cyan
 try {
-    Write-Host "Running: Delete-DeliveryOptimizationCache" -ForegroundColor Yellow
-    Delete-DeliveryOptimizationCache -ErrorAction Stop
+    Write-Host "Running: Delete-DeliveryOptimizationCache -Force" -ForegroundColor Yellow
+    Delete-DeliveryOptimizationCache -Force -ErrorAction Stop
     Write-Host "[5] Delivery Optimization cache: CLEARED" -ForegroundColor Green
 } catch {
     $msg = $_.Exception.Message.Split("`n")[0]
