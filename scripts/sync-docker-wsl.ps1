@@ -50,9 +50,35 @@ if (-not (Get-Process vmmemWSL -ErrorAction SilentlyContinue)) {
 }
 docker info 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    Log 'docker engine not reachable (Docker Desktop down or still starting - skipped)'
+    $backend = Get-Process com.docker.backend -ErrorAction SilentlyContinue
+    if (-not $backend) {
+        # Docker Desktop is not running at all (e.g. killed by a WSL update).
+        # Relaunch it; containers with restart policies come back on their own.
+        Log 'docker engine unreachable AND com.docker.backend absent - relaunching Docker Desktop'
+        Note-Event 'Docker Desktop was not running; relaunched by Docker-WSL-Sync'
+        Start-Process 'C:\Program Files\Docker\Docker\Docker Desktop.exe'
+        exit 0
+    }
+    # Backend alive but engine unreachable: count consecutive strikes and do a
+    # full stop+start on the 3rd consecutive failure (Wedged daemon recovery).
+    $stateFile = 'D:\DevOptimizer\logs\docker-down-strikes.txt'
+    $strikes = 0
+    if (Test-Path $stateFile) { $strikes = [int](Get-Content $stateFile -ErrorAction SilentlyContinue | Select-Object -First 1) }
+    $strikes++
+    Set-Content -Path $stateFile -Value $strikes -ErrorAction SilentlyContinue
+    if ($strikes -ge 3) {
+        Log "docker engine unreachable $strikes runs in a row with backend alive - restarting Docker Desktop"
+        Note-Event "Docker Desktop backend wedged ($strikes strikes); force-restarted by Docker-WSL-Sync"
+        Stop-Process -Name 'com.docker.backend','Docker Desktop' -Force -ErrorAction SilentlyContinue
+        Start-Sleep 5
+        Start-Process 'C:\Program Files\Docker\Docker\Docker Desktop.exe'
+        Remove-Item $stateFile -Force -ErrorAction SilentlyContinue
+        exit 0
+    }
+    Log "docker engine not reachable (Docker Desktop still starting - strike $strikes/3, skipped)"
     exit 0
 }
+Remove-Item 'D:\DevOptimizer\logs\docker-down-strikes.txt' -Force -ErrorAction SilentlyContinue
 
 # --- [2] WSL integration check ------------------------------------------------
 $serverVer = (wsl.exe -d $Distro -e docker version --format '{{.Server.Version}}') -replace "`r", ""
