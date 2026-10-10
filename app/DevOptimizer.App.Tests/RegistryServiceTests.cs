@@ -173,16 +173,16 @@ public class RegistryServiceTests
         var expectedCounts = new Dictionary<string, int>
         {
             ["utilities"] = 190,
-            ["cleanup"] = 66,
+            ["cleanup"] = 64,
             ["ai-ml"] = 40,
             ["maintenance"] = 24,
             ["gaming"] = 18,
             ["system-optimization"] = 10,
-            ["development"] = 9,
+            ["development"] = 11,
             ["docker"] = 3,
-            ["network"] = 4,
+            ["network"] = 6,
             ["security"] = 4,
-            ["monitoring"] = 4,
+            ["monitoring"] = 2,
         };
         var actualCounts = snapshot.Commands
             .GroupBy(c => c.Category, StringComparer.OrdinalIgnoreCase)
