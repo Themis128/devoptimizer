@@ -25,6 +25,21 @@ if (-not (Test-Path $LogDir)) {
     New-Item -Path $LogDir -ItemType Directory -Force | Out-Null
 }
 
+# Progress and Verbose helper functions
+function Show-Progress {
+    param(
+        [string]$Activity = "DevOptimizer System Validation",
+        [string]$Status = "Processing...",
+        [int]$PercentComplete = 0
+    )
+    Write-Progress -Activity $Activity -Status $Status -PercentComplete $PercentComplete
+}
+
+function Write-VerboseStep {
+    param([string]$Message)
+    Write-Host "  → $Message" -ForegroundColor DarkGray
+}
+
 $Global:TestResults = @{
     Total = 0
     Passed = 0
@@ -85,6 +100,8 @@ function Add-TestResult {
 }
 
 function Test-DirectoryStructure {
+    Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing directory structure..." -PercentComplete 10
+    Write-VerboseStep "Testing directory structure..."
     Write-Log "Testing directory structure..." -Level "INFO"
 
     $requiredDirs = @(
@@ -109,6 +126,8 @@ function Test-DirectoryStructure {
 }
 
 function Test-CoreFiles {
+    Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing core files..." -PercentComplete 22
+    Write-VerboseStep "Testing core files..."
     Write-Log "Testing core files..." -Level "INFO"
 
     $coreFiles = @(
@@ -133,6 +152,8 @@ function Test-CoreFiles {
 }
 
 function Test-PowerShellScripts {
+    Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing PowerShell scripts..." -PercentComplete 35
+    Write-VerboseStep "Testing PowerShell scripts..."
     Write-Log "Testing PowerShell scripts..." -Level "INFO"
 
     $psFiles = Get-ChildItem -Path $DevOptimizerPath -Filter "*.ps1" | Where-Object { $_.Name -ne "validate-system.ps1" }
@@ -149,6 +170,8 @@ function Test-PowerShellScripts {
 }
 
 function Test-BatchFiles {
+    Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing batch files..." -PercentComplete 50
+    Write-VerboseStep "Testing batch files..."
     Write-Log "Testing batch files..." -Level "INFO"
 
     $batFiles = Get-ChildItem -Path $DevOptimizerPath -Filter "*.bat" | Where-Object { $_.Name -notlike "00-SETUP*" }
@@ -166,6 +189,8 @@ function Test-BatchFiles {
 }
 
 function Test-PathConfiguration {
+    Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing PATH configuration..." -PercentComplete 60
+    Write-VerboseStep "Testing PATH configuration..."
     Write-Log "Testing PATH configuration..." -Level "INFO"
 
     # Accept either machine PATH or user PATH (user is standard for per-user installs)
@@ -190,6 +215,8 @@ function Test-PathConfiguration {
 }
 
 function Test-Functionality {
+    Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing core functionality..." -PercentComplete 75
+    Write-VerboseStep "Testing core functionality..."
     Write-Log "Testing core functionality..." -Level "INFO"
 
     # Test launcher (current unified entry point)
@@ -214,6 +241,8 @@ function Test-Functionality {
 }
 
 function Test-SystemRequirements {
+    Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing system requirements..." -PercentComplete 85
+    Write-VerboseStep "Testing system requirements..."
     Write-Log "Testing system requirements..." -Level "INFO"
 
     # Check Windows version
@@ -243,6 +272,8 @@ function Test-SystemRequirements {
 }
 
 function Generate-Report {
+    Show-Progress -Activity "DevOptimizer System Validation" -Status "Generating validation report..." -PercentComplete 95
+    Write-VerboseStep "Generating validation report..."
     Write-Log "Generating validation report..." -Level "INFO"
 
     $html = @"
@@ -332,26 +363,41 @@ function Generate-Report {
 }
 
 # Main execution
+Show-Progress -Activity "DevOptimizer System Validation" -Status "Starting validation..." -PercentComplete 5
 Write-Log "=== DevOptimizer System Validation ===" -Level "INFO"
 Write-Log "Mode: $(if ($Quick) { 'Quick' } elseif ($Detailed) { 'Detailed' } else { 'Standard' })" -Level "INFO"
 
 # Run tests
+Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing directory structure..." -PercentComplete 10
 Test-DirectoryStructure
+
+Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing core files..." -PercentComplete 22
 Test-CoreFiles
+
+Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing PATH configuration..." -PercentComplete 60
 Test-PathConfiguration
 
 if (-not $Quick) {
+    Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing PowerShell scripts..." -PercentComplete 35
     Test-PowerShellScripts
+    
+    Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing batch files..." -PercentComplete 50
     Test-BatchFiles
+    
+    Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing core functionality..." -PercentComplete 75
     Test-Functionality
+    
+    Show-Progress -Activity "DevOptimizer System Validation" -Status "Testing system requirements..." -PercentComplete 85
     Test-SystemRequirements
 }
 
 # Calculate results
+Show-Progress -Activity "DevOptimizer System Validation" -Status "Calculating results..." -PercentComplete 98
 $successRate = [math]::Round(($Global:TestResults.Passed / $Global:TestResults.Total) * 100, 1)
 $endTime = Get-Date
 $duration = $endTime - $Global:TestResults.StartTime
 
+Show-Progress -Activity "DevOptimizer System Validation" -Status "Validation complete" -PercentComplete 100
 Write-Log "=== Validation Complete ===" -Level "INFO"
 Write-Log "Total Tests: $($Global:TestResults.Total)" -Level "INFO"
 Write-Log "Passed: $($Global:TestResults.Passed)" -Level "SUCCESS"

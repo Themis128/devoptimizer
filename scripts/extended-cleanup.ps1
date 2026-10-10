@@ -28,6 +28,17 @@ param(
     [switch]$DryRun
 )
 
+# Progress and verbose helpers
+function Show-Progress {
+    param([string]$Activity, [string]$Status, [int]$PercentComplete)
+    Write-Progress -Activity $Activity -Status $Status -PercentComplete $PercentComplete
+}
+
+function Write-VerboseStep {
+    param([string]$Message)
+    Write-Host "  → $Message" -ForegroundColor DarkGray
+}
+
 # ─── Color helpers ──────────────────────────────────────────────
 function Write-Header { param($msg) Write-Host "`n=== $msg ===" -ForegroundColor Magenta }
 function Write-Step   { param($msg) Write-Host "> $msg" -ForegroundColor Cyan }
@@ -39,6 +50,9 @@ function GB { param($b) [math]::Round($b/1GB, 2) }
 
 $script:totalFreed = 0
 $before = (Get-PSDrive C).Free
+
+Show-Progress -Activity "Extended Win11 Cleanup" -Status "Initializing..." -PercentComplete 0
+Write-VerboseStep "Starting Extended Win11 Cleanup"
 Write-Host "=== Extended Win11 Cleanup$(if ($DryRun) { ' (DRY RUN)' }) ===" -ForegroundColor Magenta
 Write-Host ("C: free before: {0:N2} GB`n" -f ($before/1GB))
 
@@ -81,6 +95,8 @@ function Get-ChromiumCacheDirs {
 }
 
 # ─── [1] GPU shader caches ──────────────────────────────────────
+Show-Progress -Activity "Extended Win11 Cleanup" -Status "Cleaning GPU shader caches..." -PercentComplete 10
+Write-VerboseStep "Cleaning GPU shader caches (NVIDIA DXCache, GLCache, NV_Cache, D3DSCache)"
 Write-Header '[1] GPU shader caches'
 foreach ($dir in @(
     "$env:LOCALAPPDATA\NVIDIA\DXCache",
@@ -94,6 +110,8 @@ foreach ($dir in @(
 }
 
 # ─── [2] HuggingFace model blobs (Ollama models: report only) ───
+Show-Progress -Activity "Extended Win11 Cleanup" -Status "Cleaning AI model caches..." -PercentComplete 20
+Write-VerboseStep "Cleaning HuggingFace model blobs and reporting Ollama models"
 Write-Header '[2] AI model caches'
 $hf = "$env:USERPROFILE\.cache\huggingface"
 $size = Prune-Files -Path $hf -Days $ModelDays
@@ -106,6 +124,8 @@ if (Test-Path $ollama) {
 }
 
 # ─── [3] Browser caches (skip if browser is running) ────────────
+Show-Progress -Activity "Extended Win11 Cleanup" -Status "Cleaning browser caches..." -PercentComplete 30
+Write-VerboseStep "Cleaning Chrome and Edge browser caches (skipping if browsers running)"
 Write-Header '[3] Browser caches'
 $browserRoots = @(
     @{ Name = 'Chrome'; Root = "$env:LOCALAPPDATA\Google\Chrome\User Data";  Proc = @('chrome') },
@@ -126,6 +146,8 @@ foreach ($b in $browserRoots) {
 }
 
 # ─── [4] VS Code stable caches (skip if running) ────────────────
+Show-Progress -Activity "Extended Win11 Cleanup" -Status "Cleaning VS Code caches..." -PercentComplete 40
+Write-VerboseStep "Cleaning VS Code caches (Cache, CachedData, Code Cache, GPUCache, workspaceStorage)"
 Write-Header '[4] VS Code caches'
 $codeRoot = "$env:APPDATA\Code"
 if (Test-Path $codeRoot) {
@@ -152,6 +174,8 @@ if (Test-Path $codeRoot) {
 } else { Write-Info 'VS Code not installed - skipped' }
 
 # ─── [5] Electron app caches ────────────────────────────────────
+Show-Progress -Activity "Extended Win11 Cleanup" -Status "Cleaning Electron app caches..." -PercentComplete 50
+Write-VerboseStep "Cleaning Electron app caches (Discord, Slack, Spotify)"
 Write-Header '[5] Electron app caches'
 $electronApps = @(
     @{ Name = 'Discord'; Root = "$env:APPDATA\discord" },
@@ -170,6 +194,8 @@ foreach ($app in $electronApps) {
 }
 
 # ─── [6] User-side WER archives ─────────────────────────────────
+Show-Progress -Activity "Extended Win11 Cleanup" -Status "Cleaning WER archives..." -PercentComplete 60
+Write-VerboseStep "Cleaning user-side Windows Error Reporting archives"
 Write-Header '[6] WER archives (user)'
 $wFreed = 0
 foreach ($dir in @(
@@ -182,6 +208,8 @@ $script:totalFreed += $wFreed
 Write-Done ("WER reports >{0}d                     : -{1} MB" -f $WerDays, (MB $wFreed))
 
 # ─── [7] DevOptimizer log rotation ──────────────────────────────
+Show-Progress -Activity "Extended Win11 Cleanup" -Status "Rotating DevOptimizer logs..." -PercentComplete 70
+Write-VerboseStep "Rotating DevOptimizer logs (moving old to archive, purging ancient archive)"
 Write-Header '[7] DevOptimizer log rotation'
 if (Test-Path $logDir) {
     $archive = Join-Path $logDir 'archive'
@@ -205,8 +233,11 @@ if (Test-Path $logDir) {
 } else { Write-Info "$logDir not found - skipped" }
 
 # ─── Summary ────────────────────────────────────────────────────
+Show-Progress -Activity "Extended Win11 Cleanup" -Status "Finalizing..." -PercentComplete 90
+Write-VerboseStep "Generating cleanup summary"
 if (-not $DryRun) { try { Stop-Transcript | Out-Null } catch { } }
 $after = (Get-PSDrive C).Free
+Show-Progress -Activity "Extended Win11 Cleanup" -Status "Complete" -PercentComplete 100
 Write-Header 'Summary'
 Write-Host ("C: free after : {0:N2} GB" -f ($after/1GB))
 Write-Host ("Freed (files) : {0:N1} MB" -f (MB $script:totalFreed))
