@@ -1,0 +1,1 @@
+Get-PSDrive C,D,E | Select-Object Name,Used,Free,@{Name='FreeGB';Expression={'{0:N1}' -f ($_.Free/1GB)}},@{Name='UsedGB';Expression={'{0:N1}' -f ($_.Used/1GB)}},@{Name='TotalGB';Expression={'{0:N1}' -f ($_.Used/1GB + $_.Free/1GB)}},@{Name='FreePct';Expression={'{0:P0}' -f ($_.Free/($_.Used+$_.Free))}} | Format-Table -AutoSize

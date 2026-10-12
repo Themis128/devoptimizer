@@ -1,0 +1,1 @@
+wsl -d ubuntu-26.04 -- ps aux | grep -i devin | grep -v grep
