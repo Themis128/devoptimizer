@@ -1,0 +1,1 @@
+Get-ChildItem 'C:\Users\tbaltzakis\AppData\Local\Devin' -Recurse -ErrorAction SilentlyContinue | Where-Object {$_.Extension -eq '.log' -or $_.Name -like '*log*'} | Select-Object FullName, Length, LastWriteTime | Sort-Object LastWriteTime -Descending | Select-Object -First 10
