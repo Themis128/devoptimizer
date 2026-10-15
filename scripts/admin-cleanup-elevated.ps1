@@ -44,16 +44,15 @@ if (Test-Path $wuPath) {
     Write-Host "[2] Windows Update cache: path not found" -ForegroundColor DarkGray
 }
 
-# 3. Delivery Optimization Cache
+# 3. Delivery Optimization Cache - Using direct folder deletion to avoid interactive prompt
 Write-Host "`n--- [3] Delivery Optimization Cache ---" -ForegroundColor Cyan
 try {
-    Write-Host "Running: Delete-DeliveryOptimizationCache -Force"
-    # Use explicit cache folder deletion to avoid interactive prompt
     $doCachePath = "$env:LOCALAPPDATA\Microsoft\Windows\DeliveryOptimization"
     if (Test-Path $doCachePath) {
         $size = (Get-ChildItem $doCachePath -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
+        Write-Host "Removing Delivery Optimization cache ($([math]::Round($size/1MB,2)) MB)..."
         Remove-Item -Path $doCachePath -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Host ("[3] Delivery Optimization cache: CLEARED ({0} MB)" -f (MB $size)) -ForegroundColor Green
+        Write-Host "[3] Delivery Optimization cache: CLEARED" -ForegroundColor Green
     } else {
         Write-Host "[3] Delivery Optimization cache: not found" -ForegroundColor DarkGray
     }
