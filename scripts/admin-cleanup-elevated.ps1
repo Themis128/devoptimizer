@@ -47,9 +47,16 @@ if (Test-Path $wuPath) {
 # 3. Delivery Optimization Cache
 Write-Host "`n--- [3] Delivery Optimization Cache ---" -ForegroundColor Cyan
 try {
-    Write-Host "Running: Delete-DeliveryOptimizationCache"
-    Delete-DeliveryOptimizationCache -ErrorAction Stop
-    Write-Host "[3] Delivery Optimization cache: CLEARED" -ForegroundColor Green
+    Write-Host "Running: Delete-DeliveryOptimizationCache -Force"
+    # Use explicit cache folder deletion to avoid interactive prompt
+    $doCachePath = "$env:LOCALAPPDATA\Microsoft\Windows\DeliveryOptimization"
+    if (Test-Path $doCachePath) {
+        $size = (Get-ChildItem $doCachePath -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
+        Remove-Item -Path $doCachePath -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host ("[3] Delivery Optimization cache: CLEARED ({0} MB)" -f (MB $size)) -ForegroundColor Green
+    } else {
+        Write-Host "[3] Delivery Optimization cache: not found" -ForegroundColor DarkGray
+    }
 } catch {
     Write-Host "[3] Delivery Optimization cache: SKIPPED ($($_.Exception.Message.Split("`n")[0]))" -ForegroundColor DarkGray
 }
@@ -86,4 +93,3 @@ Write-Host ("C: free before: {0:N2} GB" -f ($before/1GB))
 Write-Host ("C: free after : {0:N2} GB" -f ($after/1GB))
 Write-Host ("Freed on C:   : {0:N2} GB" -f (($after - $before)/1GB))
 Write-Host "`nDone. A reboot is recommended after DISM operations." -ForegroundColor Yellow
-Read-Host "Press Enter to exit"
