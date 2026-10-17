@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Register scheduled task to lower Devin process priority (simplified)
+    Register scheduled task to raise Devin process priority (simplified)
 
 .DESCRIPTION
     Creates a scheduled task using the native PowerShell cmdlets.
@@ -13,9 +13,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$taskName = 'Devin-Lower-Priority'
+$taskName = 'Devin-Raise-Priority'
 $taskPath = '\DevOptimizer\'
-$scriptPath = 'D:\DevOptimizer\scripts\lower-devin-priority.ps1'
+$scriptPath = 'D:\DevOptimizer\scripts\raise-devin-priority.ps1'
 
 if (-not (Test-Path $scriptPath)) {
     Write-Error "Script not found: $scriptPath"

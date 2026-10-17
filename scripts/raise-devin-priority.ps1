@@ -1,17 +1,17 @@
 <#
 .SYNOPSIS
-    Lower Devin Desktop process priority to BelowNormal
+    Raise Devin Desktop process priority to High
 
 .DESCRIPTION
-    Finds Devin processes and sets their priority class to BelowNormal
-    to reduce CPU contention with other applications. This helps Devin
-    be a "good citizen" on the system while still making progress.
+    Finds Devin processes and sets their priority class to High
+    to ensure Devin gets sufficient CPU resources for optimal performance.
+    This addresses the Devin Low-Priority issue by elevating its priority.
 
 .EXAMPLE
-    .\lower-devin-priority.ps1
+    .\raise-devin-priority.ps1
     # One-time priority adjustment
     
-    .\lower-devin-priority.ps1 -Loop -Interval 30
+    .\raise-devin-priority.ps1 -Loop -Interval 30
     # Run continuously, checking every 30 seconds
 
 .NOTES
@@ -38,7 +38,7 @@ function Write-Log {
 function Set-ProcessPriority {
     param(
         [System.Diagnostics.Process]$Process,
-        [System.Diagnostics.ProcessPriorityClass]$Priority = 'BelowNormal'
+        [System.Diagnostics.ProcessPriorityClass]$Priority = 'High'
     )
     
     try {
@@ -99,7 +99,7 @@ try {
             if ($devinProcs) {
                 $changed = 0
                 foreach ($proc in $devinProcs) {
-                    if (Set-ProcessPriority -Process $proc -Priority 'BelowNormal') {
+                    if (Set-ProcessPriority -Process $proc -Priority 'High') {
                         $changed++
                     }
                 }
@@ -116,7 +116,7 @@ try {
         if ($devinProcs) {
             $changed = 0
             foreach ($proc in $devinProcs) {
-                if (Set-ProcessPriority -Process $proc -Priority 'BelowNormal') {
+                if (Set-ProcessPriority -Process $proc -Priority 'High') {
                     $changed++
                 }
             }

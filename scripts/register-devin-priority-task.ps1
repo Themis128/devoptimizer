@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-    Register scheduled task to lower Devin process priority
+    Register scheduled task to raise Devin process priority
 
 .DESCRIPTION
     Creates a scheduled task that runs at logon and repeats every 30 minutes
-    to ensure Devin processes run at BelowNormal priority.
+    to ensure Devin processes run at High priority for optimal performance.
 #>
 
 param(
@@ -13,9 +13,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$taskName = 'Devin-Lower-Priority'
+$taskName = 'Devin-Raise-Priority'
 $taskPath = '\DevOptimizer\'
-$scriptPath = 'D:\DevOptimizer\scripts\lower-devin-priority.ps1'
+$scriptPath = 'D:\DevOptimizer\scripts\raise-devin-priority.ps1'
 
 if (-not (Test-Path $scriptPath)) {
     Write-Error "Script not found: $scriptPath"
@@ -46,7 +46,7 @@ if ($Force) {
 $taskDefinition = $service.NewTask(0)
 
 # General settings
-$taskDefinition.RegistrationInfo.Description = 'Lower Devin Desktop process priority to BelowNormal to reduce CPU contention'
+$taskDefinition.RegistrationInfo.Description = 'Raise Devin Desktop process priority to High for optimal performance'
 $taskDefinition.RegistrationInfo.Author = $env:USERNAME
 $taskDefinition.Settings.Enabled = $true
 $taskDefinition.Settings.AllowDemandStart = $true
