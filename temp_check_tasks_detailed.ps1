@@ -1,0 +1,1 @@
+Get-ScheduledTask -TaskPath '\DevOptimizer\*' | Where-Object {$_.TaskName -like '*Devin*'} | Select-Object TaskName, State, TaskPath

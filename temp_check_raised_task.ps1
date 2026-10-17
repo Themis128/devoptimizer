@@ -1,0 +1,1 @@
+Get-ScheduledTask -TaskName 'Devin-Raise-Priority' -TaskPath '\DevOptimizer\' -ErrorAction SilentlyContinue | Select-Object TaskName, State, TaskPath
