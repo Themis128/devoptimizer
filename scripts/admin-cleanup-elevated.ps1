@@ -11,6 +11,13 @@ $ErrorActionPreference = 'Continue'
 function MB { param($b) [math]::Round($b/1MB, 1) }
 function GB { param($b) [math]::Round($b/1GB, 2) }
 
+# Check if running with administrator privileges
+function Test-Admin {
+    $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
+    return $currentUser.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+
 $before = (Get-PSDrive C).Free
 Write-Host "=== Windows 11 Admin Cleanup ===" -ForegroundColor Magenta
 Write-Host ("C: free before: {0:N2} GB`n" -f ($before/1GB))
@@ -25,15 +32,20 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "[1] DISM component cleanup: COMPLETED" -ForegroundColor Green
 } else {
     Write-Host "[1] DISM component cleanup: EXIT CODE $LASTEXITCODE" -ForegroundColor Red
-    Write-Host "  Elevated permissions are required to run DISM." -ForegroundColor Yellow
-    Write-Host "  Use an elevated command prompt to complete this task." -ForegroundColor Yellow
+    Write-Host "  This script is running with administrator privileges." -ForegroundColor Yellow
+    Write-Host "  The DISM error may be transient; consider running DISM /Online /Cleanup-Image /RestoreHealth first." -ForegroundColor Yellow
 }
 
 # 2. Windows Update Download Cache
 Write-Host "`n--- [2] Windows Update Download Cache ---" -ForegroundColor Cyan
 $wuPath = "C:\Windows\SoftwareDistribution\Download"
 if (Test-Path $wuPath) {
-    $size = (Get-ChildItem $wuPath -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
+    $wuItems = Get-ChildItem $wuPath -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { !$_.PSIsContainer }
+    if ($wuItems) {
+        $size = ($wuItems | Measure-Object Length -Sum).Sum
+    } else {
+        $size = 0
+    }
     Write-Host "Stopping wuauserv service..."
     Stop-Service wuauserv -Force -ErrorAction SilentlyContinue
     Start-Sleep 2
@@ -44,7 +56,12 @@ if (Test-Path $wuPath) {
     Write-Host "Restarting wuauserv service..."
     Start-Service wuauserv -ErrorAction SilentlyContinue
     if (Test-Path $wuPath) {
-        $newSize = (Get-ChildItem $wuPath -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
+        $wuItemsAfter = Get-ChildItem $wuPath -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { !$_.PSIsContainer }
+        if ($wuItemsAfter) {
+            $newSize = ($wuItemsAfter | Measure-Object Length -Sum).Sum
+        } else {
+            $newSize = 0
+        }
         Write-Host ("[2] Windows Update cache cleaned: -{0} GB" -f (GB ($size - $newSize))) -ForegroundColor Green
     } else {
         Write-Host ("[2] Windows Update cache cleaned: -{0} GB" -f (GB ($size))) -ForegroundColor Green
@@ -58,7 +75,12 @@ Write-Host "`n--- [3] Delivery Optimization Cache ---" -ForegroundColor Cyan
 try {
     $doCachePath = "$env:LOCALAPPDATA\Microsoft\Windows\DeliveryOptimization"
     if (Test-Path $doCachePath) {
-        $size = (Get-ChildItem $doCachePath -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
+        $doItems = Get-ChildItem $doCachePath -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { !$_.PSIsContainer }
+        if ($doItems) {
+            $size = ($doItems | Measure-Object Length -Sum).Sum
+        } else {
+            $size = 0
+        }
         Write-Host "Removing Delivery Optimization cache ($([math]::Round($size/1MB,2)) MB)..."
         Remove-Item -Path $doCachePath -Recurse -Force -ErrorAction SilentlyContinue
         Write-Host "[3] Delivery Optimization cache: CLEARED" -ForegroundColor Green
@@ -88,7 +110,12 @@ try {
 Write-Host "`n--- [5] Windows.old folder (if present) ---" -ForegroundColor Cyan
 $winOld = "C:\Windows.old"
 if (Test-Path $winOld) {
-    $size = (Get-ChildItem $winOld -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
+    $winOldItems = Get-ChildItem $winOld -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { !$_.PSIsContainer }
+    if ($winOldItems) {
+        $size = ($winOldItems | Measure-Object Length -Sum).Sum
+    } else {
+        $size = 0
+    }
     Write-Host "Found Windows.old ($([math]::Round($size/1GB,2)) GB) - removing..."
     takeown /f "$winOld" /r /d y 2>&1 | Out-Null
     icacls "$winOld" /grant administrators:F /t /c /q 2>&1 | Out-Null

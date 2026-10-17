@@ -1,1 +1,1 @@
-C:WindowsSystem32schtasks.exe /create /tn Devin-Raise-Priority /tr powershell -NoProfile -ExecutionPolicy Bypass -File D:\DevOptimizer\scripts\raise-devin-priority.ps1 -Loop -Interval 30 /sc onstart /ru SYSTEM /f
+schtasks /create /tn DevOptimizerAdminCleanup /tr powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\DevOptimizer\scripts\admin-cleanup-elevated.ps1" /ru %USERNAME% /rl highest /f
