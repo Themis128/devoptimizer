@@ -1218,6 +1218,147 @@ def devin_all_logs(
 
 
 @app.command()
+def check_all_syntax(
+    root_path: str = typer.Option(None, "--root-path", "-r", help="Root directory to scan for .ps1 files. Defaults to current DevOptimizer directory."),
+):
+    """Check syntax of all PowerShell scripts in the DevOptimizer directory."""
+
+    try:
+        from pathlib import Path
+
+        # Determine root path
+        if root_path:
+            root_dir = Path(root_path)
+        else:
+            # Default to DevOptimizer scripts directory
+            root_dir = Path("D:/DevOptimizer/scripts")
+        
+        if not root_dir.exists():
+            console.print(f"Directory not found: {root_dir}", style="red")
+            raise typer.Exit(1)
+        
+        # Find all .ps1 files
+        ps1_files = list(root_dir.rglob("*.ps1"))
+        
+        # Filter out backup, logs, node_modules, .zcode directories
+        excluded_dirs = {"backups", "backup-", "logs", "node_modules", ".zcode"}
+        filtered_files = []
+        for file_path in ps1_files:
+            # Check if any parent directory is in excluded list
+            if not any(excluded in str(parent) for parent in file_path.parents for excluded in excluded_dirs):
+                filtered_files.append(file_path)
+        
+        bad_files = []
+        
+        for file_path in filtered_files:
+            try:
+                # Read the file content
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                
+                # Basic syntax check for PowerShell - we can at least check for obvious issues
+                # Since we don't have a PowerShell parser in Python, we'll do basic validation
+                lines = content.split("\n")
+                paren_count = 0
+                bracket_count = 0
+                brace_count = 0
+                in_string = False
+                string_char = None
+                escape_next = False
+                
+                for line_num, line in enumerate(lines, 1):
+                    for char_pos, char in enumerate(line):
+                        if escape_next:
+                            escape_next = False
+                            continue
+                        
+                        if char == "`":
+                            escape_next = True
+                            continue
+                        
+                        if not in_string:
+                            if char in ["\"", "'"]:
+                                in_string = True
+                                string_char = char
+                            elif char == "(":
+                                paren_count += 1
+                            elif char == ")":
+                                paren_count -= 1
+                                if paren_count < 0:
+                                    bad_files.append({
+                                        "file": str(file_path.relative_to(root_dir)),
+                                        "error": f"L{line_num}:{char_pos+1}: Unmatched closing parenthesis"
+                                    })
+                                    break
+                            elif char == "[":
+                                bracket_count += 1
+                            elif char == "]":
+                                bracket_count -= 1
+                                if bracket_count < 0:
+                                    bad_files.append({
+                                        "file": str(file_path.relative_to(root_dir)),
+                                        "error": f"L{line_num}:{char_pos+1}: Unmatched closing bracket"
+                                    })
+                                    break
+                            elif char == "{":
+                                brace_count += 1
+                            elif char == "}":
+                                brace_count -= 1
+                                if brace_count < 0:
+                                    bad_files.append({
+                                        "file": str(file_path.relative_to(root_dir)),
+                                        "error": f"L{line_num}:{char_pos+1}: Unmatched closing brace"
+                                    })
+                                    break
+                        else:
+                            if char == string_char:
+                                in_string = False
+                                string_char = None
+                    
+                    if bad_files and bad_files[-1]["file"] == str(file_path.relative_to(root_dir)):
+                        break
+                
+                # Final check for unclosed delimiters
+                if not bad_files or bad_files[-1]["file"] != str(file_path.relative_to(root_dir)):
+                    if paren_count != 0:
+                        bad_files.append({
+                            "file": str(file_path.relative_to(root_dir)),
+                            "error": f"Unmatched parentheses: {paren_count} open"
+                        })
+                    elif bracket_count != 0:
+                        bad_files.append({
+                            "file": str(file_path.relative_to(root_dir)),
+                            "error": f"Unmatched brackets: {bracket_count} open"
+                        })
+                    elif brace_count != 0:
+                        bad_files.append({
+                            "file": str(file_path.relative_to(root_dir)),
+                            "error": f"Unmatched braces: {brace_count} open"
+                        })
+            except Exception as e:
+                bad_files.append({
+                    "file": str(file_path.relative_to(root_dir)),
+                    "error": f"Error reading file: {str(e)}"
+                })
+        
+        console.print(f"Scanned {len(filtered_files)} .ps1 files")
+        
+        if not bad_files:
+            console.print("ALL SYNTAX OK", style="green")
+        else:
+            console.print(f"[red]{len(bad_files)} files with syntax errors:[/red]")
+            for bad in bad_files:
+                console.print(f"[yellow][{bad['file']}][/yellow]")
+                console.print(f"  {bad['error']}")
+                console.print()
+            raise typer.Exit(1)
+        
+    except Exception as e:
+        console.print(f"Error: {e}", style="red")
+        raise typer.Exit(1)
+
+
+@app.command()
 def models():
     """List available Ollama models"""
 

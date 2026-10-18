@@ -15,7 +15,7 @@ from rich.table import Table
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from .commands import metrics, analyze, remediate, bootstrap, security, cleanup_app
+from devoptimizer_cli.commands import metrics, analyze, remediate, bootstrap, security, cleanup_app
 
 app = typer.Typer(
     name="devoptimizer",
