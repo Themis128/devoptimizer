@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-10-18 21:53:54",
+  "host": {
+    "error": "[WinError 2] The system cannot find the file specified"
+  },
+  "wsl": {
+    "vmmem_wsl_running": true,
+    "vmmem_wsl_memory_mb": 0.0,
+    "memory_total_mb": 20002,
+    "memory_used_mb": 9786,
+    "swap_total_mb": 16384,
+    "swap_used_mb": 9375,
+    "swap_usage_percent": 57.2
+  },
+  "docker": {
+    "containers_running": 26,
+    "disk_usage": [
+      {
+        "type": "Images",
+        "size": "101.8GB",
+        "reclaimable": "50.53GB (49%)"
+      },
+      {
+        "type": "Containers",
+        "size": "692.9MB",
+        "reclaimable": "18.87MB (2%)"
+      },
+      {
+        "type": "Local Volumes",
+        "size": "29.05GB",
+        "reclaimable": "125.5MB (0%)"
+      },
+      {
+        "type": "Build Cache",
+        "size": "28.88GB",
+        "reclaimable": "0B"
+      }
+    ]
+  },
+  "on_demand_containers": {
+    "local-diffusers": "down (restart=no)",
+    "browser-novnc": "RUNNING (on-demand, started manually)",
+    "facebook-browser-sidecar": "RUNNING (on-demand, started manually)",
+    "languagetool": "down (restart=no)",
+    "metabase": "down (restart=no)",
+    "social-media-comfyui-gpu": "down (restart=no)"
+  },
+  "cleanup_requested": false
+}

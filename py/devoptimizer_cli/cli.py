@@ -38,6 +38,9 @@ app.add_typer(remediate_app, name="remediate", help="System remediation")
 app.add_typer(bootstrap_app, name="bootstrap", help="Development environment setup")
 app.add_typer(security_app, name="security", help="Security hardening")
 app.add_typer(cleanup_app, name="cleanup", help="System cleanup commands")
+# Import and add WSL commands
+from devoptimizer_cli.commands.wsl import app as wsl_app
+app.add_typer(wsl_app, name="wsl", help="WSL system status and monitoring")
 
 @app.command()
 def status():

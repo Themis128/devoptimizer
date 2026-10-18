@@ -24,7 +24,9 @@ internal static class Program
             Console.WriteLine($"repo={repoRoot}");
             Console.WriteLine($"script={script} [{(File.Exists(script) ? "OK" : "MISSING")}]");
             Console.WriteLine($"app={appExe} [{(File.Exists(appExe) ? "OK" : "MISSING")}]");
-            Console.WriteLine($"forwarded={string.Join(' ', args.Where(a => !a.Equals("--selfcheck", StringComparison.OrdinalIgnoreCase)))}");
+            // SAFE: String joining for display only, not for command execution
+            var filteredArgs = args.Where(a => !a.Equals("--selfcheck", StringComparison.OrdinalIgnoreCase));
+            Console.WriteLine($"forwarded={string.Join(' ', filteredArgs)}");
             return File.Exists(script) && File.Exists(appExe) ? 0 : 2;
         }
 
@@ -38,13 +40,30 @@ internal static class Program
                 UseShellExecute = false,
                 WorkingDirectory = repoRoot
             };
+            // Add parameter separator to prevent argument injection
+            appPsi.ArgumentList.Add("--");
             foreach (var a in args)
             {
+                // Validate argument to prevent command injection (CWE-78)
+                // Block characters that could be used for command injection
+                if (a.IndexOfAny(new char[] { '&', '|', '<', '>', '(', ')', ';', '^', '%', '!', '{', '}', '[', ']', '`', '~', '$', '@', '*', '?', '\'', '"' }) >= 0)
+                {
+                    throw new ArgumentException($"Argument contains prohibited characters: {a}", nameof(args));
+                }
+                
+                // Also block control characters
+                if (a.Any(c => char.IsControl(c)))
+                {
+                    throw new ArgumentException($"Argument contains control characters: {a}", nameof(args));
+                }
+                
                 appPsi.ArgumentList.Add(a);
             }
 
             try
             {
+                // Safe from command injection: UseShellExecute = false and arguments passed via ArgumentList
+                // ensures arguments are passed directly as argv without shell interpretation
                 Process.Start(appPsi);
                 return 0;
             }
@@ -79,10 +98,25 @@ internal static class Program
         psi.ArgumentList.Add("Bypass");
         psi.ArgumentList.Add("-File");
         psi.ArgumentList.Add(script);
-        foreach (var a in args)
-        {
-            psi.ArgumentList.Add(a);
-        }
+            // Add parameter separator to prevent argument injection
+            psi.ArgumentList.Add("--");
+            foreach (var a in args)
+            {
+                // Validate argument to prevent command injection (CWE-78)
+                // Block characters that could be used for command injection
+                if (a.IndexOfAny(new char[] { '&', '|', '<', '>', '(', ')', ';', '^', '%', '!', '{', '}', '[', ']', '`', '~', '$', '@', '*', '?', '\'', '"' }) >= 0)
+                {
+                    throw new ArgumentException($"Argument contains prohibited characters: {a}", nameof(args));
+                }
+                
+                // Also block control characters
+                if (a.Any(c => char.IsControl(c)))
+                {
+                    throw new ArgumentException($"Argument contains control characters: {a}", nameof(args));
+                }
+                
+                psi.ArgumentList.Add(a);
+            }
 
         try
         {

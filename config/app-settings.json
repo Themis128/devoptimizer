@@ -1,0 +1,5 @@
+{
+  "Toasts": true,
+  "ToastMinSeconds": 5,
+  "DefaultDryRun": false
+}

@@ -82,13 +82,48 @@ $lastCode = $LASTEXITCODE
     internal static string CmdPath { get; } = Path.Combine(Environment.SystemDirectory, "cmd.exe");
 
     // The /k and -File command lines are built as raw argument strings (ShellExecute/runas
-    // requires it), so the launch path must carry no shell metacharacters that could split
-    // the command line (CWE-78) — on top of the quote/newline guard below.
-    private static readonly char[] ShellMetacharacters = { '&', '|', '<', '>', '^', '%', '!' };
+    // Defense-in-depth against command injection (CWE-78):
+    // - We always wrap the launch path in double quotes in the arguments string
+    // - We validate that the path contains no double quotes (line 188-191)
+    // - Therefore, the entire path is treated as a single quoted argument token
+    // - Nothing inside the quotes can be interpreted as shell metacharacters or separate command line tokens
+    // - This prevents command injection even when UseShellExecute = true (required for Verb/WindowStyle)
+    private static readonly char[] ShellMetacharacters = { '&', '|', '<', '>', '(', ')', ';', '^', '%', '!', '{', '}', '[', ']', '`', '~', '$', '@', '*', '?', '\'', '"' };
 
     private static readonly UTF8Encoding Utf8WithBom = new(encoderShouldEmitUTF8Identifier: true);
 
     private static readonly JsonSerializerOptions IndentedJson = new() { WriteIndented = true };
+
+    /// <summary>
+    /// Safely constructs a quoted arguments string for use with UseShellExecute = true.
+    /// Prevents command injection by validating input and wrapping in quotes.
+    /// </summary>
+    private static string BuildSafeQuotedArguments(string path)
+    {
+        // SAFE from command injection (CWE-78):
+        // - We validate that the path contains no double quotes, newlines, or carriage returns
+        // - We validate that the path contains no shell metacharacters
+        // - We validate that the path contains no control characters
+        // - Therefore, wrapping the validated path in double quotes produces a safe arguments string
+        //   where the entire path is treated as a single argument token
+        
+        if (path.Contains('"') || path.Contains('\n') || path.Contains('\r'))
+        {
+            throw new ArgumentException("Launch path contains command-line quoting characters.", nameof(path));
+        }
+
+        if (path.IndexOfAny(ShellMetacharacters) >= 0)
+        {
+            throw new ArgumentException("Launch path contains shell metacharacters.", nameof(path));
+        }
+
+        if (path.Any(c => char.IsControl(c)))
+        {
+            throw new ArgumentException("Launch path contains control characters.", nameof(path));
+        }
+
+        return $"\"{path}\"";
+    }
 
     private readonly string _repoRoot;
 
@@ -183,8 +218,11 @@ $lastCode = $LASTEXITCODE
     /// </summary>
     public static ProcessStartInfo BuildStartInfo(RunnerLaunchMode mode, string path)
     {
-        // Defense-in-depth (CWE-78): the runas modes must keep shell-execution, so the
-        // path can never be allowed to break out of its quoted argument.
+        // Defense-in-depth against command injection (CWE-78):
+        // - We validate that the path contains no double quotes, newlines, or carriage returns
+        // - We validate that the path contains no shell metacharacters
+        // - For elevated modes requiring Verb=runas, we use UseShellExecute=true with quoted path
+        // - For non-elevated modes, we use UseShellExecute=false with proper argument separation
         if (path.Contains('"') || path.Contains('\n') || path.Contains('\r'))
         {
             throw new ArgumentException("Launch path contains command-line quoting characters.", nameof(path));
@@ -195,34 +233,51 @@ $lastCode = $LASTEXITCODE
             throw new ArgumentException("Launch path contains shell metacharacters.", nameof(path));
         }
 
-        var psi = new ProcessStartInfo
+        if (path.Any(c => char.IsControl(c)))
         {
-            UseShellExecute = true, // Start-Process defaults to ShellExecute; required for Verb/WindowStyle
-        };
+            throw new ArgumentException("Launch path contains control characters.", nameof(path));
+        }
+
+        var psi = new ProcessStartInfo();
 
         switch (mode)
         {
             case RunnerLaunchMode.PowerShellHidden:
+                // Non-elevated PowerShell - can use UseShellExecute=false
+                psi.UseShellExecute = false;
                 psi.FileName = PowerShellPath;
-                psi.Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{path}\"";
+                psi.ArgumentList.Add("-NoProfile");
+                psi.ArgumentList.Add("-ExecutionPolicy");
+                psi.ArgumentList.Add("Bypass");
+                psi.ArgumentList.Add("-WindowStyle");
+                psi.ArgumentList.Add("Hidden");
+                psi.ArgumentList.Add("-File");
+                psi.ArgumentList.Add(path);
                 psi.WindowStyle = ProcessWindowStyle.Hidden;
                 break;
 
             case RunnerLaunchMode.PowerShellElevated:
+                // Elevated PowerShell requires Verb=runas which needs UseShellExecute=true
+                psi.UseShellExecute = true;
                 psi.FileName = PowerShellPath;
-                psi.Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{path}\"";
+                psi.Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File {BuildSafeQuotedArguments(path)}";
                 psi.Verb = "runas"; // DevOptimizer-App.ps1:401
                 break;
 
             case RunnerLaunchMode.CmdConsoleVisible:
+                // Non-elevated cmd - can use UseShellExecute=false
+                psi.UseShellExecute = false;
                 psi.FileName = CmdPath;
-                psi.Arguments = $"/k \"{path}\"";
+                psi.ArgumentList.Add("/k");
+                psi.ArgumentList.Add(path);
                 psi.WorkingDirectory = Path.GetDirectoryName(path) ?? string.Empty; // DevOptimizer-App.ps1:331
                 break;
 
             case RunnerLaunchMode.CmdConsoleElevated:
+                // Elevated cmd requires Verb=runas which needs UseShellExecute=true
+                psi.UseShellExecute = true;
                 psi.FileName = CmdPath;
-                psi.Arguments = $"/k \"{path}\"";
+                psi.Arguments = $"/k {BuildSafeQuotedArguments(path)}";
                 psi.Verb = "runas"; // DevOptimizer-App.ps1:330
                 break;
         }

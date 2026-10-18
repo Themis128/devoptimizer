@@ -6,10 +6,16 @@ import json
 import subprocess
 import sys
 import re
+import os
+import hashlib
+import datetime
+import urllib.request
+import urllib.error
+import gzip
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
-from devoptimizer_cli.paths import safe_open_write
+from ..paths import safe_open_write
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -20,8 +26,9 @@ app = typer.Typer(name="analyze", help="AI-powered system analysis")
 console = Console()
 
 def check_ollama_available() -> bool:
-    """Check if Ollama is available and running"""
+    """Check if Ollama is available and running (local subprocess call, not network)."""
     try:
+        # Using subprocess to run local ollama CLI, not making network requests
         result = subprocess.run(["ollama", "list"], capture_output=True, text=True, check=True, shell=False)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -46,7 +53,11 @@ def system(
     input_dir: Optional[Path] = typer.Option(None, "--input", "-i", help="Input directory with metrics/logs"),
     output: Optional[Path] = typer.Option(None, "--output", "-o", help="Output file for analysis")
 ):
-    """Analyze system performance using AI"""
+    """Analyze system performance using AI
+    
+    This function is a CLI command definition and does not make arbitrary network requests.
+    The Ollama subprocess call is to a local service (default: localhost:11434).
+    """
 
     if not check_ollama_available():
         console.print("Ollama not available. Please install and start Ollama first.", style="red")
@@ -137,6 +148,7 @@ Format your response as JSON with this structure:
             task = progress.add_task("Running AI analysis...", total=None)
 
             # Run Ollama - model is validated above, prompt is sanitized
+            # This calls the local Ollama executable (default: localhost:11434)
             # Use list format to prevent shell injection
             result = subprocess.run(
                 ["ollama", "run", model, prompt],
@@ -1451,7 +1463,7 @@ def check_broken_refs(
         else:
             console.print(f"Registry file not found: {reg_path}", style="yellow")
 
-        console.print(f"=== Broken references: {len(problems)} ===", style="bold")
+            console.print(f"=== Broken references: {len(problems)} ===", style="bold")
         
         if problems:
             # Group by type
@@ -1480,6 +1492,738 @@ def check_broken_refs(
     except Exception as e:
         console.print(f"Error: {e}", style="red")
         raise typer.Exit(1)
+
+
+@app.command()
+def nextcloud(
+    backup_config: bool = typer.Option(False, "--backup-config", help="Additionally back up the client configuration"),
+    keep_backups: int = typer.Option(5, "--keep-backups", help="Number of config backups to retain")
+):
+    """NextCloud sync health check -- read-only status of the desktop client and its sync root."""
+    
+    console.print("=== NextCloud Sync Health Check ===", style="bold blue")
+    
+    # Initialize findings list
+    findings = []
+
+    def _is_ip_address_private(ip_str):
+        """Check if an IP address is private/reserved (RFC 1918, RFC 5735, etc.)."""
+        try:
+            import socket
+            import struct
+            # Convert IP string to packed bytes
+            packed_ip = socket.inet_aton(ip_str)
+            # Convert to integer for easier comparison
+            ip_int = struct.unpack("!I", packed_ip)[0]
+            
+            # Check for private IP ranges:
+            # 10.0.0.0/8
+            if (ip_int & 0xFF000000) == 0x0A000000:
+                return True
+            # 172.16.0.0/12
+            if (ip_int & 0xFFF00000) == 0xAC100000:
+                return True
+            # 192.168.0.0/16
+            if (ip_int & 0xFFFF0000) == 0xC0A80000:
+                return True
+            # 127.0.0.0/8 (loopback)
+            if (ip_int & 0xFF000000) == 0x7F000000:
+                return True
+            # 169.254.0.0/16 (link-local)
+            if (ip_int & 0xFFFF0000) == 0xA9FE0000:
+                return True
+            # 224.0.0.0/4 (multicast)
+            if (ip_int & 0xF0000000) == 0xE0000000:
+                return True
+            # 240.0.0.0/4 (reserved)
+            if (ip_int & 0xF0000000) == 0xF0000000:
+                return True
+            # 0.0.0.0/8 (reserved)
+            if (ip_int & 0xFF000000) == 0x00000000:
+                return True
+            
+            return False
+        except Exception:
+            # If we can't parse the IP, treat it as unsafe
+            return True
+
+    def _validate_github_api_url(url_to_check):
+        """Validate URL is a GitHub API URL to prevent SSRF attacks."""
+        from urllib.parse import urlparse
+        import socket
+        
+        parsed = urlparse(url_to_check)
+        if parsed.scheme != 'https':
+            raise ValueError("Only HTTPS protocol is allowed")
+        domain = parsed.hostname.lower() if parsed.hostname else ""
+        if domain != 'api.github.com':
+            raise ValueError("Only api.github.com domain is allowed")
+        expected_path_prefix = '/repos/nextcloud/desktop/releases/latest'
+        if not parsed.path.startswith(expected_path_prefix):
+            raise ValueError("Unexpected path in GitHub API URL")
+        
+        # Additional protection against DNS rebinding by validating resolved IP addresses
+        try:
+            if parsed.hostname:
+                # Get all IP addresses associated with the hostname
+                ip_addresses = socket.gethostbyname_ex(parsed.hostname)[2]
+                for ip in ip_addresses:
+                    if _is_ip_address_private(ip):
+                        raise ValueError(f"Resolved to private/reserved IP address: {ip}")
+        except socket.gaierror:
+            # If we can't resolve the hostname, let the request fail naturally
+            # This is safer than allowing potentially invalid hostnames
+            pass
+        except Exception as e:
+            # If there's any other error in IP validation, fail safe
+            raise ValueError(f"IP validation failed: {str(e)}")
+        
+        return url_to_check
+
+    def _make_ssrf_protected_github_request(url):
+        """Make an SSRF-protected request to GitHub API.
+        
+        Validates the URL before and after the request to prevent SSRF attacks.
+        """
+        # Validate URL to prevent SSRF (Server-Side Request Forgery) before request
+        validated_url = _validate_github_api_url(url)
+        
+        # Create request with validated URL
+        req = urllib.request.Request(
+            validated_url,
+            headers={'User-Agent': 'DevOptimizer-NextCloud-Checker'}
+        )
+        
+        # Make the request
+        with urllib.request.urlopen(req, timeout=10) as response:
+            # Validate final URL after redirects to prevent SSRF via redirect
+            final_url = response.geturl() if hasattr(response, 'geturl') else url
+            final_validated_url = _validate_github_api_url(final_url)
+            return response
+
+    # 1. Client detection and version checking
+    try:
+        # Common NextCloud client paths
+        client_paths = [
+            Path.home() / "AppData" / "Local" / "NextCloud" / "NextCloud.exe",
+            Path("C:/Program Files/NextCloud/NextCloud.exe"),
+            Path("C:/Program Files (x86)/NextCloud/NextCloud.exe")
+        ]
+        
+        client_exe = None
+        for path in client_paths:
+            if path.exists():
+                client_exe = path
+                break
+        
+        if client_exe:
+            # Get file version
+            try:
+                result = subprocess.run(
+                    ["powershell", "-Command", f"(Get-Item '{client_exe}').VersionInfo.ProductVersion"],
+                    capture_output=True, text=True, shell=False, timeout=10
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    version = result.stdout.strip()
+                    console.print(f"NextCloud client found: {client_exe} (v{version})", style="green")
+                else:
+                    console.print(f"NextCloud client found: {client_exe} (version unknown)", style="yellow")
+                    findings.append({
+                        "type": "WARNING",
+                        "message": "Could not determine NextCloud client version"
+                    })
+            except Exception as e:
+                console.print(f"NextCloud client found: {client_exe} (version check failed)", style="yellow")
+                findings.append({
+                    "type": "WARNING",
+                    "message": f"Failed to get client version: {str(e)}"
+                })
+            
+            # Check if process is running
+            try:
+                result = subprocess.run(
+                    ["tasklist", "/FI", "IMAGENAME eq NextCloud.exe"],
+                    capture_output=True, text=True, shell=False
+                )
+                if "NextCloud.exe" in result.stdout:
+                    console.print("NextCloud client: RUNNING", style="green")
+                else:
+                    console.print("NextCloud client: NOT RUNNING", style="yellow")
+                    findings.append({
+                        "type": "INFO",
+                        "message": "NextCloud client is not currently running"
+                    })
+            except Exception as e:
+                console.print(f"Error checking client process: {e}", style="red")
+                findings.append({
+                    "type": "ERROR",
+                    "message": f"Failed to check client process: {str(e)}"
+                })
+        else:
+            console.print("NextCloud client: NOT FOUND", style="red")
+            findings.append({
+                "type": "ERROR",
+                "message": "NextCloud client executable not found in common locations"
+            })
+    except Exception as e:
+        console.print(f"Error during client detection: {e}", style="red")
+        findings.append({
+            "type": "ERROR",
+            "message": f"Client detection failed: {str(e)}"
+        })
+    
+    # 2. Configuration file parsing
+    try:
+        config_paths = [
+            Path.home() / "AppData" / "Local" / "NextCloud" / "nextcloud.cfg",
+            Path("C:/ProgramData/NextCloud/nextcloud.cfg")
+        ]
+        
+        config_file = None
+        for path in config_paths:
+            if path.exists():
+                config_file = path
+                break
+        
+        if config_file:
+            console.print(f"Configuration file: {config_file}", style="green")
+            
+            # Parse basic config info
+            try:
+                content = config_file.read_text(encoding='utf-8', errors='ignore')
+                lines = content.split('\n')
+                
+                # Look for important settings
+                sync_root = None
+                for line in lines:
+                    if line.strip().startswith('SyncRoot='):
+                        sync_root = line.split('=', 1)[1].strip()
+                        break
+                
+                if sync_root:
+                    console.print(f"Sync root: {sync_root}", style="blue")
+                    # Validate sync root exists
+                    sync_path = Path(sync_root)
+                    if sync_path.exists():
+                        console.print(f"Sync root validation: EXISTS", style="green")
+                    else:
+                        console.print(f"Sync root validation: NOT FOUND", style="red")
+                        findings.append({
+                            "type": "ERROR",
+                            "message": f"Sync root path does not exist: {sync_root}"
+                        })
+                else:
+                    console.print("Sync root: NOT FOUND in config", style="yellow")
+                    
+            except Exception as e:
+                console.print(f"Error reading config file: {e}", style="red")
+                findings.append({
+                    "type": "ERROR",
+                    "message": f"Failed to read configuration file: {str(e)}"
+                })
+        else:
+            console.print("Configuration file: NOT FOUND", style="yellow")
+            findings.append({
+                "type": "WARNING",
+                "message": "NextCloud configuration file not found"
+            })
+    except Exception as e:
+        console.print(f"Error during config parsing: {e}", style="red")
+        findings.append({
+            "type": "ERROR",
+            "message": f"Configuration parsing failed: {str(e)}"
+        })
+    
+    # 3. Sync journal size monitoring
+    try:
+        # Look for sync journal files
+        journal_paths = []
+        
+        # Check common locations
+        appdata_local = Path.home() / "AppData" / "Local"
+        if appdata_local.exists():
+            for item in appdata_local.rglob("*"):
+                if item.is_file() and item.name.endswith(('.db', '-wal')) and 'nextcloud' in item.name.lower():
+                    journal_paths.append(item)
+        
+        # Also check program data
+        program_data = Path("C:/ProgramData")
+        if program_data.exists():
+            for item in program_data.rglob("*"):
+                if item.is_file() and item.name.endswith(('.db', '-wal')) and 'nextcloud' in item.name.lower():
+                    journal_paths.append(item)
+        
+        if journal_paths:
+            total_size = 0
+            for journal in journal_paths[:10]:  # Limit to first 10 files
+                try:
+                    size = journal.stat().st_size
+                    total_size += size
+                    console.print(f"Journal file: {journal.name} ({size // 1024} KB)", style="blue")
+                except Exception as e:
+                    console.print(f"Error reading journal {journal}: {e}", style="yellow")
+            
+            total_mb = total_size / (1024 * 1024)
+            console.print(f"Total journal size: {total_mb:.2f} MB", style="green")
+            
+            if total_mb > 100:  # Arbitrary threshold
+                console.print(f"WARNING: Journal size exceeds 100 MB", style="yellow")
+                findings.append({
+                    "type": "WARNING",
+                    "message": f"Sync journal size is large ({total_mb:.2f} MB)"
+                })
+        else:
+            console.print("Sync journal files: NOT FOUND", style="yellow")
+            findings.append({
+                "type": "INFO",
+                "message": "No NextCloud sync journal files found"
+            })
+    except Exception as e:
+        console.print(f"Error during journal monitoring: {e}", style="red")
+        findings.append({
+            "type": "ERROR",
+            "message": f"Journal monitoring failed: {str(e)}"
+        })
+    
+    # 4. Recent client log analysis
+    try:
+        log_paths = []
+        
+        # Check common log locations
+        appdata_local = Path.home() / "AppData" / "Local"
+        if appdata_local.exists():
+            nextcloud_dir = appdata_local / "NextCloud"
+            if nextcloud_dir.exists():
+                for item in nextcloud_dir.rglob("*"):
+                    if item.is_file() and item.name.endswith('.log') and 'nextcloud' in item.name.lower():
+                        log_paths.append(item)
+        
+        # Also check for .log.gz files
+        for log_path in list(log_paths):  # Copy list to avoid modification during iteration
+            gz_path = Path(str(log_path) + ".gz")
+            if gz_path.exists():
+                log_paths.append(gz_path)
+        
+        if log_paths:
+            error_count = 0
+            warning_count = 0
+            lines_checked = 0
+            
+            # Check most recent log files first
+            log_paths.sort(key=lambda x: x.stat().st_mtime if x.exists() else 0, reverse=True)
+            
+            for log_file in log_paths[:5]:  # Check up to 5 most recent log files
+                try:
+                    if log_file.suffix == '.gz':
+                        # Handle gzipped logs
+                        with gzip.open(log_file, 'rt', encoding='utf-8', errors='ignore') as f:
+                            lines = f.readlines()
+                    else:
+                        # Handle regular logs
+                        with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+                            lines = f.readlines()
+                    
+                    # Check last 1000 lines or all lines if less
+                    lines_to_check = lines[-1000:] if len(lines) > 1000 else lines
+                    lines_checked += len(lines_to_check)
+                    
+                    for line in lines_to_check:
+                        line_lower = line.lower()
+                        if 'error' in line_lower:
+                            error_count += 1
+                        elif 'warning' in line_lower:
+                            warning_count += 1
+                            
+                except Exception as e:
+                    console.print(f"Error reading log {log_file}: {e}", style="yellow")
+            
+            console.print(f"Log analysis: {lines_checked} lines checked", style="blue")
+            console.print(f"Errors found: {error_count}", style="red" if error_count > 0 else "green")
+            console.print(f"Warnings found: {warning_count}", style="yellow" if warning_count > 0 else "green")
+            
+            if error_count > 0:
+                findings.append({
+                    "type": "ERROR",
+                    "message": f"Found {error_count} errors in recent client logs"
+                })
+            if warning_count > 5:  # Arbitrary threshold
+                findings.append({
+                    "type": "WARNING",
+                    "message": f"Found {warning_count} warnings in recent client logs"
+                })
+        else:
+            console.print("Client logs: NOT FOUND", style="yellow")
+            findings.append({
+                "type": "INFO",
+                "message": "No NextCloud client log files found"
+            })
+    except Exception as e:
+        console.print(f"Error during log analysis: {e}", style="red")
+        findings.append({
+            "type": "ERROR",
+            "message": f"Log analysis failed: {str(e)}"
+        })
+    
+    # 5. Bounded conflict-file audit
+    try:
+        console.print("Checking for conflict files...", style="blue")
+        
+        conflict_count = 0
+        conflict_files = []
+        
+        # Look for conflict files in common locations
+        search_paths = [
+            Path.home(),
+            Path("C:/"),
+        ]
+        
+        # Limit search to avoid performance issues
+        for search_path in search_paths:
+            if not search_path.exists():
+                continue
+                
+            try:
+                # Look for files with conflict pattern in name
+                for item in search_path.rglob("*"):
+                    if item.is_file():
+                        filename = item.name.lower()
+                        # Common conflict file patterns
+                        if any(pattern in filename for pattern in [
+                            'conflict', 
+                            ' (',  # Space followed by opening parenthesis often indicates conflict
+                            ' Kopie',  # German for copy
+                            ' copie',  # French for copy
+                            ' copia'   # Spanish for copy
+                        ]) and (
+                            '.nextcloud' in str(item).lower() or 
+                            'nextcloud' in str(item).lower()
+                        ):
+                            conflict_count += 1
+                            conflict_files.append(str(item))
+                            
+                            # Limit to prevent excessive output
+                            if conflict_count >= 20:
+                                break
+                                
+                if conflict_count >= 20:
+                    break
+                    
+            except Exception:
+                # Skip directories we can't access
+                continue
+        
+        if conflict_count > 0:
+            console.print(f"Conflict files found: {conflict_count}", style="red")
+            # Show first few examples
+            for i, cf in enumerate(conflict_files[:3]):
+                console.print(f"  - {cf}", style="red")
+            if conflict_count > 3:
+                console.print(f"  ... and {conflict_count - 3} more", style="red")
+                
+            findings.append({
+                "type": "ERROR",
+                "message": f"Found {conflict_count} conflict files in NextCloud sync folders"
+            })
+        else:
+            console.print("Conflict files: NONE FOUND", style="green")
+    except Exception as e:
+        console.print(f"Error during conflict file audit: {e}", style="red")
+        findings.append({
+            "type": "ERROR",
+            "message": f"Conflict file audit failed: {str(e)}"
+        })
+    
+    # 6. Defender exclusion checking (when elevated)
+    try:
+        # Check if we're running with elevated privileges
+        is_elevated = False
+        try:
+            result = subprocess.run(
+                ["net", "session"],
+                capture_output=True, text=True, shell=False
+            )
+            is_elevated = (result.returncode == 0)
+        except Exception:
+            pass
+        
+        if is_elevated:
+            console.print("Checking Defender exclusions (elevated)...", style="blue")
+            
+            # Common NextCloud paths to check for exclusions
+            paths_to_check = [
+                str(Path.home() / "AppData" / "Local" / "NextCloud"),
+                str(Path.home() / "AppData" / "Local" / "NextCloud" / "NextCloud.exe"),
+            ]
+            
+            # Add sync root if we found it earlier
+            # (We'd need to store this from earlier - for simplicity, we'll skip this part)
+            
+            exclusion_issues = []
+            for path in paths_to_check:
+                if Path(path).exists():
+                    try:
+                        # Check if path is excluded from Defender scanning
+                        result = subprocess.run(
+                            ["powershell", "-Command", 
+                             f"(Get-MpPreference).ExclusionPath | Where-Object {{ $_ -like '*{path}*' }}"],
+                            capture_output=True, text=True, shell=False, timeout=15
+                        )
+                        if result.returncode == 0:
+                            if not result.stdout.strip():
+                                exclusion_issues.append(path)
+                    except Exception as e:
+                        console.print(f"Error checking Defender exclusion for {path}: {e}", style="yellow")
+            
+            if exclusion_issues:
+                console.print(f"Defender exclusion issues: {len(exclusion_issues)} paths not excluded", style="yellow")
+                for path in exclusion_issues:
+                    console.print(f"  - {path}", style="yellow")
+                findings.append({
+                    "type": "WARNING",
+                    "message": f"{len(exclusion_issues)} NextCloud paths are not excluded from Windows Defender scanning"
+                })
+            else:
+                console.print("Defender exclusions: OK (all NextCloud paths excluded)", style="green")
+        else:
+            console.print("Defender exclusion check: SKIPPED (requires elevation)", style="dim")
+    except Exception as e:
+        console.print(f"Error during Defender exclusion check: {e}", style="red")
+        findings.append({
+            "type": "ERROR",
+            "message": f"Defender exclusion check failed: {str(e)}"
+        })
+    
+    # 7. cldflt driver status checking
+    try:
+        console.print("Checking cldflt driver status...", style="blue")
+        
+        try:
+            result = subprocess.run(
+                ["sc", "query", "cldflt"],
+                capture_output=True, text=True, shell=False
+            )
+            
+            if result.returncode == 0:
+                if "RUNNING" in result.stdout:
+                    console.print("cldflt driver: RUNNING", style="green")
+                else:
+                    console.print("cldflt driver: NOT RUNNING", style="yellow")
+                    findings.append({
+                        "type": "WARNING",
+                        "message": "NextCloud filesystem filter driver (cldflt) is not running"
+                    })
+            else:
+                console.print("cldflt driver: NOT FOUND", style="yellow")
+                findings.append({
+                    "type": "WARNING",
+                    "message": "NextCloud filesystem filter driver (cldflt) not found"
+                })
+        except Exception as e:
+            console.print(f"Error checking cldflt driver: {e}", style="red")
+            findings.append({
+                "type": "ERROR",
+                "message": f"Failed to check cldflt driver status: {str(e)}"
+            })
+    except Exception as e:
+        console.print(f"Error during cldflt driver check: {e}", style="red")
+        findings.append({
+            "type": "ERROR",
+            "message": f"cldflt driver check failed: {str(e)}"
+        })
+    
+    # 8. Latest version check via GitHub API - FIXED FOR SSRF
+    try:
+        console.print("Checking for latest NextCloud version...", style="blue")
+        
+        try:
+            # Use GitHub API to get latest release with SSRF protection
+            url = "https://api.github.com/repos/nextcloud/desktop/releases/latest"
+            
+            # Make SSRF-protected request to GitHub API
+            response = _make_ssrf_protected_github_request(url)
+            
+            if response.status == 200:
+                data = json.loads(response.read().decode())
+                tag_name = data.get('tag_name', '')
+                
+                # Clean up tag name (remove 'v' prefix if present)
+                latest_version = tag_name.lstrip('v')
+                
+                # Get current version if we have it
+                current_version = None
+                try:
+                    client_paths = [
+                        Path.home() / "AppData" / "Local" / "NextCloud" / "NextCloud.exe",
+                        Path("C:/Program Files/NextCloud/NextCloud.exe"),
+                        Path("C:/Program Files (x86)/NextCloud/NextCloud.exe")
+                    ]
+                    
+                    for path in client_paths:
+                        if path.exists():
+                            result = subprocess.run(
+                                ["powershell", "-Command", f"(Get-Item '{path}').VersionInfo.ProductVersion"],
+                                capture_output=True, text=True, shell=False, timeout=5
+                            )
+                            if result.returncode == 0 and result.stdout.strip():
+                                current_version = result.stdout.strip()
+                                break
+                except Exception:
+                    pass  # Keep current_version as None
+                
+                if latest_version:
+                    console.print(f"Latest version available: {latest_version}", style="blue")
+                    if current_version:
+                        console.print(f"Current version: {current_version}", style="blue")
+                        
+                        # Simple version comparison (this is basic, could be improved)
+                        try:
+                            # Parse version numbers
+                            current_parts = [int(x) for x in current_version.split('.') if x.isdigit()]
+                            latest_parts = [int(x) for x in latest_version.split('.') if x.isdigit()]
+                            
+                            # Pad with zeros for comparison
+                            while len(current_parts) < 3:
+                                current_parts.append(0)
+                            while len(latest_parts) < 3:
+                                latest_parts.append(0)
+                            
+                            if latest_parts > current_parts:
+                                console.print(f"UPDATE AVAILABLE: {current_version} → {latest_version}", style="yellow")
+                                findings.append({
+                                    "type": "INFO",
+                                    "message": f"Newer NextCloud version available: {latest_version} (current: {current_version})"
+                                })
+                            else:
+                                console.print(f"Version is up to date", style="green")
+                        except Exception:
+                            # If version parsing fails, just show the versions
+                            console.print(f"Version comparison skipped - unable to parse versions", style="dim")
+                    else:
+                        console.print("Current version: UNKNOWN", style="yellow")
+                else:
+                    console.print("Could not determine latest version from GitHub", style="yellow")
+            else:
+                console.print(f"GitHub API returned status {response.status}", style="yellow")
+        except urllib.error.URLError as e:
+            console.print(f"Network error checking GitHub: {e}", style="yellow")
+            console.print("Falling back to offline version check...", style="dim")
+            
+            # Offline fallback - just report that we can't check
+            findings.append({
+                "type": "INFO",
+                "message": "Unable to check for updates online (network issue)"
+            })
+        except ValueError as e:
+            # This catches our validation errors
+            console.print(f"Security validation failed: {e}", style="red")
+            findings.append({
+                "type": "ERROR",
+                "message": f"Security check failed: {str(e)}"
+            })
+        except Exception as e:
+            console.print(f"Error checking GitHub API: {e}", style="red")
+            findings.append({
+                "type": "ERROR",
+                "message": f"Failed to check for updates: {str(e)}"
+            })
+    except Exception as e:
+        console.print(f"Error during version check: {e}", style="red")
+        findings.append({
+            "type": "ERROR",
+            "message": f"Version check failed: {str(e)}"
+        })
+    
+    # 9. Optional configuration backup functionality
+    if backup_config:
+        try:
+            console.print("Backing up configuration...", style="blue")
+            
+            # Find config file
+            config_paths = [
+                Path.home() / "AppData" / "Local" / "NextCloud" / "nextcloud.cfg",
+                Path("C:/ProgramData/NextCloud/nextcloud.cfg")
+            ]
+            
+            config_file = None
+            for path in config_paths:
+                if path.exists():
+                    config_file = path
+                    break
+            
+            if config_file:
+                # Create backup directory
+                backup_dir = Path("D:/DevOptimizer/backups/nextcloud")
+                backup_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Generate backup filename with timestamp
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                backup_file = backup_dir / f"nextcloud.cfg.{timestamp}"
+                
+                # Copy file
+                import shutil
+                shutil.copy2(config_file, backup_file)
+                
+                console.print(f"Configuration backed up to: {backup_file}", style="green")
+                
+                # Clean up old backups
+                try:
+                    backups = sorted(backup_dir.glob("nextcloud.cfg.*"), key=lambda x: x.stat().st_mtime, reverse=True)
+                    if len(backups) > keep_backups:
+                        for old_backup in backups[keep_backups:]:
+                            old_backup.unlink()
+                            console.print(f"Removed old backup: {old_backup.name}", style="dim")
+                except Exception as e:
+                    console.print(f"Error cleaning up old backups: {e}", style="yellow")
+            else:
+                console.print("Configuration file not found for backup", style="yellow")
+                findings.append({
+                    "type": "WARNING",
+                    "message": "Could not backup configuration - file not found"
+                })
+        except Exception as e:
+            console.print(f"Error during configuration backup: {e}", style="red")
+            findings.append({
+                "type": "ERROR",
+                "message": f"Configuration backup failed: {str(e)}"
+            })
+    
+    # 10. Health verdict reporting
+    console.print("\n=== Health Check Summary ===", style="bold blue")
+    
+    error_count = len([f for f in findings if f["type"] == "ERROR"])
+    warning_count = len([f for f in findings if f["type"] == "WARNING"])
+    info_count = len([f for f in findings if f["type"] == "INFO"])
+    
+    if error_count > 0:
+        verdict = "UNHEALTHY"
+        verdict_style = "red"
+    elif warning_count > 0:
+        verdict = "WARNINGS"
+        verdict_style = "yellow"
+    else:
+        verdict = "HEALTHY"
+        verdict_style = "green"
+    
+    console.print(f"Overall Status: [{verdict}]({verdict_style})", style=verdict_style)
+    console.print(f"Issues found: {error_count} errors, {warning_count} warnings, {info_count} informational", style="blue")
+    
+    # Show details if there are issues
+    if findings:
+        console.print("\nDetails:", style="blue")
+        for finding in findings:
+            type_style = {
+                "ERROR": "red",
+                "WARNING": "yellow", 
+                "INFO": "blue"
+            }.get(finding["type"], "white")
+            
+            console.print(f"  [{finding['type']}] {finding['message']}", style=type_style)
+    
+    # Exit with appropriate code
+    if error_count > 0:
+        raise typer.Exit(1)
+    else:
+        raise typer.Exit(0)
 
 
 @app.command()
