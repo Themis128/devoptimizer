@@ -1359,6 +1359,130 @@ def check_all_syntax(
 
 
 @app.command()
+def check_broken_refs(
+    root_path: str = typer.Option(None, "--root-path", "-r", help="Root directory to scan for broken references. Defaults to current DevOptimizer directory."),
+):
+    """Check for broken references between batch files and PowerShell scripts, and registry entries."""
+
+    try:
+        from pathlib import Path
+        import json
+        import re
+
+        # Determine root path
+        if root_path:
+            root_dir = Path(root_path)
+        else:
+            # Default to DevOptimizer directory
+            root_dir = Path("D:/DevOptimizer")
+        
+        if not root_dir.exists():
+            console.print(f"Directory not found: {root_dir}", style="red")
+            raise typer.Exit(1)
+        
+        problems = []
+        root_str = str(root_dir)
+
+        # 1. Batch launchers -> referenced ps1
+        console.print("Checking batch file references to PowerShell scripts...", style="blue")
+        bat_files = list(root_dir.rglob("*.bat")) + list(root_dir.rglob("*.cmd"))
+        
+        for bat_file in bat_files:
+            try:
+                # Read batch file as latin-1 to avoid any decoding issues
+                content = bat_file.read_bytes().decode('latin-1')
+                # Simple approach: split by whitespace and look for tokens ending with .ps1
+                for token in content.split():
+                    # Remove surrounding quotes, commas, semicolons, etc.
+                    ref = token.strip('",;')
+                    if ref.endswith('.ps1'):
+                        # Skip if it's just a variable reference or contains obvious non-path chars
+                        if ref.startswith('%') or ' ' in ref:
+                            continue
+                        # Expand environment variables
+                        expanded = ref.replace('%DEVOPT_HOME%', root_str)
+                        expanded = expanded.replace(r'%~dp0\..', root_str)
+                        expanded = expanded.replace('%~dp0', str(bat_file.parent))
+                        # Simple env var replacement - replace %VAR% with root_dir
+                        expanded = re.sub(r'%[^%]+%', lambda m: root_str, expanded)
+                        
+                        candidates = [
+                            expanded,
+                            str(root_dir / expanded) if not expanded.startswith(root_str) and not expanded.startswith('\\\\') else expanded,
+                            str(root_dir / Path(expanded).name)
+                        ]
+                        # Filter to existing files
+                        candidates = [c for c in candidates if c and Path(c).exists()]
+                        
+                        if not candidates:
+                            problems.append({
+                                "type": "BAT->PS1",
+                                "launcher": str(bat_file.relative_to(root_dir)),
+                                "target": ref
+                            })
+            except Exception as e:
+                console.print(f"Error reading {bat_file}: {e}", style="yellow")
+
+        # 2. Hub registry -> file paths
+        console.print("Checking hub registry for broken references...", style="blue")
+        reg_path = root_dir / "config" / "hub-registry.json"
+        if reg_path.exists():
+            try:
+                with open(reg_path, 'r', encoding='utf-8') as f:
+                    reg_data = json.load(f)
+                
+                cmds = reg_data.get('commands', {})
+                for cmd_id, cmd_data in cmds.items():
+                    # Check various path fields
+                    path_fields = ['Path', 'FilePath', 'Script']
+                    for field in path_fields:
+                        if field in cmd_data and cmd_data[field]:
+                            file_path = cmd_data[field]
+                            full_path = root_dir / file_path if not file_path.startswith(root_str) else Path(file_path)
+                            if not full_path.exists():
+                                problems.append({
+                                    "type": "REGISTRY",
+                                    "launcher": cmd_id,
+                                    "target": file_path
+                                })
+                                break  # Only report once per command
+            except Exception as e:
+                console.print(f"Error reading registry: {e}", style="yellow")
+        else:
+            console.print(f"Registry file not found: {reg_path}", style="yellow")
+
+        console.print(f"=== Broken references: {len(problems)} ===", style="bold")
+        
+        if problems:
+            # Group by type
+            grouped = {}
+            for problem in problems:
+                ptype = problem["type"]
+                if ptype not in grouped:
+                    grouped[ptype] = []
+                grouped[ptype].append(problem)
+            
+            for ptype, plist in grouped.items():
+                console.print(f"  {ptype}: {len(plist)}", style="cyan")
+            
+            console.print("")
+            # Sort by type, then launcher
+            sorted_problems = sorted(problems, key=lambda x: (x["type"], x["launcher"]))
+            for problem in sorted_problems:
+                console.print(f"[{problem['type']}] {problem['launcher']}", style="yellow")
+                console.print(f"      -> {problem['target']}")
+                console.print("")
+            
+            raise typer.Exit(1)
+        else:
+            console.print("NO BROKEN REFERENCES FOUND", style="green")
+        
+    except Exception as e:
+        console.print(f"Error: {e}", style="red")
+        raise typer.Exit(1)
+
+
+@app.command()
 def models():
     """List available Ollama models"""
 

@@ -15,7 +15,12 @@ from rich.table import Table
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from devoptimizer_cli.commands import metrics, analyze, remediate, bootstrap, security, cleanup_app
+from devoptimizer_cli.commands.metrics import app as metrics_app
+from devoptimizer_cli.commands.analyze import app as analyze_app
+from devoptimizer_cli.commands.remediate import app as remediate_app
+from devoptimizer_cli.commands.bootstrap import app as bootstrap_app
+from devoptimizer_cli.commands.security import app as security_app
+from devoptimizer_cli.commands.cleanup.cleanup import app as cleanup_app
 
 app = typer.Typer(
     name="devoptimizer",
@@ -27,11 +32,11 @@ app = typer.Typer(
 console = Console()
 
 # Add command modules
-app.add_typer(metrics.app, name="metrics", help="Performance metrics collection")
-app.add_typer(analyze.app, name="analyze", help="AI-powered analysis")
-app.add_typer(remediate.app, name="remediate", help="System remediation")
-app.add_typer(bootstrap.app, name="bootstrap", help="Development environment setup")
-app.add_typer(security.app, name="security", help="Security hardening")
+app.add_typer(metrics_app, name="metrics", help="Performance metrics collection")
+app.add_typer(analyze_app, name="analyze", help="AI-powered analysis")
+app.add_typer(remediate_app, name="remediate", help="System remediation")
+app.add_typer(bootstrap_app, name="bootstrap", help="Development environment setup")
+app.add_typer(security_app, name="security", help="Security hardening")
 app.add_typer(cleanup_app, name="cleanup", help="System cleanup commands")
 
 @app.command()
