@@ -1,0 +1,1488 @@
+{
+  "timestamp": "2026-10-18T12:00:57.727611",
+  "platform_info": {
+    "computer_name": "OFFICE",
+    "user_name": "tbaltzakis",
+    "os_name": "Windows",
+    "os_release": "11",
+    "os_version": "10.0.26220",
+    "architecture": "AMD64",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel"
+  },
+  "powershell_integration": {
+    "execution_policy": {
+      "value": "Restricted",
+      "success": true
+    },
+    "available_modules": {
+      "count": 0,
+      "success": true
+    },
+    "dotnet_version": {
+      "value": ".NET Framework 4.8.9363.0",
+      "success": true
+    }
+  },
+  "system_resources": {
+    "cpu": {
+      "name": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+      "cores": 14,
+      "logical_processors": 20,
+      "max_clock_speed_mhz": 2500.0,
+      "current_clock_speed_mhz": 2500.0
+    },
+    "memory": {
+      "total_gb": 31.73,
+      "available_gb": 1.15,
+      "used_gb": 30.58,
+      "usage_percent": 96.4
+    },
+    "disks": [
+      {
+        "drive": "C:\\",
+        "total_gb": 732.09,
+        "free_gb": 101.48,
+        "used_gb": 630.61,
+        "usage_percent": 86.14
+      },
+      {
+        "drive": "D:\\",
+        "total_gb": 176.33,
+        "free_gb": 0.0,
+        "used_gb": 176.33,
+        "usage_percent": 100.0
+      },
+      {
+        "drive": "E:\\",
+        "total_gb": 43.22,
+        "free_gb": 35.23,
+        "used_gb": 7.99,
+        "usage_percent": 18.49
+      }
+    ]
+  },
+  "file_system_structure": {
+    "expected_directories": {
+      "scripts": {
+        "exists": true,
+        "item_count": 152
+      },
+      "logs": {
+        "exists": true,
+        "item_count": 172
+      },
+      "config": {
+        "exists": true,
+        "item_count": 18
+      },
+      "backups": {
+        "exists": true,
+        "item_count": 13
+      },
+      "templates": {
+        "exists": true,
+        "item_count": 5
+      },
+      "categories": {
+        "exists": true,
+        "item_count": 11
+      },
+      "generators": {
+        "exists": true,
+        "item_count": 2
+      },
+      "registry": {
+        "exists": true,
+        "item_count": 1
+      },
+      "docs": {
+        "exists": true,
+        "item_count": 2
+      },
+      "tools": {
+        "exists": true,
+        "item_count": 19
+      },
+      "py": {
+        "exists": true,
+        "item_count": 9
+      }
+    },
+    "file_inventory": {
+      ".bat": {
+        "count": 742,
+        "total_size_bytes": 3634806
+      },
+      ".ps1": {
+        "count": 868,
+        "total_size_bytes": 6714193
+      },
+      ".json": {
+        "count": 10479,
+        "total_size_bytes": 25079633
+      },
+      ".md": {
+        "count": 2408,
+        "total_size_bytes": 14028523
+      },
+      ".txt": {
+        "count": 431,
+        "total_size_bytes": 5748646
+      },
+      ".log": {
+        "count": 255,
+        "total_size_bytes": 19041180
+      },
+      ".py": {
+        "count": 38,
+        "total_size_bytes": 330612
+      }
+    },
+    "issues": []
+  },
+  "script_integrity": {
+    "bat_files": {
+      "admin-cleanup-run-as-admin.bat": {
+        "name": "admin-cleanup-run-as-admin.bat",
+        "size": 2382,
+        "last_modified": "2026-10-02T22:16:52.722425",
+        "accessible": true,
+        "locked": false,
+        "has_echo_off": true,
+        "has_title": true,
+        "has_powershell_call": true,
+        "line_count": 74
+      },
+      "create-priority-task-admin.bat": {
+        "name": "create-priority-task-admin.bat",
+        "size": 351,
+        "last_modified": "2026-10-12T19:28:49.086637",
+        "accessible": true,
+        "locked": false,
+        "has_echo_off": true,
+        "has_title": false,
+        "has_powershell_call": true,
+        "line_count": 9
+      },
+      "create_devin_task.bat": {
+        "name": "create_devin_task.bat",
+        "size": 362,
+        "last_modified": "2026-10-17T11:50:10.845186",
+        "accessible": true,
+        "locked": false,
+        "has_echo_off": true,
+        "has_title": false,
+        "has_powershell_call": true,
+        "line_count": 8
+      },
+      "organize-files.bat": {
+        "name": "organize-files.bat",
+        "size": 3258,
+        "last_modified": "2026-10-02T22:16:53.061010",
+        "accessible": true,
+        "locked": false,
+        "has_echo_off": true,
+        "has_title": false,
+        "has_powershell_call": true,
+        "line_count": 134
+      },
+      "register-priority-task.bat": {
+        "name": "register-priority-task.bat",
+        "size": 340,
+        "last_modified": "2026-10-12T19:25:02.049992",
+        "accessible": true,
+        "locked": false,
+        "has_echo_off": true,
+        "has_title": false,
+        "has_powershell_call": true,
+        "line_count": 8
+      },
+      "run-dism-admin.bat": {
+        "name": "run-dism-admin.bat",
+        "size": 148,
+        "last_modified": "2026-10-02T22:16:53.080050",
+        "accessible": true,
+        "locked": false,
+        "has_echo_off": true,
+        "has_title": false,
+        "has_powershell_call": false,
+        "line_count": 6
+      }
+    },
+    "power_shell_files": {
+      "admin-cleanup-elevated.ps1": {
+        "name": "admin-cleanup-elevated.ps1",
+        "size": 6194,
+        "last_modified": "2026-10-17T20:37:32.186151",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "ADVANCED-DIAGNOSTICS.ps1": {
+        "name": "ADVANCED-DIAGNOSTICS.ps1",
+        "size": 13884,
+        "last_modified": "2026-09-06T00:27:32.940516",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "ai-development-tools.ps1": {
+        "name": "ai-development-tools.ps1",
+        "size": 11164,
+        "last_modified": "2025-11-07T15:59:06.487730",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "ai-integration-module.ps1": {
+        "name": "ai-integration-module.ps1",
+        "size": 20447,
+        "last_modified": "2025-11-07T15:59:06.523338",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "apply-cline-settings-pair.ps1": {
+        "name": "apply-cline-settings-pair.ps1",
+        "size": 2244,
+        "last_modified": "2026-09-06T01:35:14.721133",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "apply-cline-settings.ps1": {
+        "name": "apply-cline-settings.ps1",
+        "size": 2962,
+        "last_modified": "2026-08-25T22:09:48.767946",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "automation-module.ps1": {
+        "name": "automation-module.ps1",
+        "size": 15976,
+        "last_modified": "2026-09-06T00:27:32.941609",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "backup-docker-nas.ps1": {
+        "name": "backup-docker-nas.ps1",
+        "size": 8678,
+        "last_modified": "2026-10-07T12:13:37.965825",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "bound-container-logs.ps1": {
+        "name": "bound-container-logs.ps1",
+        "size": 5254,
+        "last_modified": "2026-10-07T12:40:49.252355",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "Build-App.ps1": {
+        "name": "Build-App.ps1",
+        "size": 6577,
+        "last_modified": "2026-09-28T21:36:56.190910",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "CENTERAL-LAUNCHER.ps1": {
+        "name": "CENTERAL-LAUNCHER.ps1",
+        "size": 15962,
+        "last_modified": "2025-11-08T21:13:29.732231",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-all-syntax.ps1": {
+        "name": "check-all-syntax.ps1",
+        "size": 1159,
+        "last_modified": "2026-10-03T12:54:03.072797",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-broken-refs.ps1": {
+        "name": "check-broken-refs.ps1",
+        "size": 2101,
+        "last_modified": "2026-10-02T22:16:53.039530",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "check-cleanup-status.ps1": {
+        "name": "check-cleanup-status.ps1",
+        "size": 9742,
+        "last_modified": "2026-10-10T06:25:46.803411",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-devin-all-logs.ps1": {
+        "name": "check-devin-all-logs.ps1",
+        "size": 397,
+        "last_modified": "2026-10-12T18:48:30.906924",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-devin-logs.ps1": {
+        "name": "check-devin-logs.ps1",
+        "size": 356,
+        "last_modified": "2026-10-12T18:45:05.586235",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-devin-processes.ps1": {
+        "name": "check-devin-processes.ps1",
+        "size": 127,
+        "last_modified": "2026-10-12T18:46:25.880147",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-devin-wsl-processes.ps1": {
+        "name": "check-devin-wsl-processes.ps1",
+        "size": 60,
+        "last_modified": "2026-10-12T18:47:02.740382",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-devin.ps1": {
+        "name": "check-devin.ps1",
+        "size": 275,
+        "last_modified": "2026-10-12T18:30:49.663453",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-disks.ps1": {
+        "name": "check-disks.ps1",
+        "size": 327,
+        "last_modified": "2026-10-12T18:47:47.434619",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-elevated-task.ps1": {
+        "name": "check-elevated-task.ps1",
+        "size": 279,
+        "last_modified": "2026-10-05T12:36:33.091268",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "check-host-memory.ps1": {
+        "name": "check-host-memory.ps1",
+        "size": 218,
+        "last_modified": "2026-10-10T11:34:22.540498",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-nextcloud-sync.ps1": {
+        "name": "check-nextcloud-sync.ps1",
+        "size": 8767,
+        "last_modified": "2026-10-04T13:46:32.054754",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "check-reboot-status.ps1": {
+        "name": "check-reboot-status.ps1",
+        "size": 2105,
+        "last_modified": "2026-10-02T22:16:53.043459",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-social-apps.ps1": {
+        "name": "check-social-apps.ps1",
+        "size": 1395,
+        "last_modified": "2026-10-12T20:30:03.382169",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-store-apps.ps1": {
+        "name": "check-store-apps.ps1",
+        "size": 888,
+        "last_modified": "2026-10-12T20:30:45.545698",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-tasks.ps1": {
+        "name": "check-tasks.ps1",
+        "size": 413,
+        "last_modified": "2026-10-05T12:33:27.210098",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "check-trigger.ps1": {
+        "name": "check-trigger.ps1",
+        "size": 66,
+        "last_modified": "2026-10-12T19:38:11.153078",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-trigger2.ps1": {
+        "name": "check-trigger2.ps1",
+        "size": 77,
+        "last_modified": "2026-10-12T19:38:28.649561",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-trigger3.ps1": {
+        "name": "check-trigger3.ps1",
+        "size": 102,
+        "last_modified": "2026-10-12T19:39:07.046116",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-updates.ps1": {
+        "name": "check-updates.ps1",
+        "size": 358,
+        "last_modified": "2026-10-02T22:16:53.663215",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-wsl-memory-pressure.ps1": {
+        "name": "check-wsl-memory-pressure.ps1",
+        "size": 2193,
+        "last_modified": "2026-10-02T22:09:23.085117",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check-wsl-system-status.ps1": {
+        "name": "check-wsl-system-status.ps1",
+        "size": 5691,
+        "last_modified": "2026-10-10T06:19:55.798535",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "check_admin.ps1": {
+        "name": "check_admin.ps1",
+        "size": 225,
+        "last_modified": "2026-10-17T20:46:11.694823",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "clean-extensions.ps1": {
+        "name": "clean-extensions.ps1",
+        "size": 2392,
+        "last_modified": "2026-10-02T22:16:52.729621",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "cline-verify.ps1": {
+        "name": "cline-verify.ps1",
+        "size": 6351,
+        "last_modified": "2026-08-25T23:50:37.185360",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "compact-vhdx-elevated.ps1": {
+        "name": "compact-vhdx-elevated.ps1",
+        "size": 2191,
+        "last_modified": "2026-10-02T22:16:53.046773",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "compact-wsl-vhdx.ps1": {
+        "name": "compact-wsl-vhdx.ps1",
+        "size": 434,
+        "last_modified": "2026-10-02T22:16:52.731931",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "compact-wsl.ps1": {
+        "name": "compact-wsl.ps1",
+        "size": 319,
+        "last_modified": "2026-10-02T22:16:52.734735",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "CONFIG-DEMO.ps1": {
+        "name": "CONFIG-DEMO.ps1",
+        "size": 7793,
+        "last_modified": "2025-11-07T15:59:06.641469",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "create-admin-cleanup-task.ps1": {
+        "name": "create-admin-cleanup-task.ps1",
+        "size": 637,
+        "last_modified": "2026-10-17T12:21:30.137073",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "create-cline-mcp.ps1": {
+        "name": "create-cline-mcp.ps1",
+        "size": 1711,
+        "last_modified": "2026-10-02T22:16:53.050012",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "create-priority-shortcut.ps1": {
+        "name": "create-priority-shortcut.ps1",
+        "size": 1527,
+        "last_modified": "2026-10-12T19:41:17.952382",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "create-priority-task-com.ps1": {
+        "name": "create-priority-task-com.ps1",
+        "size": 2448,
+        "last_modified": "2026-10-12T19:33:43.633003",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "create-priority-task-user.ps1": {
+        "name": "create-priority-task-user.ps1",
+        "size": 3111,
+        "last_modified": "2026-10-12T19:40:03.424999",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "create-priority-task.ps1": {
+        "name": "create-priority-task.ps1",
+        "size": 693,
+        "last_modified": "2026-10-12T19:27:51.421332",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "create_cleanup_task.ps1": {
+        "name": "create_cleanup_task.ps1",
+        "size": 347,
+        "last_modified": "2026-10-17T21:13:55.993745",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "create_devin_task_ps.ps1": {
+        "name": "create_devin_task_ps.ps1",
+        "size": 2489,
+        "last_modified": "2026-10-17T11:51:06.573040",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "Cursor-AI-Module.ps1": {
+        "name": "Cursor-AI-Module.ps1",
+        "size": 20401,
+        "last_modified": "2025-11-07T15:32:47.450051",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "cursor-ai-optimization.ps1": {
+        "name": "cursor-ai-optimization.ps1",
+        "size": 23897,
+        "last_modified": "2025-11-07T15:59:06.679842",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "debug-config.ps1": {
+        "name": "debug-config.ps1",
+        "size": 1561,
+        "last_modified": "2025-11-07T15:59:06.700970",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "dev-cache-cleaner.ps1": {
+        "name": "dev-cache-cleaner.ps1",
+        "size": 17216,
+        "last_modified": "2026-10-08T04:48:32.044175",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "dev-cleanup.ps1": {
+        "name": "dev-cleanup.ps1",
+        "size": 25788,
+        "last_modified": "2026-10-08T04:48:32.057188",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "dev-optimizer-fixed.ps1": {
+        "name": "dev-optimizer-fixed.ps1",
+        "size": 56660,
+        "last_modified": "2025-11-07T15:59:06.807758",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "DevOptimizer-Core.ps1": {
+        "name": "DevOptimizer-Core.ps1",
+        "size": 25622,
+        "last_modified": "2025-11-07T15:59:08.008998",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "elevated-complete-cleanup.ps1": {
+        "name": "elevated-complete-cleanup.ps1",
+        "size": 9748,
+        "last_modified": "2026-10-02T22:16:52.735922",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "enhanced-event-log-checker.ps1": {
+        "name": "enhanced-event-log-checker.ps1",
+        "size": 16514,
+        "last_modified": "2026-09-06T00:27:32.943214",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "enhanced-system-health.ps1": {
+        "name": "enhanced-system-health.ps1",
+        "size": 16263,
+        "last_modified": "2026-10-02T22:16:53.666149",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "extended-cleanup.ps1": {
+        "name": "extended-cleanup.ps1",
+        "size": 12484,
+        "last_modified": "2026-10-10T06:36:54.215861",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "fine-tune-nextcloud.ps1": {
+        "name": "fine-tune-nextcloud.ps1",
+        "size": 8940,
+        "last_modified": "2026-10-04T12:39:35.558998",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "fix-bom.ps1": {
+        "name": "fix-bom.ps1",
+        "size": 2074,
+        "last_modified": "2026-10-02T22:16:53.054004",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "fix-vscode-wsl-server.ps1": {
+        "name": "fix-vscode-wsl-server.ps1",
+        "size": 3199,
+        "last_modified": "2026-08-25T22:36:42.985242",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "FIXED-SYSTEM-DEEP-CLEAN.ps1": {
+        "name": "FIXED-SYSTEM-DEEP-CLEAN.ps1",
+        "size": 13582,
+        "last_modified": "2026-10-02T22:16:52.740412",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "get-all-task-details.ps1": {
+        "name": "get-all-task-details.ps1",
+        "size": 427,
+        "last_modified": "2026-10-05T12:35:42.668226",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "get-task-details.ps1": {
+        "name": "get-task-details.ps1",
+        "size": 157,
+        "last_modified": "2026-10-05T12:34:59.591021",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "gpu-nvidia-broadcast-optimization.ps1": {
+        "name": "gpu-nvidia-broadcast-optimization.ps1",
+        "size": 28731,
+        "last_modified": "2026-10-02T22:16:52.919177",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "host-guard.ps1": {
+        "name": "host-guard.ps1",
+        "size": 7573,
+        "last_modified": "2026-10-07T18:03:15.058594",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "Hub-Registry.ps1": {
+        "name": "Hub-Registry.ps1",
+        "size": 18314,
+        "last_modified": "2026-10-02T22:16:53.057004",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "Insider-Automation.ps1": {
+        "name": "Insider-Automation.ps1",
+        "size": 18232,
+        "last_modified": "2026-10-02T22:16:53.582001",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "install-dmr-gpu.ps1": {
+        "name": "install-dmr-gpu.ps1",
+        "size": 124,
+        "last_modified": "2026-10-12T18:59:55.680838",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "Invoke-VhdxCompaction.ps1": {
+        "name": "Invoke-VhdxCompaction.ps1",
+        "size": 9069,
+        "last_modified": "2026-10-02T22:16:53.669157",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "ml-frameworks-setup.ps1": {
+        "name": "ml-frameworks-setup.ps1",
+        "size": 9045,
+        "last_modified": "2026-10-02T22:16:52.923182",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "nuxt3-optimization.ps1": {
+        "name": "nuxt3-optimization.ps1",
+        "size": 24245,
+        "last_modified": "2026-10-02T22:16:53.723283",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "nvidia-pair-setup.ps1": {
+        "name": "nvidia-pair-setup.ps1",
+        "size": 8335,
+        "last_modified": "2026-09-05T23:45:26.472769",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "onedrive-repair.ps1": {
+        "name": "onedrive-repair.ps1",
+        "size": 8476,
+        "last_modified": "2026-10-02T22:16:52.926178",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "optimizer.ps1": {
+        "name": "optimizer.ps1",
+        "size": 2987,
+        "last_modified": "2026-10-02T22:16:52.743555",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "overclocking-manager.ps1": {
+        "name": "overclocking-manager.ps1",
+        "size": 24399,
+        "last_modified": "2026-10-02T22:16:53.065041",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "power-management.ps1": {
+        "name": "power-management.ps1",
+        "size": 7864,
+        "last_modified": "2026-10-02T22:16:53.068040",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "prerequisites-checker.ps1": {
+        "name": "prerequisites-checker.ps1",
+        "size": 25478,
+        "last_modified": "2026-10-02T22:16:53.072041",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "raise-devin-priority.ps1": {
+        "name": "raise-devin-priority.ps1",
+        "size": 4289,
+        "last_modified": "2026-10-17T11:05:59.068562",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "real-time-monitoring.ps1": {
+        "name": "real-time-monitoring.ps1",
+        "size": 16075,
+        "last_modified": "2026-10-02T22:16:53.750804",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "register-admin-cleanup-weekly.ps1": {
+        "name": "register-admin-cleanup-weekly.ps1",
+        "size": 1821,
+        "last_modified": "2026-10-05T20:35:41.596366",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "register-bat-sync-task.ps1": {
+        "name": "register-bat-sync-task.ps1",
+        "size": 1647,
+        "last_modified": "2026-10-02T22:16:53.075041",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "register-daily-cleanup.ps1": {
+        "name": "register-daily-cleanup.ps1",
+        "size": 1515,
+        "last_modified": "2026-10-07T11:43:07.745320",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "register-daily-cleanup2.ps1": {
+        "name": "register-daily-cleanup2.ps1",
+        "size": 1934,
+        "last_modified": "2026-10-05T12:38:55.980761",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "register-devin-priority-simple.ps1": {
+        "name": "register-devin-priority-simple.ps1",
+        "size": 2622,
+        "last_modified": "2026-10-17T11:09:12.844162",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "register-devin-priority-task.ps1": {
+        "name": "register-devin-priority-task.ps1",
+        "size": 3088,
+        "last_modified": "2026-10-17T11:06:50.499120",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "register-devin-weekly-restart-elevated.ps1": {
+        "name": "register-devin-weekly-restart-elevated.ps1",
+        "size": 3197,
+        "last_modified": "2026-10-12T19:17:08.217438",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "register-devin-weekly-restart.ps1": {
+        "name": "register-devin-weekly-restart.ps1",
+        "size": 2449,
+        "last_modified": "2026-10-12T19:13:44.841304",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "register-devoptimizer-tasks.ps1": {
+        "name": "register-devoptimizer-tasks.ps1",
+        "size": 4023,
+        "last_modified": "2026-10-02T22:16:52.747545",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "Register-VhdxCompaction.ps1": {
+        "name": "Register-VhdxCompaction.ps1",
+        "size": 5004,
+        "last_modified": "2026-10-05T21:46:36.590422",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "restart-devin-weekly.ps1": {
+        "name": "restart-devin-weekly.ps1",
+        "size": 3755,
+        "last_modified": "2026-10-12T19:13:11.779146",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "restart-docker.ps1": {
+        "name": "restart-docker.ps1",
+        "size": 219,
+        "last_modified": "2026-10-05T11:48:48.864294",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "run-elevated-maintenance.ps1": {
+        "name": "run-elevated-maintenance.ps1",
+        "size": 4117,
+        "last_modified": "2026-10-02T22:16:52.929176",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "scan-d-usage.ps1": {
+        "name": "scan-d-usage.ps1",
+        "size": 980,
+        "last_modified": "2026-10-02T22:16:53.083050",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "scan-nuxt-projects.ps1": {
+        "name": "scan-nuxt-projects.ps1",
+        "size": 1190,
+        "last_modified": "2026-10-02T22:16:53.086515",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "screen-settings-management.ps1": {
+        "name": "screen-settings-management.ps1",
+        "size": 35742,
+        "last_modified": "2026-10-02T22:16:53.089710",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "security-functions.ps1": {
+        "name": "security-functions.ps1",
+        "size": 6340,
+        "last_modified": "2026-10-02T22:16:53.758897",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "shutdown-and-compact.ps1": {
+        "name": "shutdown-and-compact.ps1",
+        "size": 533,
+        "last_modified": "2026-10-02T22:16:53.093532",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "startup-management.ps1": {
+        "name": "startup-management.ps1",
+        "size": 9791,
+        "last_modified": "2026-10-02T22:16:53.097050",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "sync-bat-ps1.ps1": {
+        "name": "sync-bat-ps1.ps1",
+        "size": 1960,
+        "last_modified": "2026-10-02T22:16:53.100049",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "sync-docker-wsl.ps1": {
+        "name": "sync-docker-wsl.ps1",
+        "size": 9479,
+        "last_modified": "2026-10-10T16:38:33.002864",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "temp_admin_task.ps1": {
+        "name": "temp_admin_task.ps1",
+        "size": 586,
+        "last_modified": "2026-10-17T20:49:12.493699",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "temp_cleanup_task.ps1": {
+        "name": "temp_cleanup_task.ps1",
+        "size": 712,
+        "last_modified": "2026-10-17T20:38:19.367135",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "TEST-ALL-FILES.ps1": {
+        "name": "TEST-ALL-FILES.ps1",
+        "size": 11293,
+        "last_modified": "2026-10-02T22:16:53.104016",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "Test-App.ps1": {
+        "name": "Test-App.ps1",
+        "size": 2884,
+        "last_modified": "2026-09-26T06:57:03.891054",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "test-syntax.ps1": {
+        "name": "test-syntax.ps1",
+        "size": 14953,
+        "last_modified": "2026-10-02T22:16:53.107028",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "test_elevation.ps1": {
+        "name": "test_elevation.ps1",
+        "size": 339,
+        "last_modified": "2026-10-17T21:14:30.618780",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "UNIFIED-LAUNCHER.ps1": {
+        "name": "UNIFIED-LAUNCHER.ps1",
+        "size": 25317,
+        "last_modified": "2026-10-02T22:16:53.602718",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "validate-system.ps1": {
+        "name": "validate-system.ps1",
+        "size": 16775,
+        "last_modified": "2026-10-10T06:43:35.332272",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "vscode-optimization.ps1": {
+        "name": "vscode-optimization.ps1",
+        "size": 6464,
+        "last_modified": "2025-11-07T15:01:49.521873",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "win11-admin-cleanup-elevated-fixed.ps1": {
+        "name": "win11-admin-cleanup-elevated-fixed.ps1",
+        "size": 5644,
+        "last_modified": "2026-10-15T20:58:01.443802",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "win11-admin-cleanup-elevated.ps1": {
+        "name": "win11-admin-cleanup-elevated.ps1",
+        "size": 5644,
+        "last_modified": "2026-10-15T20:51:57.159645",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "win11-admin-cleanup-scheduled.ps1": {
+        "name": "win11-admin-cleanup-scheduled.ps1",
+        "size": 1219,
+        "last_modified": "2026-10-05T21:48:29.179595",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "win11-admin-cleanup.ps1": {
+        "name": "win11-admin-cleanup.ps1",
+        "size": 4543,
+        "last_modified": "2026-09-19T05:06:04.989552",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "win11-health-snapshot.ps1": {
+        "name": "win11-health-snapshot.ps1",
+        "size": 5067,
+        "last_modified": "2026-10-10T06:04:58.950335",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "win11-repair.ps1": {
+        "name": "win11-repair.ps1",
+        "size": 1601,
+        "last_modified": "2026-10-02T22:16:52.932386",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "win11-safe-cleanup.ps1": {
+        "name": "win11-safe-cleanup.ps1",
+        "size": 6036,
+        "last_modified": "2026-10-10T06:27:56.270003",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "windows-features.ps1": {
+        "name": "windows-features.ps1",
+        "size": 10553,
+        "last_modified": "2026-10-02T22:16:52.752637",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "windows-update-cleanup.ps1": {
+        "name": "windows-update-cleanup.ps1",
+        "size": 22847,
+        "last_modified": "2026-10-02T22:16:52.757066",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "wsl-deep-clean.ps1": {
+        "name": "wsl-deep-clean.ps1",
+        "size": 6755,
+        "last_modified": "2026-10-08T04:48:32.070604",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "wsl-gpu-rebind.ps1": {
+        "name": "wsl-gpu-rebind.ps1",
+        "size": 1619,
+        "last_modified": "2026-10-17T20:25:03.943468",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "wsl-ubuntu-cleanup.ps1": {
+        "name": "wsl-ubuntu-cleanup.ps1",
+        "size": 2136,
+        "last_modified": "2026-10-05T20:17:55.650155",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "_hide-task-popups-2.ps1": {
+        "name": "_hide-task-popups-2.ps1",
+        "size": 790,
+        "last_modified": "2026-10-06T21:50:56.105146",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "_hide-task-popups-3.ps1": {
+        "name": "_hide-task-popups-3.ps1",
+        "size": 1889,
+        "last_modified": "2026-10-06T22:14:09.178944",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      },
+      "_hide-task-popups.ps1": {
+        "name": "_hide-task-popups.ps1",
+        "size": 2512,
+        "last_modified": "2026-10-06T21:48:15.381058",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": false,
+        "syntax_warnings": [
+          "Potential syntax imbalance detected"
+        ]
+      },
+      "_popup-watch.ps1": {
+        "name": "_popup-watch.ps1",
+        "size": 1347,
+        "last_modified": "2026-10-06T22:12:20.271109",
+        "accessible": true,
+        "locked": false,
+        "syntax_valid": true,
+        "syntax_warnings": []
+      }
+    },
+    "issues": []
+  },
+  "process_locks": [
+    {
+      "pid": 3192,
+      "name": "powershell.exe",
+      "cpu_percent": 0.0,
+      "memory_mb": 14.0
+    },
+    {
+      "pid": 3404,
+      "name": "Devin.exe",
+      "cpu_percent": 0.0,
+      "memory_mb": 55.7
+    },
+    {
+      "pid": 6056,
+      "name": "explorer.exe",
+      "cpu_percent": 0.0,
+      "memory_mb": 90.5
+    },
+    {
+      "pid": 6832,
+      "name": "ZCode.exe",
+      "cpu_percent": 0.0,
+      "memory_mb": 70.1
+    },
+    {
+      "pid": 10184,
+      "name": "Devin.exe",
+      "cpu_percent": 0.0,
+      "memory_mb": 46.5
+    },
+    {
+      "pid": 10944,
+      "name": "ZCode.exe",
+      "cpu_percent": 0.0,
+      "memory_mb": 10.4
+    },
+    {
+      "pid": 12088,
+      "name": "SearchIndexer.exe",
+      "cpu_percent": 0.0,
+      "memory_mb": 17.3
+    },
+    {
+      "pid": 12300,
+      "name": "Devin.exe",
+      "cpu_percent": 0.0,
+      "memory_mb": 2.7
+    },
+    {
+      "pid": 13640,
+      "name": "cmd.exe",
+      "cpu_percent": 0.0,
+      "memory_mb": 0.9
+    },
+    {
+      "pid": 14164,
+      "name": "Devin.exe",
+      "cpu_percent": 0.0,
+      "memory_mb": 40.1
+    }
+  ],
+  "issues": []
+}
