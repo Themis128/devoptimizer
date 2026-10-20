@@ -4,8 +4,17 @@
 .DESCRIPTION
     Runs elevated. Idempotent, continues on partial failure, logs to D:\DevOptimizer\logs\.
 #>
-#requires -RunAsAdministrator
 $ErrorActionPreference = 'Continue'
+
+# Check for admin elevation
+function Test-Admin {
+    $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
+    return $currentUser.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+if (-not (Test-Admin)) {
+    Write-Error "This script requires Administrator privileges. Please run PowerShell as Administrator."
+    exit 1
+}
 
 $LogFile = "D:\DevOptimizer\logs\admin-cleanup-robust-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
 function Log { param($msg) $ts = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'; "$ts $msg" | Tee-Object -FilePath $LogFile -Append }
