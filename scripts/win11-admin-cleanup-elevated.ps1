@@ -75,7 +75,7 @@ try {
     }
 } catch {
     $msg = $_.Exception.Message.Split("`n")[0]
-    Write-Host("[5] Delivery Optimization cache: SKIPPED ($msg)" -ForegroundColor DarkGray
+    Write-Host "[5] Delivery Optimization cache: SKIPPED ($msg)" -ForegroundColor DarkGray
 }
 
 # 6. Shadow Copies (oldest)

@@ -63,8 +63,10 @@ New-Item -Path $nightlyDir -ItemType Directory -Force | Out-Null
 $files = @()
 
 # --- [3] Postgres dump (nightly) ------------------------------------------------
-$pgContainer = docker ps --format '{{.Names}}' 2>$null | Where-Object { $_ -match 'postgres' } | Select-Object -First 1
-if ($pgContainer) {
+# Target social-postgres explicitly (port 5433) as it holds the actual data;
+# the generic 'postgres' container (port 5432) is often empty/template.
+$pgContainer = 'social-postgres'
+if (docker ps --format '{{.Names}}' 2>$null | Where-Object { $_ -eq $pgContainer }) {
     $pgUser = (docker inspect $pgContainer --format '{{range .Config.Env}}{{println .}}{{end}}' 2>$null |
         Where-Object { $_ -match '^POSTGRES_USER=' }) -replace '^POSTGRES_USER=', ''
     if (-not $pgUser) { $pgUser = 'postgres' }
@@ -73,7 +75,21 @@ if ($pgContainer) {
     if ((Test-Path $dumpFile) -and ((Get-Item $dumpFile).Length -gt 1KB)) {
         $files += $dumpFile; Log ("pg_dumpall OK: {0} ({1:N1} MB)" -f $pgContainer, ((Get-Item $dumpFile).Length/1MB))
     } else { NoteFail ("pg_dumpall produced no data from {0}" -f $pgContainer) }
-} else { Log 'no postgres container found (pg dump skipped)' }
+} else {
+    # Fallback: try any postgres container
+    $fallback = docker ps --format '{{.Names}}' 2>$null | Where-Object { $_ -match 'postgres' } | Select-Object -First 1
+    if ($fallback) {
+        Log ("social-postgres not running, trying fallback: {0}" -f $fallback)
+        $pgUser = (docker inspect $fallback --format '{{range .Config.Env}}{{println .}}{{end}}' 2>$null |
+            Where-Object { $_ -match '^POSTGRES_USER=' }) -replace '^POSTGRES_USER=', ''
+        if (-not $pgUser) { $pgUser = 'postgres' }
+        $dumpFile = Join-Path $nightlyDir ("pgdumpall-{0}.sql.gz" -f $dateTag)
+        docker exec $fallback pg_dumpall -U $pgUser 2>$null | & gzip.exe > $dumpFile
+        if ((Test-Path $dumpFile) -and ((Get-Item $dumpFile).Length -gt 1KB)) {
+            $files += $dumpFile; Log ("pg_dumpall OK: {0} ({1:N1} MB)" -f $fallback, ((Get-Item $dumpFile).Length/1MB))
+        } else { NoteFail ("pg_dumpall produced no data from {0}" -f $fallback) }
+    } else { Log 'no postgres container found (pg dump skipped)' }
+}
 
 # --- [4] Docker volumes, size-tiered --------------------------------------------
 $gzip = 'C:\Program Files\Git\usr\bin\gzip.exe'
