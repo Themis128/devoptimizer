@@ -12,7 +12,9 @@ param(
     [ValidateSet('list','evict','ttl','watchdog','status','check-once')]
     [string]$Action = 'list',
     [string]$Model,
-    [int]$TTLMinutes = 30,
+    [int]$TTLMinutes = 15,
+    [int]$VramPressureThreshold = 90,
+    [long]$MinModelVramForEvictMB = 6000,
     [switch]$All,
     [switch]$Force,
     [int]$IntervalSeconds = 60
@@ -124,7 +126,9 @@ function Get-ModelLastAccess {
 
 function Check-DMRHealth {
     param(
-        [int]$TTLMinutes = 30
+        [int]$TTLMinutes = 15,
+        [int]$VramPressureThreshold = 90,
+        [long]$MinModelVramForEvictMB = 6000  # Only evict if models using >6GB VRAM
     )
     $result = @{ ActionTaken = $false; Message = ''; ExitCode = 0 }
     
@@ -137,10 +141,12 @@ function Check-DMRHealth {
     
     $vram = Get-VRAMUsage
     $vramPct = $vram.Pct
+    $vramUsedMB = $vram.Used
     $models = Get-DMRModels
     $lastAccess = Get-ModelLastAccess
     $now = Get-Date
     
+    # Check for idle models (only if they're consuming significant VRAM)
     $evicted = @()
     foreach ($m in $models) {
         $last = if ($lastAccess.ContainsKey($m.Id)) { $lastAccess[$m.Id] } else { $m.Created }
@@ -149,28 +155,31 @@ function Check-DMRHealth {
         }
     }
     
-    if ($evicted.Count -gt 0) {
+    # Only act on idle eviction if models are using significant VRAM
+    $shouldEvictIdle = ($evicted.Count -gt 0) -and ($vramUsedMB -gt $MinModelVramForEvictMB)
+    
+    if ($shouldEvictIdle) {
         docker restart $container 2>$null | Out-Null
         if ($LASTEXITCODE -eq 0) {
             $result.ActionTaken = $true
-            $result.Message = "Evicted idle models: $($evicted -join ', '); restarted docker-model-runner"
+            $result.Message = "Evicted idle models: $($evicted -join ', '); restarted docker-model-runner (VRAM was ${vramUsedMB}MB > ${MinModelVramForEvictMB}MB)"
             Start-Sleep -Seconds 10
         } else {
             $result.Message = "FAILED to restart docker-model-runner for idle eviction"
             $result.ExitCode = 1
         }
-    } elseif ($vramPct -gt 85) {
+    } elseif ($vramPct -gt $VramPressureThreshold) {
         docker restart $container 2>$null | Out-Null
         if ($LASTEXITCODE -eq 0) {
             $result.ActionTaken = $true
-            $result.Message = "VRAM at ${vramPct}% (>85%); restarted docker-model-runner preemptively"
+            $result.Message = "VRAM at ${vramPct}% (>${VramPressureThreshold}%); restarted docker-model-runner preemptively"
             Start-Sleep -Seconds 10
         } else {
             $result.Message = "FAILED to restart docker-model-runner for VRAM pressure"
             $result.ExitCode = 1
         }
     } else {
-        $result.Message = "VRAM ${vramPct}%, ${models.Count} model(s) loaded, no idle models > ${TTLMinutes}min"
+        $result.Message = "VRAM ${vramPct}% (${vramUsedMB}MB), ${models.Count} model(s) loaded, idle>${TTLMinutes}min: $($evicted.Count), threshold: ${MinModelVramForEvictMB}MB"
     }
     
     return $result
@@ -253,23 +262,25 @@ switch ($Action) {
     
     'ttl' {
         Write-Out "Setting DMR model TTL to $TTLMinutes minutes (idle eviction)"
-        $state = @{ TTLMinutes = $TTLMinutes; Enabled = $true; Updated = (Get-Date).ToString('o') }
+        Write-Out "VRAM pressure threshold: $VramPressureThreshold%"
+        Write-Out "Min model VRAM for eviction: $MinModelVramForEvictMB MB"
+        $state = @{ TTLMinutes = $TTLMinutes; Enabled = $true; VramPressureThreshold = $VramPressureThreshold; MinModelVramForEvictMB = $MinModelVramForEvictMB; Updated = (Get-Date).ToString('o') }
         $state | ConvertTo-Json -Depth 3 | Set-Content $stateFile -Encoding ASCII
         Write-Out "TTL config saved to $stateFile"
         Write-Out "Run 'dmr-model-manager watchdog' to start background eviction monitor"
     }
     
     'watchdog' {
-        Write-Out "Starting DMR Model Watchdog (interval: ${IntervalSeconds}s, TTL: ${TTLMinutes}min)"
+        Write-Out "Starting DMR Model Watchdog (interval: ${IntervalSeconds}s, TTL: ${TTLMinutes}min, VRAM threshold: ${VramPressureThreshold}%, Min VRAM for evict: ${MinModelVramForEvictMB}MB)"
         Write-Out "Press Ctrl+C to stop"
-        Log "Watchdog started: interval=${IntervalSeconds}s ttl=${TTLMinutes}min"
+        Log "Watchdog started: interval=${IntervalSeconds}s ttl=${TTLMinutes}min vramThresh=${VramPressureThreshold}% minVramEvict=${MinModelVramForEvictMB}MB"
         
-        $state = @{ TTLMinutes = $TTLMinutes; Enabled = $true }
+        $state = @{ TTLMinutes = $TTLMinutes; Enabled = $true; VramPressureThreshold = $VramPressureThreshold; MinModelVramForEvictMB = $MinModelVramForEvictMB }
         $state | ConvertTo-Json -Depth 3 | Set-Content $stateFile -Encoding ASCII
         
         try {
             while ($true) {
-                $result = Check-DMRHealth -TTLMinutes $TTLMinutes
+                $result = Check-DMRHealth -TTLMinutes $TTLMinutes -VramPressureThreshold $VramPressureThreshold -MinModelVramForEvictMB $MinModelVramForEvictMB
                 if ($result.ActionTaken) {
                     Write-Out "Watchdog: $($result.Message)"
                     Log "Watchdog: $($result.Message)"
@@ -286,7 +297,7 @@ switch ($Action) {
     
     'check-once' {
         Write-Out "=== DMR Health Check (single run) ==="
-        $result = Check-DMRHealth -TTLMinutes $TTLMinutes
+        $result = Check-DMRHealth -TTLMinutes $TTLMinutes -VramPressureThreshold $VramPressureThreshold -MinModelVramForEvictMB $MinModelVramForEvictMB
         if ($result.ActionTaken) {
             Write-Out "ACTION: $($result.Message)"
             Log "Check-once: $($result.Message)"
