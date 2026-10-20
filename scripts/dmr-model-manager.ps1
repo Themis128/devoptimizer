@@ -9,7 +9,7 @@
 #requires -Version 5.1
 # CATEGORY: ai-ml
 param(
-    [ValidateSet('list','evict','ttl','watchdog','status')]
+    [ValidateSet('list','evict','ttl','watchdog','status','check-once')]
     [string]$Action = 'list',
     [string]$Model,
     [int]$TTLMinutes = 30,
@@ -54,7 +54,12 @@ function Get-DMRContainerStatus {
 
 function Get-VRAMUsage {
     $nsmi = nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits 2>$null
+    # Output format: "7643, 8192" (used, total) - comma + space
     if ($nsmi -match '(\d+)\s*,\s*(\d+)') {
+        return @{ Used = [int]$Matches[1]; Total = [int]$Matches[2]; Pct = [int](100 * $Matches[1] / $Matches[2]) }
+    }
+    # Fallback: try just space-separated
+    if ($nsmi -match '(\d+)\s+(\d+)') {
         return @{ Used = [int]$Matches[1]; Total = [int]$Matches[2]; Pct = [int](100 * $Matches[1] / $Matches[2]) }
     }
     return @{ Used = 0; Total = 0; Pct = 0 }
@@ -115,6 +120,60 @@ function Get-ModelLastAccess {
     } catch { }
     
     return $access
+}
+
+function Check-DMRHealth {
+    param(
+        [int]$TTLMinutes = 30
+    )
+    $result = @{ ActionTaken = $false; Message = ''; ExitCode = 0 }
+    
+    $container = Get-DMRContainer
+    if (-not $container) {
+        $result.Message = 'docker-model-runner container not found'
+        $result.ExitCode = 1
+        return $result
+    }
+    
+    $vram = Get-VRAMUsage
+    $vramPct = $vram.Pct
+    $models = Get-DMRModels
+    $lastAccess = Get-ModelLastAccess
+    $now = Get-Date
+    
+    $evicted = @()
+    foreach ($m in $models) {
+        $last = if ($lastAccess.ContainsKey($m.Id)) { $lastAccess[$m.Id] } else { $m.Created }
+        if ($last -and (($now - $last).TotalMinutes -gt $TTLMinutes)) {
+            $evicted += $m.Id
+        }
+    }
+    
+    if ($evicted.Count -gt 0) {
+        docker restart $container 2>$null | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            $result.ActionTaken = $true
+            $result.Message = "Evicted idle models: $($evicted -join ', '); restarted docker-model-runner"
+            Start-Sleep -Seconds 10
+        } else {
+            $result.Message = "FAILED to restart docker-model-runner for idle eviction"
+            $result.ExitCode = 1
+        }
+    } elseif ($vramPct -gt 85) {
+        docker restart $container 2>$null | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            $result.ActionTaken = $true
+            $result.Message = "VRAM at ${vramPct}% (>85%); restarted docker-model-runner preemptively"
+            Start-Sleep -Seconds 10
+        } else {
+            $result.Message = "FAILED to restart docker-model-runner for VRAM pressure"
+            $result.ExitCode = 1
+        }
+    } else {
+        $result.Message = "VRAM ${vramPct}%, ${models.Count} model(s) loaded, no idle models > ${TTLMinutes}min"
+    }
+    
+    return $result
 }
 
 # --- Actions ----------------------------------------------------------------
@@ -210,35 +269,12 @@ switch ($Action) {
         
         try {
             while ($true) {
-                $container = Get-DMRContainer
-                if ($container) {
-                    $vram = Get-VRAMUsage
-                    $models = Get-DMRModels
-                    $lastAccess = Get-ModelLastAccess
-                    $now = Get-Date
-                    
-                    $evicted = @()
-                    foreach ($m in $models) {
-                        $last = if ($lastAccess.ContainsKey($m.Id)) { $lastAccess[$m.Id] } else { $m.Created }
-                        if ($last -and (($now - $last).TotalMinutes -gt $TTLMinutes)) {
-                            $evicted += $m.Id
-                        }
-                    }
-                    
-                    if ($evicted.Count -gt 0) {
-                        Write-Out "Watchdog: Evicting idle models: $($evicted -join ', ')"
-                        Log "Watchdog evicting: $($evicted -join ', ')"
-                        docker restart $container 2>$null | Out-Null
-                        if ($LASTEXITCODE -eq 0) {
-                            Write-Out "Watchdog: Restarted docker-model-runner"
-                            Start-Sleep -Seconds 10
-                        }
-                    } elseif ($vram.Pct -gt 85) {
-                        Write-Out "Watchdog: VRAM at ${vram.Pct}% (>85%), restarting DMR preemptively"
-                        Log "Watchdog preemptive restart: VRAM ${vram.Pct}%"
-                        docker restart $container 2>$null | Out-Null
-                        if ($LASTEXITCODE -eq 0) { Start-Sleep -Seconds 10 }
-                    }
+                $result = Check-DMRHealth -TTLMinutes $TTLMinutes
+                if ($result.ActionTaken) {
+                    Write-Out "Watchdog: $($result.Message)"
+                    Log "Watchdog: $($result.Message)"
+                } else {
+                    Write-Out "Watchdog: $($result.Message)"
                 }
                 Start-Sleep -Seconds $IntervalSeconds
             }
@@ -246,6 +282,19 @@ switch ($Action) {
             Write-Out "Watchdog stopped: $_"
             Log "Watchdog error: $_"
         }
+    }
+    
+    'check-once' {
+        Write-Out "=== DMR Health Check (single run) ==="
+        $result = Check-DMRHealth -TTLMinutes $TTLMinutes
+        if ($result.ActionTaken) {
+            Write-Out "ACTION: $($result.Message)"
+            Log "Check-once: $($result.Message)"
+        } else {
+            Write-Out "OK: $($result.Message)"
+            Log "Check-once: $($result.Message)"
+        }
+        exit $result.ExitCode
     }
     
     'status' {
