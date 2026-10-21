@@ -21,16 +21,20 @@ param(
     [string]$NasDir = '/srv/dev-disk-by-uuid-fa6231ab-eae7-40ea-a4b6-400f767a89d7/devoptimizer-backups',
     [int]$KeepNightly = 7,
     [int]$KeepWeekly = 4,
+    [int]$KeepMonthly = 3,
     [int]$MaxNightlyVolumeGB = 2,
     [switch]$VerifyOnly,
-    [switch]$ForceWeekly
+    [switch]$ForceWeekly,
+    [switch]$ForceMonthly
 )
 $ErrorActionPreference = 'SilentlyContinue'
 $logFile = 'D:\DevOptimizer\logs\nas-backup.log'
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
 $dateTag = Get-Date -Format 'yyyyMMdd-HHmm'
 $isSunday = (Get-Date).DayOfWeek -eq 'Sunday'
+$isFirstOfMonth = (Get-Date).Day -eq 1
 $weekly = $isSunday -or $ForceWeekly
+$monthly = $isFirstOfMonth -or $ForceMonthly
 
 function Log { param($msg) Add-Content -Path $logFile -Value ("{0} {1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg) }
 function NoteFail { param($msg)
@@ -122,8 +126,11 @@ if (-not $tinyImage) { docker pull alpine:3 2>$null | Out-Null; $tinyImage = 'al
 $tarred = 0
 foreach ($vol in (docker volume ls -q 2>$null)) {
     $gb = SizeGB $volSizes[$vol]
-    $tier = if ($gb -lt $MaxNightlyVolumeGB) { 'nightly' } else { 'weekly' }
+    if ($gb -lt $MaxNightlyVolumeGB) { $tier = 'nightly' }
+    elseif ($monthly) { $tier = 'monthly' }
+    else { $tier = 'weekly' }
     if ($tier -eq 'weekly' -and -not $weekly) { Log ("volume {0} ({1:N2} GB) deferred to weekly tier" -f $vol, $gb); continue }
+    if ($tier -eq 'monthly' -and -not $monthly) { Log ("volume {0} ({1:N2} GB) deferred to monthly tier" -f $vol, $gb); continue }
     $out = Join-Path $nightlyDir ("vol-{0}-{1}.tar.gz" -f ($vol -replace '[^a-zA-Z0-9_-]', '_'), $dateTag)
     docker run --rm -v ("{0}:/data:ro" -f $vol) -v ("{0}:/backup" -f $nightlyDir) $tinyImage tar czf ("/backup/{0}" -f (Split-Path $out -Leaf)) -C /data . 2>$null | Out-Null
     if ((Test-Path $out) -and ((Get-Item $out).Length -gt 100)) { $files += $out; $tarred++ }
@@ -132,9 +139,13 @@ foreach ($vol in (docker volume ls -q 2>$null)) {
 }
 Log ("volumes tarred: {0} of {1}" -f $tarred, (docker volume ls -q 2>$null | Measure-Object).Count)
 
-# --- [5] WSL layer (nightly: config; weekly: broad home) --------------------------
-$wslOut = Join-Path $nightlyDir ("wsl-{0}-{1}.tar.gz" -f $(if ($weekly) { 'home' } else { 'config' }), $dateTag)
-if ($weekly) {
+# --- [5] WSL layer (nightly: config; weekly: broad home; monthly: full system) --------------------------
+$wslType = if ($monthly) { 'monthly' } elseif ($weekly) { 'home' } else { 'config' }
+$wslOut = Join-Path $nightlyDir ("wsl-{0}-{1}.tar.gz" -f $wslType, $dateTag)
+if ($monthly) {
+    # Monthly: full WSL home + docker data roots (excluding regenerable)
+    $cmd = "tar czf - -C / --exclude='home/tbaltzakis/node_modules' --exclude='home/tbaltzakis/.cache' --exclude='home/tbaltzakis/.local' --exclude='home/tbaltzakis/.cargo' --exclude='home/tbaltzakis/.rustup' --exclude='home/tbaltzakis/.npm' --exclude='home/tbaltzakis/.vscode-server' --exclude='home/tbaltzakis/.next' --exclude='home/tbaltzakis/__pycache__' --exclude='home/tbaltzakis/target' --exclude='var/lib/docker/overlay2' --exclude='var/lib/docker/volumes/*/_data/node_modules' --exclude='var/lib/docker/volumes/*/_data/.cache' --exclude='var/lib/docker/volumes/*/_data/target' --exclude='var/lib/docker/volumes/*/_data/__pycache__' --exclude='proc' --exclude='sys' --exclude='dev' --exclude='run' --exclude='mnt' --exclude='media' --exclude='tmp' --exclude='home/tbaltzakis/.wine' home var/lib/docker 2>/dev/null"
+} elseif ($weekly) {
     $cmd = "tar czf - -C /home/tbaltzakis --exclude='node_modules' --exclude='.cache' --exclude='.local' --exclude='.cargo' --exclude='.rustup' --exclude='.npm' --exclude='.vscode-server' --exclude='.next' --exclude='__pycache__' --exclude='target' ."
 } else {
     $cmd = "tar czf - -C /home/tbaltzakis cu130-slim/docker-compose.yml cu130-slim/.env cloudless.gr 2>/dev/null"
@@ -150,7 +161,7 @@ foreach ($f in $files) {
     $h = (Get-FileHash $f -Algorithm SHA256).Hash
     Add-Content $manifest ("{0},{1},{2}" -f (Split-Path $f -Leaf), (Get-Item $f).Length, $h) -Encoding ASCII
 }
-$tier = if ($weekly) { 'weekly' } else { 'nightly' }
+$tier = if ($monthly) { 'monthly' } elseif ($weekly) { 'weekly' } else { 'nightly' }
 ssh -o BatchMode=yes omv ("mkdir -p {0}/{1}" -f $NasDir, $tier) 2>$null | Out-Null
 $okCount = 0
 foreach ($f in ($files + $manifest)) {
@@ -162,6 +173,7 @@ Log ("transferred {0}/{1} file(s) to omv:{2}/{3}" -f $okCount, ($files.Count + 1
 # --- [7] Retention -----------------------------------------------------------------
 ssh -o BatchMode=yes omv ("cd {0}/nightly && ls -1t | grep -E '^(pgdumpall|vol-|wsl-|manifest-)' | tail -n +{1} | xargs -r rm -f" -f $NasDir, ($KeepNightly * 4 + 1)) 2>$null
 ssh -o BatchMode=yes omv ("cd {0}/weekly && ls -1t | grep -E '^(vol-|wsl-home|manifest-)' | tail -n +{1} | xargs -r rm -f" -f $NasDir, ($KeepWeekly * 6 + 1)) 2>$null
+ssh -o BatchMode=yes omv ("cd {0}/monthly && ls -1t | grep -E '^(vol-|wsl-monthly|manifest-)' | tail -n +{1} | xargs -r rm -f" -f $NasDir, ($KeepMonthly + 1)) 2>$null
 Get-ChildItem $StagingRoot -Directory | Sort-Object Name -Descending | Select-Object -Skip 2 | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 
 Log ("--- nas-backup run complete: tier={0}, files={1} ---" -f $tier, $okCount)

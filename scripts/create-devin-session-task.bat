@@ -1,0 +1,2 @@
+@echo off
+schtasks /create /tn "\DevOptimizer\Devin-Session-Manager" /tr "powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\DevOptimizer\scripts\manage-devin-sessions.ps1 -WhatIf" /sc HOURLY /mo 4 /st 00:15 /rl HIGHEST /ru "tbaltzakis" /f
