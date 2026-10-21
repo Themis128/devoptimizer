@@ -1,0 +1,48 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - link [ref=e3] [cursor=pointer]:
+      - /url: https://cloudflare.com
+      - img "Cloudflare" [ref=e4]
+    - generic [ref=e9]: MCP Server
+  - main [ref=e10]:
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - heading "Authorize application" [level=1] [ref=e13]
+        - paragraph [ref=e14]: Grant access to Cloudflare API
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]: MCP CLI Proxy
+          - generic "OAuth client identity and redirect destination" [ref=e21]:
+            - generic [ref=e22]:
+              - generic [ref=e23]: Redirect URI
+              - generic [ref=e24]:
+                - text: http://127.0.0.1:28491
+                - generic [ref=e25]: /oauth/callback
+          - alert [ref=e26]:
+            - paragraph [ref=e30]: "Local redirect: this client will receive the authorization code on this device. Only continue if you trust the application that opened this page."
+        - radiogroup "Base scopes" [ref=e31]:
+          - generic [ref=e33]:
+            - generic [ref=e35] [cursor=pointer]:
+              - generic [ref=e36]: Minimal
+              - radio "Minimal" [checked] [ref=e37]
+            - generic [ref=e39] [cursor=pointer]:
+              - generic [ref=e40]: Read only
+              - radio "Read only" [ref=e41]
+            - generic [ref=e43] [cursor=pointer]:
+              - generic [ref=e44]: Full access
+              - radio "Full access" [ref=e45]
+          - group [ref=e46]:
+            - generic "Advanced" [ref=e47] [cursor=pointer]
+          - paragraph [ref=e52]: You can narrow scopes further, later in the authorization flow. Clients that support stepup auth can request more scopes when calling tools.
+        - generic [ref=e54]:
+          - button "Cancel" [ref=e55] [cursor=pointer]
+          - button "Continue" [ref=e57] [cursor=pointer]
+  - contentinfo [ref=e59]:
+    - link "Privacy" [ref=e60] [cursor=pointer]:
+      - /url: https://cloudflare.com/privacypolicy
+    - text: ·
+    - link "Terms" [ref=e61] [cursor=pointer]:
+      - /url: https://cloudflare.com/terms
+    - text: ·
+    - link "Docs" [ref=e62] [cursor=pointer]:
+      - /url: https://developers.cloudflare.com
