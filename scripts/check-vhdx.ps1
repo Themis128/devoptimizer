@@ -1,0 +1,1 @@
+Get-Item 'C:\ProgramData\DockerDesktop\vm-data\docker_data.vhdx' | Select-Object Name, Length, @{N='SizeGB';E={[math]::Round($_.Length/1GB,2)}}
