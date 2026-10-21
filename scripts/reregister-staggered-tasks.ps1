@@ -157,7 +157,7 @@ Register-StaggeredTask -TaskName 'Devin-Weekly-Restart' -ScriptFile 'restart-dev
 
 # WSL-Memory-Watchdog: Every 30 minutes - increase limit from default to PT10M
 $wslMemAction = New-ScheduledTaskAction -Execute $ps -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$scriptRoot\check-wsl-memory-pressure.ps1`""
-$wslMemTrigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 30) -RepetitionDuration ([TimeSpan]::MaxValue)
+$wslMemTrigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 30) -RepetitionDuration (New-TimeSpan -Days 3650)
 $wslMemSettings = New-ScheduledTaskSettingsSet -WakeToRun -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 10) -MultipleInstances IgnoreNew
 $wslMemPrincipal = New-ScheduledTaskPrincipal -UserId 'tbaltzakis' -LogonType Interactive -RunLevel Highest
 if (-not $DryRun) {
