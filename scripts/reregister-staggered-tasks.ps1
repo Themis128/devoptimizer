@@ -30,7 +30,19 @@ Write-Host "Timestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Write-Host ""
 
 $ps = (Get-Command powershell.exe).Source
+$conhost = 'C:\Windows\System32\conhost.exe'
 $scriptRoot = 'D:\DevOptimizer\scripts'
+
+# IMPORTANT: every task action must run through conhost.exe --headless.
+# A bare powershell.exe action allocates a visible console on each run
+# (the empty-popup flash). This regressed 2026-10-21 when this script
+# re-registered tasks with plain powershell actions — do not revert.
+function New-HeadlessAction {
+    param([string]$ScriptFile, [string]$ExtraArgs = '')
+    $arg = "--headless $ps -NoProfile -ExecutionPolicy Bypass -File `"$scriptRoot\$ScriptFile`""
+    if ($ExtraArgs) { $arg += " $ExtraArgs" }
+    New-ScheduledTaskAction -Execute $conhost -Argument $arg
+}
 
 function Register-StaggeredTask {
     param(
@@ -47,7 +59,7 @@ function Register-StaggeredTask {
         [switch]$MultipleInstancesIgnoreNew
     )
 
-    $action = New-ScheduledTaskAction -Execute $ps -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$scriptRoot\$ScriptFile`""
+    $action = New-HeadlessAction -ScriptFile $ScriptFile
     
     $trigger = switch ($ScheduleType) {
         'Daily'       { New-ScheduledTaskTrigger -Daily -At $Time }
@@ -156,7 +168,7 @@ Register-StaggeredTask -TaskName 'Devin-Weekly-Restart' -ScriptFile 'restart-dev
 # Already registered via register-devoptimizer-tasks.ps1 or manually
 
 # WSL-Memory-Watchdog: Every 30 minutes - increase limit from default to PT10M
-$wslMemAction = New-ScheduledTaskAction -Execute $ps -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$scriptRoot\check-wsl-memory-pressure.ps1`""
+$wslMemAction = New-HeadlessAction -ScriptFile 'check-wsl-memory-pressure.ps1'
 $wslMemTrigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 30) -RepetitionDuration (New-TimeSpan -Days 3650)
 $wslMemSettings = New-ScheduledTaskSettingsSet -WakeToRun -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 10) -MultipleInstances IgnoreNew
 $wslMemPrincipal = New-ScheduledTaskPrincipal -UserId 'tbaltzakis' -LogonType Interactive -RunLevel Highest
@@ -166,7 +178,7 @@ if (-not $DryRun) {
 }
 
 # Docker-WSL-Sync: Keep existing or register if missing
-$syncAction = New-ScheduledTaskAction -Execute $ps -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$scriptRoot\sync-docker-wsl.ps1`""
+$syncAction = New-HeadlessAction -ScriptFile 'sync-docker-wsl.ps1'
 $syncTrigger = New-ScheduledTaskTrigger -Daily -At '04:45'  # Staggered between Devin-Daily and Nas-Backup
 $syncSettings = New-ScheduledTaskSettingsSet -WakeToRun -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 30) -MultipleInstances IgnoreNew
 $syncPrincipal = New-ScheduledTaskPrincipal -UserId 'tbaltzakis' -LogonType Interactive -RunLevel Highest

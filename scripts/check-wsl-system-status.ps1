@@ -70,10 +70,19 @@ if ($vmmem) {
         if ($pct -ge 80) { $flag = "  [WEDGE RISK - event 1003 threshold]" }
         elseif ($pct -ge 60) { $flag = "  [elevated]" }
         Write-Host ("WSL swap      : {0}/{1} MB ({2}%){3}" -f $swapUsed, $swapTotal, $pct, $flag)
-        Write-Host ("WSL swap cap  : 16384 MB expected from .wslconfig swap= (16GB fix live 2026-10-02)")
+        # Read expected swap from .wslconfig dynamically
+        $wslConfigPath = "$env:USERPROFILE\.wslconfig"
+        $expectedSwapMB = 24576  # fallback default (24GB per .wslconfig)
+        if (Test-Path $wslConfigPath) {
+            $config = Get-Content $wslConfigPath -Raw
+            if ($config -match 'swap=(\d+)GB') {
+                $expectedSwapMB = [int]$matches[1] * 1024
+            }
+        }
+        Write-Host ("WSL swap cap  : {0} MB expected from .wslconfig swap=" -f $expectedSwapMB)
     }
 } else {
-    Write-Host "WSL limits    : n/a (VM down; .wslconfig memory=20GB swap=16GB applies at next start)"
+    Write-Host "WSL limits    : n/a (VM down; .wslconfig memory=20GB swap=24GB applies at next start)"
 }
 
 Show-Progress -Activity "WSL System Status" -Status "Checking on-demand containers..." -PercentComplete 50
