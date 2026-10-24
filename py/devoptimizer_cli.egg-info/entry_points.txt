@@ -1,0 +1,2 @@
+[console_scripts]
+devoptimizer = devoptimizer_cli.__main__:app

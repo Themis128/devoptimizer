@@ -21,6 +21,7 @@ from devoptimizer_cli.commands.remediate import app as remediate_app
 from devoptimizer_cli.commands.bootstrap import app as bootstrap_app
 from devoptimizer_cli.commands.security import app as security_app
 from devoptimizer_cli.commands.cleanup.cleanup import app as cleanup_app
+from devoptimizer_cli.commands.tasks import app as tasks_app
 
 app = typer.Typer(
     name="devoptimizer",
@@ -41,6 +42,9 @@ app.add_typer(cleanup_app, name="cleanup", help="System cleanup commands")
 # Import and add WSL commands
 from devoptimizer_cli.commands.wsl import app as wsl_app
 app.add_typer(wsl_app, name="wsl", help="WSL system status and monitoring")
+
+# Import and add tasks commands
+app.add_typer(tasks_app, name="tasks", help="Scheduled tasks management")
 
 @app.command()
 def status():

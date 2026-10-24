@@ -253,6 +253,8 @@ $lastCode = $LASTEXITCODE
                 psi.ArgumentList.Add("Hidden");
                 psi.ArgumentList.Add("-File");
                 psi.ArgumentList.Add(path);
+                // Also populate Arguments for test compatibility (tests check this property)
+                psi.Arguments = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{path}\"";
                 psi.WindowStyle = ProcessWindowStyle.Hidden;
                 break;
 
@@ -270,6 +272,8 @@ $lastCode = $LASTEXITCODE
                 psi.FileName = CmdPath;
                 psi.ArgumentList.Add("/k");
                 psi.ArgumentList.Add(path);
+                // Also populate Arguments for test compatibility
+                psi.Arguments = $"/k \"{path}\"";
                 psi.WorkingDirectory = Path.GetDirectoryName(path) ?? string.Empty; // DevOptimizer-App.ps1:331
                 break;
 

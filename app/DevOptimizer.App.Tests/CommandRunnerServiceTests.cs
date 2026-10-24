@@ -185,7 +185,8 @@ public class CommandRunnerServiceTests
         Assert.Equal(CommandRunnerService.PowerShellPath, psi.FileName);
         Assert.True(Path.IsPathRooted(psi.FileName));
         Assert.Equal("-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"D:\\repo\\logs\\app-runs\\run-x.runner.ps1\"", psi.Arguments);
-        Assert.True(psi.UseShellExecute);
+        // Non-elevated uses UseShellExecute=false for security (CWE-78 command injection prevention)
+        Assert.False(psi.UseShellExecute);
         Assert.Equal(string.Empty, psi.Verb);
         Assert.Equal(ProcessWindowStyle.Hidden, psi.WindowStyle);
     }
@@ -214,7 +215,8 @@ public class CommandRunnerServiceTests
         Assert.Equal("/k \"D:\\repo\\portable\\tool.bat\"", psi.Arguments);
         Assert.Equal(@"D:\repo\portable", psi.WorkingDirectory);
         Assert.Equal(string.Empty, psi.Verb);
-        Assert.True(psi.UseShellExecute);
+        // Non-elevated uses UseShellExecute=false for security (CWE-78 command injection prevention)
+        Assert.False(psi.UseShellExecute);
         Assert.Equal(ProcessWindowStyle.Normal, psi.WindowStyle);
     }
 
