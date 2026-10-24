@@ -18,7 +18,10 @@ $distro = 'Ubuntu-26.04'
 $scriptRoot = $PSScriptRoot
 
 function Invoke-Wsl([string]$cmd) {
-    $out = & wsl.exe -d $distro -- bash -c $cmd 2>$null
+    # Use cmd /c to properly capture wsl.exe output
+    $escapedCmd = $cmd -replace '"', '\"'
+    $fullCmd = "wsl.exe -d $distro -- bash -c `"$escapedCmd`""
+    $out = cmd /c $fullCmd 2>&1
     $joined = (@($out) -join "`n") -replace "`0", ''
     return ($joined -split "`r?`n") | Where-Object { $_ -ne '' }
 }
@@ -26,10 +29,7 @@ function Invoke-Wsl([string]$cmd) {
 function Run-DevinDoctor([string]$subCmd, [string[]]$extraArgs = @()) {
     # devin-doctor mcp doesn't take subcommands; we call CLI directly for check/report/plan
     $cmd = 'export PATH="$HOME/.local/bin:$PATH" && devin-doctor ' + $subCmd
-    Write-Host "[DEBUG] Running WSL command: $cmd" -ForegroundColor DarkGray
-    $result = Invoke-Wsl $cmd
-    Write-Host "[DEBUG] Got $($result.Count) lines" -ForegroundColor DarkGray
-    $result
+    return Invoke-Wsl $cmd
 }
 
 switch ($Command) {
@@ -47,7 +47,7 @@ switch ($Command) {
     }
     'prune-acp' {
         Write-Host "=== Pruning ACP messages (${Days}d retention) ===" -ForegroundColor Cyan
-        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $scriptRoot 'prune-acp.ps1') -Days $Days
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path (Split-Path $scriptRoot -Parent) 'prune-acp.ps1') -Days $Days
     }
     'cleanup-sessions' {
         Write-Host "=== Cleaning superseded commit dirs and pruning server logs ===" -ForegroundColor Cyan

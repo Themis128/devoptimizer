@@ -10,17 +10,18 @@ param(
 
 $ErrorActionPreference = 'SilentlyContinue'
 
+$script:results = @()
+
 function Log {
     param($msg, [string]$Level = 'INFO')
-    $prefix = switch ($Level) { 'OK' { '[✓]' } 'WARN' { '[!]' } 'FAIL' { '[✗]' } 'FIX' { '[→]' } default { '[i]' } }
-    Write-Host "$prefix $msg" -ForegroundColor (switch ($Level) { 'OK' { 'Green' } 'WARN' { 'Yellow' } 'FAIL' { 'Red' } 'FIX' { 'Cyan' } default { 'White' } })
+    $prefix = switch ($Level) { 'OK' { '[OK]' } 'WARN' { '[!]' } 'FAIL' { '[X]' } 'FIX' { '[>]' } default { '[i]' } }
+    $color = if ($Level -eq 'OK') { 'Green' } elseif ($Level -eq 'WARN') { 'Yellow' } elseif ($Level -eq 'FAIL') { 'Red' } elseif ($Level -eq 'FIX') { 'Cyan' } else { 'White' }
+    Write-Host "$prefix $msg" -ForegroundColor $color
 }
-
-$results = @()
 
 function Add-Result {
     param([string]$Check, [string]$Status, [string]$Detail, [string]$Fix = '')
-    $results += [pscustomobject]@{ Check = $Check; Status = $Status; Detail = $Detail; Fix = $Fix }
+    $script:results += [pscustomobject]@{ Check = $Check; Status = $Status; Detail = $Detail; Fix = $Fix }
 }
 
 Write-Host "=== Devin Setup Verification ===" -ForegroundColor Cyan
@@ -143,17 +144,18 @@ if ($task) {
 
 # Summary
 Write-Host "`n=== SUMMARY ===" -ForegroundColor Cyan
-$ok = ($results | Where-Object { $_.Status -eq 'OK' }).Count
-$warn = ($results | Where-Object { $_.Status -eq 'WARN' }).Count
-$fail = ($results | Where-Object { $_.Status -eq 'FAIL' }).Count
-Write-Host "OK: $ok  WARN: $warn  FAIL: $fail" -ForegroundColor (if ($fail -gt 0) { 'Red' } elseif ($warn -gt 0) { 'Yellow' } else { 'Green' })
+$ok = ($script:results | Where-Object { $_.Status -eq 'OK' }).Count
+$warn = ($script:results | Where-Object { $_.Status -eq 'WARN' }).Count
+$fail = ($script:results | Where-Object { $_.Status -eq 'FAIL' }).Count
+$summaryColor = if ($fail -gt 0) { 'Red' } elseif ($warn -gt 0) { 'Yellow' } else { 'Green' }
+Write-Host "OK: $ok  WARN: $warn  FAIL: $fail" -ForegroundColor $summaryColor
 
 # Show failed checks
-$fails = $results | Where-Object { $_.Status -eq 'FAIL' }
+$fails = $script:results | Where-Object { $_.Status -eq 'FAIL' }
 if ($fails.Count -gt 0) {
     Write-Host "`nFAILED CHECKS:" -ForegroundColor Red
     foreach ($f in $fails) {
-        Write-Host "  ✗ $($f.Check): $($f.Detail)" -ForegroundColor Red
+        Write-Host "  X $($f.Check): $($f.Detail)" -ForegroundColor Red
         if ($f.Fix) { Write-Host "    Fix: $($f.Fix)" -ForegroundColor Cyan }
     }
 }
@@ -161,7 +163,6 @@ if ($fails.Count -gt 0) {
 # Auto-fix if requested
 if ($FixIssues -and ($warn -gt 0 -or $fail -gt 0)) {
     Write-Host "`n=== AUTO-FIX ===" -ForegroundColor Cyan
-    # Could implement auto-fixes here
     Log "Auto-fix not yet implemented - run individual fix scripts" 'WARN'
 }
 

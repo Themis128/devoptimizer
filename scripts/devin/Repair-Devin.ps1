@@ -176,7 +176,8 @@ if ($CleanLeftovers) {
 # --- -PruneServerLogs ---
 if ($PruneServerLogs) {
     $old = @(Invoke-Wsl "find `$HOME/.devin-server/data/logs -type f -mtime +$Days 2>/dev/null || true") | Where-Object { $_ }
-    $size = (Invoke-Wsl "find `$HOME/.devin-server/data/logs -type f -mtime +$Days -print0 2>/dev/null | xargs -0 -r du -ch 2>/dev/null | tail -1 | cut -f1").Trim()
+    $sizeRaw = (Invoke-Wsl "find `$HOME/.devin-server/data/logs -type f -mtime +$Days -print0 2>/dev/null | xargs -0 -r du -ch 2>/dev/null | tail -1 | cut -f1")
+    $size = if ($sizeRaw) { $sizeRaw.Trim() } else { "0" }
     if ($old.Count -eq 0) {
         Write-Host "[ OK ] -PruneServerLogs: no files older than $Days days" -ForegroundColor Green
     } elseif ($dryRun) {
