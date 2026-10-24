@@ -13,6 +13,12 @@
       "timeout": 5
     },
     {
+      "matcher": "^devin-cleanup",
+      "type": "command",
+      "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\\DevOptimizer\\scripts\\devin\\hook-cleanup-pre.ps1",
+      "timeout": 10
+    },
+    {
       "matcher": "SessionStart",
       "type": "command",
       "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\\DevOptimizer\\scripts\\devin\\hook-session-start.ps1",

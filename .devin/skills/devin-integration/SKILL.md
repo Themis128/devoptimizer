@@ -21,7 +21,16 @@ This skill provides comprehensive Devin Desktop management through DevOptimizer 
 ### Maintenance & Repair
 - **`/devin-maintain`** - Daily maintenance (cache sweep, log retention, bundle cleanup)
 - **`/devin-repair`** - Repair actions (fix bundle, clean leftovers, prune logs)
-- **`/devin-cleanup`** - ACP message pruning (large DBs, old sessions, orphaned shm/wal)
+- **`/devin-cleanup check`** - Run devin-doctor check (stores, schema, config, disk)
+- **`/devin-cleanup report`** - Generate formatted report for issues
+- **`/devin-cleanup plan`** - Emit remediation plan (read-only)
+- **`/devin-cleanup prune-acp`** - Prune old ACP message databases (14-day default)
+- **`/devin-cleanup cleanup-sessions`** - Remove superseded commit dirs + prune server logs
+- **`/devin-cleanup daily-maintenance`** - Run full daily maintenance suite
+- **`/devin-cleanup health`** - Quick health check (alias for /devin-health)
+- **`/devin-cleanup diagnostics`** - Deep read-only diagnostics
+- **`/devin-cleanup repair-bundle`** - Repair corrupt bundle (requires Reload Window)
+- **`/devin-cleanup verify-setup`** - 9-check verification with auto-fix
 
 ### WSL & System
 - **`/devin-wsl-status`** - WSL system status check
