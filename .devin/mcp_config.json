@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "devoptimizer": {
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "D:\\DevOptimizer\\scripts\\mcp-devoptimizer-server.ps1"
+      ],
+      "env": {
+        "DEVOPTIMIZER_ROOT": "D:\\DevOptimizer",
+        "DEVOPTIMIZER_LOGS": "D:\\DevOptimizer\\logs"
+      }
+    },
+    "devin-doctor": {
+      "command": "devin-doctor",
+      "args": ["mcp"],
+      "env": {
+        "DEVIN_DATA_DIR": "%APPDATA%\\devin",
+        "DEVIN_CONFIG_DIR": "%APPDATA%\\Devin"
+      }
+    }
+  }
+}

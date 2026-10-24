@@ -1,0 +1,22 @@
+{
+  "hooks": [
+    {
+      "matcher": "^devin-",
+      "type": "command",
+      "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\\DevOptimizer\\scripts\\devin\\hook-pre-devin.ps1",
+      "timeout": 10
+    },
+    {
+      "matcher": "^(Check-Devin|Get-Devin|Invoke-Devin|Repair-Devin)",
+      "type": "command",
+      "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\\DevOptimizer\\scripts\\devin\\hook-pre-maintenance.ps1",
+      "timeout": 5
+    },
+    {
+      "matcher": "SessionStart",
+      "type": "command",
+      "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\\DevOptimizer\\scripts\\devin\\hook-session-start.ps1",
+      "timeout": 15
+    }
+  ]
+}
