@@ -93,7 +93,7 @@ public partial class MainViewModel : ObservableObject
         ClearSearchCommand = new RelayCommand(ClearSearch, () => !string.IsNullOrWhiteSpace(SearchText));
         
         // Initialize cancel command
-        CancelCommand = new RelayCommand(CancelOperation, () => IsBusy && _cancelTokenSource != null && !_cancelTokenSource.IsCancellationRequested);
+        CancelCommand = new RelayCommand(CancelOperation, () => IsBusy && CancelTokenSource != null && !CancelTokenSource.IsCancellationRequested);
         
         // Initialize focus search command
         FocusSearchCommand = new RelayCommand(FocusSearch);
@@ -282,7 +282,7 @@ private void NotifyRunCommandsChanged()
         ProgressPercentage = 0;
         
         // Setup cancellation token source for this operation
-        _cancelTokenSource = new CancellationTokenSource();
+        CancelTokenSource = new CancellationTokenSource();
 
         try
         {
@@ -314,7 +314,7 @@ private void NotifyRunCommandsChanged()
             // Reset busy state when operation completes or fails
             IsBusy = false;
             ProgressPercentage = 0;
-            _cancelTokenSource = null;
+            CancelTokenSource = null;
         }
     }
 
@@ -337,7 +337,7 @@ private void NotifyRunCommandsChanged()
         while (true)
         {
             // Check for cancellation
-            if (_cancelTokenSource?.IsCancellationRequested == true)
+            if (CancelTokenSource?.IsCancellationRequested == true)
             {
                 throw new OperationCanceledException();
             }
@@ -610,9 +610,9 @@ private void NotifyRunCommandsChanged()
 
     private void CancelOperation()
     {
-        if (_cancelTokenSource != null && !_cancelTokenSource.IsCancellationRequested)
+        if (CancelTokenSource != null && !CancelTokenSource.IsCancellationRequested)
         {
-            _cancelTokenSource.Cancel();
+            CancelTokenSource.Cancel();
             StatusText = "Cancelling operation...";
         }
     }
@@ -643,7 +643,7 @@ private void NotifyRunCommandsChanged()
 
     private void EscapeKeyPressed()
     {
-        if (IsBusy && _cancelTokenSource != null && !_cancelTokenSource.IsCancellationRequested)
+        if (IsBusy && CancelTokenSource != null && !CancelTokenSource.IsCancellationRequested)
         {
             // If busy, cancel the operation
             CancelOperation();

@@ -17,10 +17,6 @@ namespace DevOptimizer.App.UserControls
 
     public partial class Toast : UserControl
     {
-        /// <summary>
-        /// Event raised when the toast is about to be closed (after fade-out animation completes).
-        /// </summary>
-        public event EventHandler? Closed;
         private readonly DispatcherTimer _autoCloseTimer;
 
         public Toast()
