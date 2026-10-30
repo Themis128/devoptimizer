@@ -1,6 +1,8 @@
 <#
 .SYNOPSIS
-    WSL swap-pressure watchdog (read-only) - logs VM swap usage and warns at 80% via DevOptimizer event 1003.
+    WSL swap-pressure watchdog - logs VM swap usage, warns at 80% (event 1003),
+    drops guest page cache at 90%, and restarts the docker-desktop distro at 95%
+    (2h cooldown) to reclaim swap without a full wsl --shutdown.
 .DESCRIPTION
     Runs every 30 minutes via scheduled task \DevOptimizer\WSL-Memory-Watchdog. Logs to
     logs\wsl-memory-pressure.log. Host-side guard prevents waking a shut-down WSL VM.
@@ -43,7 +45,33 @@ if ($swapLine -match '^Swap:\s+(\d+)\s+(\d+)\s+(\d+)') {
             Add-Content -Path $logFile -Value "$stamp ACTION: swap ${pct}% - dropped guest page cache"
         }
         if ($pct -ge 95) {
-            Add-Content -Path $logFile -Value ('{0} CRITICAL: swap nearly exhausted after reclaim - next step: wsl --shutdown during idle' -f $stamp)
+            # Auto-remediate: restart ONLY the docker-desktop distro, not a
+            # full wsl --shutdown. Containers come back on restart policies in
+            # under a minute and Ubuntu sessions survive - verified 2026-10-25:
+            # swap 8.0/8.0 GB -> 0.6 GB, RAM available 3.6 -> 10 GB, public
+            # endpoints blipped <60s. 2h cooldown avoids restart loops when
+            # the pressure is not docker-owned (e.g. a host-side process).
+            $stampFile = 'D:\DevOptimizer\logs\dd-restart.cooldown'
+            $cooldownActive = $false
+            if (Test-Path $stampFile) {
+                if ((Get-Item $stampFile).LastWriteTime -gt (Get-Date).AddHours(-2)) { $cooldownActive = $true }
+            }
+            if ($cooldownActive) {
+                Add-Content -Path $logFile -Value "$stamp CRITICAL: swap ${pct}% persists; docker-desktop restart in 2h cooldown - schedule wsl --shutdown during idle"
+            } else {
+                $dockerExe = 'C:\Program Files\Docker\Docker\resources\bin\docker.exe'
+                if (Test-Path $dockerExe) {
+                    & $dockerExe desktop restart | Out-Null
+                    Add-Content -Path $logFile -Value "$stamp ACTION: swap ${pct}% - docker desktop restart issued (auto-remediate)"
+                } else {
+                    wsl --terminate docker-desktop | Out-Null
+                    Add-Content -Path $logFile -Value "$stamp ACTION: swap ${pct}% - wsl --terminate docker-desktop (docker.exe not found)"
+                }
+                New-Item -ItemType File -Path $stampFile -Force | Out-Null
+                Write-EventLog -LogName 'DevOptimizer' -Source 'DevOptimizer' -EventId 1003 -EntryType Warning `
+                    -Message "WSL swap ${pct}% exhausted - docker-desktop distro restarted to reclaim (2h cooldown armed)." `
+                    -ErrorAction SilentlyContinue
+            }
         }
     }
 }
