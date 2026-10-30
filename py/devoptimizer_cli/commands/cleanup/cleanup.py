@@ -11,9 +11,6 @@ from __future__ import annotations
 import asyncio
 import os
 import shutil
-import subprocess
-import sys
-import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -100,7 +97,7 @@ async def clean_recycle_bin() -> tuple[bool, str]:
 async def run_docker_clean() -> list[tuple[str, str]]:
     """Run Docker safe cleanup: build cache + dangling images only."""
     results = []
-    
+
     # Build cache
     try:
         result = await run_command([
@@ -109,7 +106,7 @@ async def run_docker_clean() -> list[tuple[str, str]]:
         results.append(("Build cache", "cleaned" if result.returncode == 0 else f"failed: {result.stderr[:80]}"))
     except FileNotFoundError:
         results.append(("Build cache", "docker not found"))
-    
+
     # Dangling images
     try:
         result = await run_command([
@@ -118,7 +115,7 @@ async def run_docker_clean() -> list[tuple[str, str]]:
         results.append(("Dangling img", "cleaned" if result.returncode == 0 else f"failed: {result.stderr[:80]}"))
     except FileNotFoundError:
         results.append(("Dangling img", "docker not found"))
-    
+
     return results
 
 
@@ -131,7 +128,7 @@ async def run(params: dict[str, Any]) -> CommandResult:
     )
 
     log.info("Starting win11-safe-cleanup", extra={"params": params})
-    
+
     before_free = await get_free_space_gb("C:\\")
     freed_bytes = 0
     output_lines = ["=== win11-safe-cleanup (non-admin) ==="]
@@ -178,7 +175,7 @@ async def run(params: dict[str, Any]) -> CommandResult:
         ("gradle", ["./gradlew", "--stop"]),
         ("maven", ["mvn", "dependency:purge-local-repository"]),
     ]
-    
+
     for name, cmd in dev_caches:
         if p.dry_run:
             output_lines.append(f"[3] {name:<12}: would run {' '.join(cmd)}")
@@ -270,8 +267,8 @@ async def run(params: dict[str, Any]) -> CommandResult:
     )
 
 
-import typer
-from rich.console import Console
+import typer  # noqa: E402
+from rich.console import Console  # noqa: E402
 
 app = typer.Typer(
     name="cleanup",
@@ -321,7 +318,10 @@ def _fmt_bytes(bytes_val: int) -> tuple[str, str]:
 
 async def _ds(path: Path) -> int:
     """Sum of all files under path (0 if missing/unreadable)."""
-    if not path.exists():
+    try:
+        if not path.exists():
+            return 0
+    except (PermissionError, OSError):
         return 0
     total = 0
     try:
@@ -338,7 +338,10 @@ async def _ds(path: Path) -> int:
 
 async def _chromium_cache_size(root: Path) -> int:
     """Calculate Chromium cache size for Default + Profile N."""
-    if not root.exists():
+    try:
+        if not root.exists():
+            return 0
+    except (PermissionError, OSError):
         return 0
     total = 0
     profiles = ["Default"]
@@ -348,7 +351,7 @@ async def _chromium_cache_size(root: Path) -> int:
                 profiles.append(item.name)
     except (PermissionError, OSError):
         pass
-    
+
     for profile in profiles:
         profile_dir = root / profile
         for sub in ["Cache", "Code Cache", "GPUCache"]:
@@ -383,7 +386,7 @@ async def _electron_cache_size(root: Path, include_storage: bool = False) -> int
 async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     """Main entry point for check-cleanup-status (read-only assessment)."""
     log.info("Starting check-cleanup-status")
-    
+
     output_lines = [f"=== Win11 Cleanup Assessment - {datetime.now().strftime('%Y-%m-%d %H:%M')} ==="]
     cleanable = 0
 
@@ -413,7 +416,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _ds(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
+        output_lines.append(f"{label:<44} : {val:>8} {unit}")
 
     # --- Dev caches (user-level) ---
     output_lines.append("\n--- Dev caches (user-level) ---")
@@ -430,34 +433,34 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _ds(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
-    
+        output_lines.append(f"{label:<44} : {val:>8} {unit}")
+
     # Ollama models (report-only, not auto-cleaned)
     ollama = Path.home() / ".ollama" / "models"
     size = await _ds(ollama)
     val, unit = _fmt_bytes(size)
-    output_lines.append("{0:<44} : {1:>8} {2} (report-only, not auto-cleaned)".format("Ollama models", val, unit))
+    output_lines.append("{:<44} : {:>8} {} (report-only, not auto-cleaned)".format("Ollama models", val, unit))
 
     # --- Browser caches (Chrome/Edge) ---
     output_lines.append("\n--- Browser caches (Chrome/Edge) ---")
     chrome_root = Path(os.environ.get("LOCALAPPDATA", "")) / "Google" / "Chrome" / "User Data"
     edge_root = Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "Edge" / "User Data"
-    
+
     chrome_full = await _ds(chrome_root)
     edge_full = await _ds(edge_root)
-    
+
     # More precise cache subset
     chrome_cache = await _chromium_cache_size(chrome_root)
     edge_cache = await _chromium_cache_size(edge_root)
-    
+
     # Adjust cleanable to use precise subset
     cleanable = cleanable - chrome_full + chrome_cache
     cleanable = cleanable - edge_full + edge_cache
-    
+
     val, unit = _fmt_bytes(chrome_cache)
-    output_lines.append("{0:<44} : {1:>8} {2} (precise, cleanable subset)".format("Chrome cache subset", val, unit))
+    output_lines.append("{:<44} : {:>8} {} (precise, cleanable subset)".format("Chrome cache subset", val, unit))
     val, unit = _fmt_bytes(edge_cache)
-    output_lines.append("{0:<44} : {1:>8} {2} (precise, cleanable subset)".format("Edge cache subset", val, unit))
+    output_lines.append("{:<44} : {:>8} {} (precise, cleanable subset)".format("Edge cache subset", val, unit))
 
     # --- VS Code / Electron ---
     output_lines.append("\n--- VS Code / Electron ---")
@@ -469,8 +472,8 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _vs_code_cache_size(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
-    
+        output_lines.append(f"{label:<44} : {val:>8} {unit}")
+
     electron_apps = [
         ("Discord", Path(os.environ.get("APPDATA", "")) / "discord", False),
         ("Slack", Path(os.environ.get("APPDATA", "")) / "Slack", False),
@@ -481,14 +484,14 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         if size > 0:
             cleanable += size
             val, unit = _fmt_bytes(size)
-            output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
+            output_lines.append(f"{label:<44} : {val:>8} {unit}")
 
     # --- Recycle bin ---
     output_lines.append("\n--- Recycle bin ---")
     rb_size = await _ds(Path("C:\\$Recycle.Bin"))
     cleanable += rb_size
     val, unit = _fmt_bytes(rb_size)
-    output_lines.append("{0:<44} : {1:>8} {2} (readable subset)".format("C:\\$Recycle.Bin", val, unit))
+    output_lines.append("{:<44} : {:>8} {} (readable subset)".format("C:\\$Recycle.Bin", val, unit))
 
     # --- System caches (best effort without admin) ---
     output_lines.append("\n--- System caches (best effort without admin) ---")
@@ -499,7 +502,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     for label, path in sys_caches:
         size = await _ds(path)
         val, unit = _fmt_bytes(size)
-        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
+        output_lines.append(f"{label:<44} : {val:>8} {unit}")
 
     # --- VHDX backing disks ---
     output_lines.append("\n--- VHDX backing disks ---")
@@ -515,7 +518,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
                         size = vhdx.stat().st_size
                         rel = vhdx.relative_to(Path(os.environ.get("LOCALAPPDATA", "")))
                         val, unit = _fmt_bytes(size)
-                        output_lines.append("{0:<44} : {1:>8} {2}".format(str(rel).replace("\\", "/"), val, unit))
+                        output_lines.append("{:<44} : {:>8} {}".format(str(rel).replace("\\", "/"), val, unit))
                     except (PermissionError, OSError):
                         continue
             except Exception:
@@ -529,7 +532,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
             try:
                 size = path.stat().st_size
                 val, unit = _fmt_bytes(size)
-                output_lines.append("{0:<44} : {1:>8} {2}".format(fname, val, unit))
+                output_lines.append(f"{fname:<44} : {val:>8} {unit}")
             except (PermissionError, OSError):
                 pass
 
@@ -553,19 +556,19 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     output_lines.append("\n=== Verdict ===")
     cleanable_gb = cleanable / 1024**3
     cleanable_mb = cleanable / 1024**2
-    
+
     if cleanable >= 5 * 1024**3:
         verdict = f"YES - ~{cleanable_gb:.1f} GB cleanable at user level right now."
     elif cleanable >= 500 * 1024**2:
         verdict = f"MODERATE - ~{cleanable_mb:.0f} MB cleanable at user level right now."
     else:
         verdict = f"NO - only ~{cleanable_mb:.0f} MB cleanable at user level; system is tidy."
-    
+
     output_lines.append(verdict)
     output_lines.append("Run extended-cleanup / win11-safe-cleanup for user-level, win11-admin-cleanup for admin items.")
 
     stdout = "\n".join(output_lines)
-    
+
     log.info("check-cleanup-status completed", extra={"cleanable_bytes": cleanable})
 
     return CommandResult(
@@ -587,13 +590,13 @@ def check_cleanup_status_cmd(
 ):
     """Read-only Win11 cleanup status assessment: drives, temp, dev caches, browser data, VHDX sizes, Docker usage."""
     result = asyncio.run(run_check_cleanup_status({}))
-    
+
     if json_output:
         import json
         console.print_json(json.dumps(result.to_dict()))
     else:
         console.print(result.stdout)
-    
+
     raise typer.Exit(result.exit_code)
 
 
@@ -607,11 +610,11 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
     if not vhdx_path:
         # Default WSL vhdx path
         vhdx_path = str(Path(os.environ.get("LOCALAPPDATA", "")) / "wsl" / "{12c19879-cec8-4dd1-9fe4-7049940b6a2f}" / "ext4.vhdx")
-    
+
     vhdx = Path(vhdx_path)
-    
+
     log.info("Starting compact-vhdx", extra={"vhdx_path": str(vhdx)})
-    
+
     if not vhdx.exists():
         return CommandResult(
             exit_code=1,
@@ -619,16 +622,16 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
             stderr=f"VHDX not found: {vhdx}",
             data={"error": "VHDX not found"}
         )
-    
+
     before = vhdx.stat().st_size
     before_gb = round(before / 1024**3, 2)
-    
+
     output_lines = [
         "=== WSL VHDX Compaction ===",
         f"VHDX: {vhdx}",
         f"Before: {before_gb} GB",
     ]
-    
+
     # Check if running as admin
     try:
         import ctypes
@@ -644,17 +647,17 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
             )
     except Exception:
         pass
-    
+
     # Stop WSL
     output_lines.append("\nStopping WSL...")
     result = await run_command(["wsl", "--shutdown"], timeout=60)
     if result.returncode != 0:
         output_lines.append(f"Warning: wsl --shutdown returned {result.returncode}")
-    
+
     # Wait for vmmem to exit
     import time
     time.sleep(5)
-    
+
     # Kill any remaining vmmem processes
     for proc_name in ["vmmemWSL", "vmmem"]:
         try:
@@ -663,13 +666,13 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
                 output_lines.append(f"Killed {proc_name}")
         except Exception:
             pass
-    
+
     # Try Optimize-VHD via PowerShell
     output_lines.append("\nCompacting VHDX (this may take 1-2 minutes)...")
-    
+
     ps_cmd = f"Optimize-VHD -Path '{vhdx}' -Mode Full -ErrorAction Stop"
-    result = await run_elevated(ps_cmd, timeout=300)
-    
+    result = await run_elevated(["powershell", "-NoProfile", "-Command", ps_cmd], timeout=300)
+
     if result.returncode == 0:
         after = vhdx.stat().st_size
         after_gb = round(after / 1024**3, 2)
@@ -683,15 +686,15 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
     else:
         output_lines.append(f"\nFAILED: {result.stderr}")
         output_lines.append("\nTrying Mount-VHD approach...")
-        
+
         # Fallback: Mount-VHD approach
         ps_cmd2 = f"""
         Mount-VHD -Path '{vhdx}' -ReadOnly -ErrorAction Stop
         Optimize-VHD -Path '{vhdx}' -Mode Full -ErrorAction Stop
         Dismount-VHD -Path '{vhdx}' -ErrorAction Stop
         """
-        result2 = await run_elevated(ps_cmd2, timeout=300)
-        
+        result2 = await run_elevated(["powershell", "-NoProfile", "-Command", ps_cmd2], timeout=300)
+
         if result2.returncode == 0:
             after = vhdx.stat().st_size
             after_gb = round(after / 1024**3, 2)
@@ -705,7 +708,7 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
         else:
             output_lines.append(f"FAILED (alt): {result2.stderr}")
             exit_code = 1
-    
+
     stdout = "\n".join(output_lines)
     return CommandResult(
         exit_code=exit_code,
@@ -726,7 +729,7 @@ def compact_vhdx_cmd(
 ):
     """WSL VHDX compaction (requires Administrator)."""
     result = asyncio.run(run_compact_vhdx({"vhdx_path": vhdx_path}))
-    
+
     if json_output:
         import json
         console.print_json(json.dumps(result.to_dict()))
@@ -734,7 +737,7 @@ def compact_vhdx_cmd(
         console.print(result.stdout)
         if result.stderr:
             console.print(result.stderr, style="red")
-    
+
     raise typer.Exit(result.exit_code)
 
 
@@ -777,7 +780,7 @@ async def run_admin_cleanup(params: dict[str, Any]) -> CommandResult:
         if p.dry_run:
             output_lines.append(f"  [DRY RUN] Would run: {' '.join(cmd)}")
             return True, "dry-run"
-        
+
         try:
             result = await run_elevated(cmd, timeout=timeout)
             output = result.stdout + result.stderr
@@ -796,7 +799,7 @@ async def run_admin_cleanup(params: dict[str, Any]) -> CommandResult:
             "DISM Component Cleanup",
             timeout=300
         )
-        status = "COMPLETED" if success else f"EXIT CODE != 0"
+        status = "COMPLETED" if success else "EXIT CODE != 0"
         output_lines.append(f"[1] DISM component cleanup: {status}")
         if not success:
             warnings.append(f"DISM component cleanup failed: {output[:200]}")
@@ -813,7 +816,7 @@ async def run_admin_cleanup(params: dict[str, Any]) -> CommandResult:
             "DISM RestoreHealth",
             timeout=1800
         )
-        status = "COMPLETED" if success else f"EXIT CODE != 0"
+        status = "COMPLETED" if success else "EXIT CODE != 0"
         output_lines.append(f"[2] DISM RestoreHealth: {status}")
         if not success:
             warnings.append(f"DISM RestoreHealth failed: {output[:200]}")
@@ -829,7 +832,7 @@ async def run_admin_cleanup(params: dict[str, Any]) -> CommandResult:
             "SFC Scan",
             timeout=600
         )
-        status = "COMPLETED" if success else f"EXIT CODE != 0"
+        status = "COMPLETED" if success else "EXIT CODE != 0"
         output_lines.append(f"[3] SFC: {status}")
         if not success:
             warnings.append(f"SFC failed: {output[:200]}")
@@ -847,7 +850,7 @@ async def run_admin_cleanup(params: dict[str, Any]) -> CommandResult:
                 output_lines.append(f"  Would clear {wu_path} ({round(size / (1024**3), 2)} GB)")
             else:
                 size = sum(f.stat().st_size for f in wu_path.rglob("*") if f.is_file())
-                output_lines.append(f"  Stopping wuauserv...")
+                output_lines.append("  Stopping wuauserv...")
                 await run_elevated_cmd(["net", "stop", "wuauserv"], "Stop wuauserv", timeout=30)
                 await asyncio.sleep(2)
                 output_lines.append(f"  Clearing {wu_path} ({round(size / (1024**3), 2)} GB)...")
@@ -899,7 +902,7 @@ async def run_admin_cleanup(params: dict[str, Any]) -> CommandResult:
                 "VSS Admin Delete Shadows",
                 timeout=60
             )
-            status = "DELETED" if success else f"EXIT CODE != 0 (may be none)"
+            status = "DELETED" if success else "EXIT CODE != 0 (may be none)"
             output_lines.append(f"[6] Oldest shadow copy: {status}")
             if not success and "may be none" not in status.lower():
                 warnings.append(f"Shadow copy deletion: {output[:200]}")
@@ -940,7 +943,7 @@ async def run_admin_cleanup(params: dict[str, Any]) -> CommandResult:
 
     # Summary
     after_free = await get_free_space_gb("C:\\")
-    
+
     output_lines.append("\n=== Summary ===")
     output_lines.append(f"C: free before: {before_free:.2f} GB")
     output_lines.append(f"C: free after : {after_free:.2f} GB")
@@ -982,7 +985,7 @@ def win11_admin_cleanup_cmd(
     json_output: bool = typer.Option(False, "--json", help="Output results as JSON"),
 ):
     """Windows 11 admin cleanup (elevated): DISM, SFC, update cache, Delivery Optimization, shadow copies, Windows.old.
-    
+
     REQUIRES ADMINISTRATOR PRIVILEGES. Use --dry-run first to preview.
     """
     result = asyncio.run(run_admin_cleanup({
@@ -1019,7 +1022,10 @@ def _fmt_bytes(bytes_val: int) -> tuple[str, str]:
 
 async def _ds(path: Path) -> int:
     """Sum of all files under path (0 if missing/unreadable)."""
-    if not path.exists():
+    try:
+        if not path.exists():
+            return 0
+    except (PermissionError, OSError):
         return 0
     total = 0
     try:
@@ -1036,7 +1042,10 @@ async def _ds(path: Path) -> int:
 
 async def _chromium_cache_size(root: Path) -> int:
     """Calculate Chromium cache size for Default + Profile N."""
-    if not root.exists():
+    try:
+        if not root.exists():
+            return 0
+    except (PermissionError, OSError):
         return 0
     total = 0
     profiles = ["Default"]
@@ -1046,7 +1055,7 @@ async def _chromium_cache_size(root: Path) -> int:
                 profiles.append(item.name)
     except (PermissionError, OSError):
         pass
-    
+
     for profile in profiles:
         profile_dir = root / profile
         for sub in ["Cache", "Code Cache", "GPUCache"]:
@@ -1081,7 +1090,7 @@ async def _electron_cache_size(root: Path, include_storage: bool = False) -> int
 async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     """Main entry point for check-cleanup-status (read-only assessment)."""
     log.info("Starting check-cleanup-status")
-    
+
     output_lines = [f"=== Win11 Cleanup Assessment - {datetime.now().strftime('%Y-%m-%d %H:%M')} ==="]
     cleanable = 0
 
@@ -1111,7 +1120,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _ds(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
+        output_lines.append(f"{label:<44} : {val:>8} {unit}")
 
     # --- Dev caches (user-level) ---
     output_lines.append("\n--- Dev caches (user-level) ---")
@@ -1128,34 +1137,34 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _ds(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
-    
+        output_lines.append(f"{label:<44} : {val:>8} {unit}")
+
     # Ollama models (report-only, not auto-cleaned)
     ollama = Path.home() / ".ollama" / "models"
     size = await _ds(ollama)
     val, unit = _fmt_bytes(size)
-    output_lines.append("{0:<44} : {1:>8} {2} (report-only, not auto-cleaned)".format("Ollama models", val, unit))
+    output_lines.append("{:<44} : {:>8} {} (report-only, not auto-cleaned)".format("Ollama models", val, unit))
 
     # --- Browser caches (Chrome/Edge) ---
     output_lines.append("\n--- Browser caches (Chrome/Edge) ---")
     chrome_root = Path(os.environ.get("LOCALAPPDATA", "")) / "Google" / "Chrome" / "User Data"
     edge_root = Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "Edge" / "User Data"
-    
+
     chrome_full = await _ds(chrome_root)
     edge_full = await _ds(edge_root)
-    
+
     # More precise cache subset
     chrome_cache = await _chromium_cache_size(chrome_root)
     edge_cache = await _chromium_cache_size(edge_root)
-    
+
     # Adjust cleanable to use precise subset
     cleanable = cleanable - chrome_full + chrome_cache
     cleanable = cleanable - edge_full + edge_cache
-    
+
     val, unit = _fmt_bytes(chrome_cache)
-    output_lines.append("{0:<44} : {1:>8} {2} (precise, cleanable subset)".format("Chrome cache subset", val, unit))
+    output_lines.append("{:<44} : {:>8} {} (precise, cleanable subset)".format("Chrome cache subset", val, unit))
     val, unit = _fmt_bytes(edge_cache)
-    output_lines.append("{0:<44} : {1:>8} {2} (precise, cleanable subset)".format("Edge cache subset", val, unit))
+    output_lines.append("{:<44} : {:>8} {} (precise, cleanable subset)".format("Edge cache subset", val, unit))
 
     # --- VS Code / Electron ---
     output_lines.append("\n--- VS Code / Electron ---")
@@ -1167,8 +1176,8 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _vs_code_cache_size(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
-    
+        output_lines.append(f"{label:<44} : {val:>8} {unit}")
+
     electron_apps = [
         ("Discord", Path(os.environ.get("APPDATA", "")) / "discord", False),
         ("Slack", Path(os.environ.get("APPDATA", "")) / "Slack", False),
@@ -1179,14 +1188,14 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         if size > 0:
             cleanable += size
             val, unit = _fmt_bytes(size)
-            output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
+            output_lines.append(f"{label:<44} : {val:>8} {unit}")
 
     # --- Recycle bin ---
     output_lines.append("\n--- Recycle bin ---")
     rb_size = await _ds(Path("C:\\$Recycle.Bin"))
     cleanable += rb_size
     val, unit = _fmt_bytes(rb_size)
-    output_lines.append("{0:<44} : {1:>8} {2} (readable subset)".format("C:\\$Recycle.Bin", val, unit))
+    output_lines.append("{:<44} : {:>8} {} (readable subset)".format("C:\\$Recycle.Bin", val, unit))
 
     # --- System caches (best effort without admin) ---
     output_lines.append("\n--- System caches (best effort without admin) ---")
@@ -1197,7 +1206,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     for label, path in sys_caches:
         size = await _ds(path)
         val, unit = _fmt_bytes(size)
-        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
+        output_lines.append(f"{label:<44} : {val:>8} {unit}")
 
     # --- VHDX backing disks ---
     output_lines.append("\n--- VHDX backing disks ---")
@@ -1213,7 +1222,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
                         size = vhdx.stat().st_size
                         rel = vhdx.relative_to(Path(os.environ.get("LOCALAPPDATA", "")))
                         val, unit = _fmt_bytes(size)
-                        output_lines.append("{0:<44} : {1:>8} {2}".format(str(rel).replace("\\", "/"), val, unit))
+                        output_lines.append("{:<44} : {:>8} {}".format(str(rel).replace("\\", "/"), val, unit))
                     except (PermissionError, OSError):
                         continue
             except Exception:
@@ -1227,7 +1236,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
             try:
                 size = path.stat().st_size
                 val, unit = _fmt_bytes(size)
-                output_lines.append("{0:<44} : {1:>8} {2}".format(fname, val, unit))
+                output_lines.append(f"{fname:<44} : {val:>8} {unit}")
             except (PermissionError, OSError):
                 pass
 
@@ -1251,19 +1260,19 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     output_lines.append("\n=== Verdict ===")
     cleanable_gb = cleanable / 1024**3
     cleanable_mb = cleanable / 1024**2
-    
+
     if cleanable >= 5 * 1024**3:
         verdict = f"YES - ~{cleanable_gb:.1f} GB cleanable at user level right now."
     elif cleanable >= 500 * 1024**2:
         verdict = f"MODERATE - ~{cleanable_mb:.0f} MB cleanable at user level right now."
     else:
         verdict = f"NO - only ~{cleanable_mb:.0f} MB cleanable at user level; system is tidy."
-    
+
     output_lines.append(verdict)
     output_lines.append("Run extended-cleanup / win11-safe-cleanup for user-level, win11-admin-cleanup for admin items.")
 
     stdout = "\n".join(output_lines)
-    
+
     log.info("check-cleanup-status completed", extra={"cleanable_bytes": cleanable})
 
     return CommandResult(
@@ -1285,13 +1294,13 @@ def check_cleanup_status_cmd(
 ):
     """Read-only Win11 cleanup status assessment: drives, temp, dev caches, browser data, VHDX sizes, Docker usage."""
     result = asyncio.run(run_check_cleanup_status({}))
-    
+
     if json_output:
         import json
         console.print_json(json.dumps(result.to_dict()))
     else:
         console.print(result.stdout)
-    
+
     raise typer.Exit(result.exit_code)
 
 
@@ -1305,11 +1314,11 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
     if not vhdx_path:
         # Default WSL vhdx path
         vhdx_path = str(Path(os.environ.get("LOCALAPPDATA", "")) / "wsl" / "{12c19879-cec8-4dd1-9fe4-7049940b6a2f}" / "ext4.vhdx")
-    
+
     vhdx = Path(vhdx_path)
-    
+
     log.info("Starting compact-vhdx", extra={"vhdx_path": str(vhdx)})
-    
+
     if not vhdx.exists():
         return CommandResult(
             exit_code=1,
@@ -1317,16 +1326,16 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
             stderr=f"VHDX not found: {vhdx}",
             data={"error": "VHDX not found"}
         )
-    
+
     before = vhdx.stat().st_size
     before_gb = round(before / 1024**3, 2)
-    
+
     output_lines = [
         "=== WSL VHDX Compaction ===",
         f"VHDX: {vhdx}",
         f"Before: {before_gb} GB",
     ]
-    
+
     # Check if running as admin
     try:
         import ctypes
@@ -1342,17 +1351,17 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
             )
     except Exception:
         pass
-    
+
     # Stop WSL
     output_lines.append("\nStopping WSL...")
     result = await run_command(["wsl", "--shutdown"], timeout=60)
     if result.returncode != 0:
         output_lines.append(f"Warning: wsl --shutdown returned {result.returncode}")
-    
+
     # Wait for vmmem to exit
     import time
     time.sleep(5)
-    
+
     # Kill any remaining vmmem processes
     for proc_name in ["vmmemWSL", "vmmem"]:
         try:
@@ -1361,13 +1370,13 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
                 output_lines.append(f"Killed {proc_name}")
         except Exception:
             pass
-    
+
     # Try Optimize-VHD via PowerShell
     output_lines.append("\nCompacting VHDX (this may take 1-2 minutes)...")
-    
+
     ps_cmd = f"Optimize-VHD -Path '{vhdx}' -Mode Full -ErrorAction Stop"
-    result = await run_elevated(ps_cmd, timeout=300)
-    
+    result = await run_elevated(["powershell", "-NoProfile", "-Command", ps_cmd], timeout=300)
+
     if result.returncode == 0:
         after = vhdx.stat().st_size
         after_gb = round(after / 1024**3, 2)
@@ -1381,15 +1390,15 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
     else:
         output_lines.append(f"\nFAILED: {result.stderr}")
         output_lines.append("\nTrying Mount-VHD approach...")
-        
+
         # Fallback: Mount-VHD approach
         ps_cmd2 = f"""
         Mount-VHD -Path '{vhdx}' -ReadOnly -ErrorAction Stop
         Optimize-VHD -Path '{vhdx}' -Mode Full -ErrorAction Stop
         Dismount-VHD -Path '{vhdx}' -ErrorAction Stop
         """
-        result2 = await run_elevated(ps_cmd2, timeout=300)
-        
+        result2 = await run_elevated(["powershell", "-NoProfile", "-Command", ps_cmd2], timeout=300)
+
         if result2.returncode == 0:
             after = vhdx.stat().st_size
             after_gb = round(after / 1024**3, 2)
@@ -1403,7 +1412,7 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
         else:
             output_lines.append(f"FAILED (alt): {result2.stderr}")
             exit_code = 1
-    
+
     stdout = "\n".join(output_lines)
     return CommandResult(
         exit_code=exit_code,
@@ -1424,7 +1433,7 @@ def compact_vhdx_cmd(
 ):
     """WSL VHDX compaction (requires Administrator)."""
     result = asyncio.run(run_compact_vhdx({"vhdx_path": vhdx_path}))
-    
+
     if json_output:
         import json
         console.print_json(json.dumps(result.to_dict()))
@@ -1432,7 +1441,7 @@ def compact_vhdx_cmd(
         console.print(result.stdout)
         if result.stderr:
             console.print(result.stderr, style="red")
-    
+
     raise typer.Exit(result.exit_code)
 
 
@@ -1476,10 +1485,10 @@ async def prune_files(path: Path, days: int, dry_run: bool = False) -> int:
     """Delete files under path older than days; return bytes freed."""
     if not path.exists():
         return 0
-    
+
     cutoff = datetime.now() - timedelta(days=days)
     total_freed = 0
-    
+
     try:
         for item in path.rglob("*"):
             if item.is_file():
@@ -1494,7 +1503,7 @@ async def prune_files(path: Path, days: int, dry_run: bool = False) -> int:
                     continue
     except Exception as e:
         log.warning(f"Error pruning {path}: {e}")
-    
+
     return total_freed
 
 
@@ -1503,7 +1512,7 @@ async def get_chromium_cache_dirs(user_data_root: Path) -> list[Path]:
     dirs = []
     if not user_data_root.exists():
         return dirs
-    
+
     # Default profile
     profiles = ["Default"]
     # Additional profiles
@@ -1513,7 +1522,7 @@ async def get_chromium_cache_dirs(user_data_root: Path) -> list[Path]:
                 profiles.append(item.name)
     except (PermissionError, OSError):
         pass
-    
+
     subdirs = [
         "Cache",
         "Code Cache",
@@ -1521,20 +1530,20 @@ async def get_chromium_cache_dirs(user_data_root: Path) -> list[Path]:
         "Service Worker/CacheStorage",
         "Service Worker/ScriptCache",
     ]
-    
+
     for profile in profiles:
         profile_dir = user_data_root / profile
         for sub in subdirs:
             p = profile_dir / sub
             if p.exists():
                 dirs.append(p)
-    
+
     return dirs
 
 
 async def run_extended_cleanup(params: dict[str, Any]) -> CommandResult:
     """Main entry point for extended-cleanup (weekly, user-level, age-gated)."""
-    
+
     p = ExtendedCleanupParams(
         dry_run=params.get("dry_run", False),
         shader_days=params.get("shader_days", 30),
@@ -1562,7 +1571,7 @@ async def run_extended_cleanup(params: dict[str, Any]) -> CommandResult:
         Path(os.environ.get("LOCALAPPDATA", "")) / "NVIDIA Corporation" / "NV_Cache",
         Path(os.environ.get("LOCALAPPDATA", "")) / "D3DSCache",
     ]
-    
+
     for dir_path in shader_dirs:
         if dir_path.exists():
             size = await prune_files(dir_path, p.shader_days, p.dry_run)
@@ -1579,15 +1588,15 @@ async def run_extended_cleanup(params: dict[str, Any]) -> CommandResult:
         total_freed += size
         output_lines.append(f"  HuggingFace blobs >{p.model_days}d      : -{_mb(size)} MB")
     else:
-        output_lines.append(f"  HuggingFace blobs: not found")
-    
+        output_lines.append("  HuggingFace blobs: not found")
+
     ollama_path = Path.home() / ".ollama" / "models"
     if ollama_path.exists():
         try:
             sz = sum(f.stat().st_size for f in ollama_path.rglob("*") if f.is_file())
             output_lines.append(f"  Ollama models: {_gb(sz)} GB - NOT touched (delete manually via 'ollama rm')")
         except Exception:
-            output_lines.append(f"  Ollama models: present - NOT touched")
+            output_lines.append("  Ollama models: present - NOT touched")
 
     # [3] Browser caches (skip if browser is running)
     output_lines.append("\n=== [3] Browser caches ===")
@@ -1595,22 +1604,22 @@ async def run_extended_cleanup(params: dict[str, Any]) -> CommandResult:
         ("Chrome", Path(os.environ.get("LOCALAPPDATA", "")) / "Google" / "Chrome" / "User Data", ["chrome"]),
         ("Edge", Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "Edge" / "User Data", ["msedge"]),
     ]
-    
+
     for name, root, procs in browser_roots:
         if not root.exists():
             continue
-        
+
         running = await is_process_running(procs)
         if running:
             output_lines.append(f"  {name}: running - skipped")
             continue
-        
+
         b_freed = 0
         cache_dirs = await get_chromium_cache_dirs(root)
         for cache_dir in cache_dirs:
             size = await prune_files(cache_dir, p.browser_days, p.dry_run)
             b_freed += size
-        
+
         total_freed += b_freed
         output_lines.append(f"  {name:<40}: -{_mb(b_freed)} MB")
 
@@ -1627,7 +1636,7 @@ async def run_extended_cleanup(params: dict[str, Any]) -> CommandResult:
             for sub in code_subdirs:
                 size = await prune_files(code_root / sub, p.code_days, p.dry_run)
                 c_freed += size
-            
+
             # workspaceStorage: drop whole subdirs not touched in $CodeDays
             ws_root = code_root / "workspaceStorage"
             if ws_root.exists():
@@ -1643,7 +1652,7 @@ async def run_extended_cleanup(params: dict[str, Any]) -> CommandResult:
                                 c_freed += sz
                 except Exception as e:
                     log.warning(f"Error pruning workspaceStorage: {e}")
-            
+
             total_freed += c_freed
             output_lines.append(f"  VS Code (>{p.code_days}d, incl. workspaceStorage) : -{_mb(c_freed)} MB")
     else:
@@ -1656,7 +1665,7 @@ async def run_extended_cleanup(params: dict[str, Any]) -> CommandResult:
         ("Slack", Path(os.environ.get("APPDATA", "")) / "Slack", ["Cache", "Code Cache", "GPUCache"]),
         ("Spotify", Path(os.environ.get("APPDATA", "")) / "Spotify", ["Cache", "Code Cache", "GPUCache", "Storage"]),
     ]
-    
+
     for name, root, subs in electron_apps:
         if not root.exists():
             continue
@@ -1686,11 +1695,11 @@ async def run_extended_cleanup(params: dict[str, Any]) -> CommandResult:
     if log_dir.exists():
         archive_dir = log_dir / "archive"
         archive_dir.mkdir(exist_ok=True)
-        
+
         cutoff = datetime.now() - timedelta(days=p.log_days)
         l_freed = 0
         moved_count = 0
-        
+
         try:
             for item in log_dir.rglob("*"):
                 if item.is_file() and "archive" not in item.parts:
@@ -1705,7 +1714,7 @@ async def run_extended_cleanup(params: dict[str, Any]) -> CommandResult:
                         moved_count += 1
         except Exception as e:
             log.warning(f"Error archiving logs: {e}")
-        
+
         # Purge old archive
         a_cutoff = datetime.now() - timedelta(days=p.archive_days)
         a_freed = 0
@@ -1720,7 +1729,7 @@ async def run_extended_cleanup(params: dict[str, Any]) -> CommandResult:
                         a_freed += size
         except Exception as e:
             log.warning(f"Error purging archive: {e}")
-        
+
         total_freed += l_freed + a_freed
         output_lines.append(f"  Logs >{p.log_days}d moved to archive\\          : {moved_count} file(s), {_mb(l_freed)} MB")
         output_lines.append(f"  Archive >{p.archive_days}d purged                  : -{_mb(a_freed)} MB")
@@ -1729,7 +1738,7 @@ async def run_extended_cleanup(params: dict[str, Any]) -> CommandResult:
 
     # Summary
     after_free = await get_free_space_gb("C:\\")
-    
+
     output_lines.append("\n=== Summary ===")
     output_lines.append(f"C: free after : {after_free:.2f} GB")
     output_lines.append(f"Freed (files) : {_mb(total_freed)} MB")
@@ -1773,7 +1782,7 @@ def extended_cleanup_cmd(
     json_output: bool = typer.Option(False, "--json", help="Output results as JSON"),
 ):
     """Extended cleanup (weekly): deeper user-level sweeps beyond the daily safe cleanup.
-    
+
     Covers: GPU shader caches, HuggingFace model blobs, browser caches,
     VS Code stable caches, Electron app caches, user-side WER archives,
     and rotation of DevOptimizer's own logs.
@@ -1814,7 +1823,10 @@ def _fmt_bytes(bytes_val: int) -> tuple[str, str]:
 
 async def _ds(path: Path) -> int:
     """Sum of all files under path (0 if missing/unreadable)."""
-    if not path.exists():
+    try:
+        if not path.exists():
+            return 0
+    except (PermissionError, OSError):
         return 0
     total = 0
     try:
@@ -1831,7 +1843,10 @@ async def _ds(path: Path) -> int:
 
 async def _chromium_cache_size(root: Path) -> int:
     """Calculate Chromium cache size for Default + Profile N."""
-    if not root.exists():
+    try:
+        if not root.exists():
+            return 0
+    except (PermissionError, OSError):
         return 0
     total = 0
     profiles = ["Default"]
@@ -1841,7 +1856,7 @@ async def _chromium_cache_size(root: Path) -> int:
                 profiles.append(item.name)
     except (PermissionError, OSError):
         pass
-    
+
     for profile in profiles:
         profile_dir = root / profile
         for sub in ["Cache", "Code Cache", "GPUCache"]:
@@ -1876,7 +1891,7 @@ async def _electron_cache_size(root: Path, include_storage: bool = False) -> int
 async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     """Main entry point for check-cleanup-status (read-only assessment)."""
     log.info("Starting check-cleanup-status")
-    
+
     output_lines = [f"=== Win11 Cleanup Assessment - {datetime.now().strftime('%Y-%m-%d %H:%M')} ==="]
     cleanable = 0
 
@@ -1906,7 +1921,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _ds(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
+        output_lines.append(f"{label:<44} : {val:>8} {unit}")
 
     # --- Dev caches (user-level) ---
     output_lines.append("\n--- Dev caches (user-level) ---")
@@ -1923,34 +1938,34 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _ds(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
-    
+        output_lines.append(f"{label:<44} : {val:>8} {unit}")
+
     # Ollama models (report-only, not auto-cleaned)
     ollama = Path.home() / ".ollama" / "models"
     size = await _ds(ollama)
     val, unit = _fmt_bytes(size)
-    output_lines.append("{0:<44} : {1:>8} {2} (report-only, not auto-cleaned)".format("Ollama models", val, unit))
+    output_lines.append("{:<44} : {:>8} {} (report-only, not auto-cleaned)".format("Ollama models", val, unit))
 
     # --- Browser caches (Chrome/Edge) ---
     output_lines.append("\n--- Browser caches (Chrome/Edge) ---")
     chrome_root = Path(os.environ.get("LOCALAPPDATA", "")) / "Google" / "Chrome" / "User Data"
     edge_root = Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "Edge" / "User Data"
-    
+
     chrome_full = await _ds(chrome_root)
     edge_full = await _ds(edge_root)
-    
+
     # More precise cache subset
     chrome_cache = await _chromium_cache_size(chrome_root)
     edge_cache = await _chromium_cache_size(edge_root)
-    
+
     # Adjust cleanable to use precise subset
     cleanable = cleanable - chrome_full + chrome_cache
     cleanable = cleanable - edge_full + edge_cache
-    
+
     val, unit = _fmt_bytes(chrome_cache)
-    output_lines.append("{0:<44} : {1:>8} {2} (precise, cleanable subset)".format("Chrome cache subset", val, unit))
+    output_lines.append("{:<44} : {:>8} {} (precise, cleanable subset)".format("Chrome cache subset", val, unit))
     val, unit = _fmt_bytes(edge_cache)
-    output_lines.append("{0:<44} : {1:>8} {2} (precise, cleanable subset)".format("Edge cache subset", val, unit))
+    output_lines.append("{:<44} : {:>8} {} (precise, cleanable subset)".format("Edge cache subset", val, unit))
 
     # --- VS Code / Electron ---
     output_lines.append("\n--- VS Code / Electron ---")
@@ -1962,8 +1977,8 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         size = await _vs_code_cache_size(path)
         cleanable += size
         val, unit = _fmt_bytes(size)
-        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
-    
+        output_lines.append(f"{label:<44} : {val:>8} {unit}")
+
     electron_apps = [
         ("Discord", Path(os.environ.get("APPDATA", "")) / "discord", False),
         ("Slack", Path(os.environ.get("APPDATA", "")) / "Slack", False),
@@ -1974,14 +1989,14 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
         if size > 0:
             cleanable += size
             val, unit = _fmt_bytes(size)
-            output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
+            output_lines.append(f"{label:<44} : {val:>8} {unit}")
 
     # --- Recycle bin ---
     output_lines.append("\n--- Recycle bin ---")
     rb_size = await _ds(Path("C:\\$Recycle.Bin"))
     cleanable += rb_size
     val, unit = _fmt_bytes(rb_size)
-    output_lines.append("{0:<44} : {1:>8} {2} (readable subset)".format("C:\\$Recycle.Bin", val, unit))
+    output_lines.append("{:<44} : {:>8} {} (readable subset)".format("C:\\$Recycle.Bin", val, unit))
 
     # --- System caches (best effort without admin) ---
     output_lines.append("\n--- System caches (best effort without admin) ---")
@@ -1992,7 +2007,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     for label, path in sys_caches:
         size = await _ds(path)
         val, unit = _fmt_bytes(size)
-        output_lines.append("{0:<44} : {1:>8} {2}".format(label, val, unit))
+        output_lines.append(f"{label:<44} : {val:>8} {unit}")
 
     # --- VHDX backing disks ---
     output_lines.append("\n--- VHDX backing disks ---")
@@ -2008,7 +2023,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
                         size = vhdx.stat().st_size
                         rel = vhdx.relative_to(Path(os.environ.get("LOCALAPPDATA", "")))
                         val, unit = _fmt_bytes(size)
-                        output_lines.append("{0:<44} : {1:>8} {2}".format(str(rel).replace("\\", "/"), val, unit))
+                        output_lines.append("{:<44} : {:>8} {}".format(str(rel).replace("\\", "/"), val, unit))
                     except (PermissionError, OSError):
                         continue
             except Exception:
@@ -2022,7 +2037,7 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
             try:
                 size = path.stat().st_size
                 val, unit = _fmt_bytes(size)
-                output_lines.append("{0:<44} : {1:>8} {2}".format(fname, val, unit))
+                output_lines.append(f"{fname:<44} : {val:>8} {unit}")
             except (PermissionError, OSError):
                 pass
 
@@ -2046,19 +2061,19 @@ async def run_check_cleanup_status(params: dict[str, Any]) -> CommandResult:
     output_lines.append("\n=== Verdict ===")
     cleanable_gb = cleanable / 1024**3
     cleanable_mb = cleanable / 1024**2
-    
+
     if cleanable >= 5 * 1024**3:
         verdict = f"YES - ~{cleanable_gb:.1f} GB cleanable at user level right now."
     elif cleanable >= 500 * 1024**2:
         verdict = f"MODERATE - ~{cleanable_mb:.0f} MB cleanable at user level right now."
     else:
         verdict = f"NO - only ~{cleanable_mb:.0f} MB cleanable at user level; system is tidy."
-    
+
     output_lines.append(verdict)
     output_lines.append("Run extended-cleanup / win11-safe-cleanup for user-level, win11-admin-cleanup for admin items.")
 
     stdout = "\n".join(output_lines)
-    
+
     log.info("check-cleanup-status completed", extra={"cleanable_bytes": cleanable})
 
     return CommandResult(
@@ -2080,13 +2095,13 @@ def check_cleanup_status_cmd(
 ):
     """Read-only Win11 cleanup status assessment: drives, temp, dev caches, browser data, VHDX sizes, Docker usage."""
     result = asyncio.run(run_check_cleanup_status({}))
-    
+
     if json_output:
         import json
         console.print_json(json.dumps(result.to_dict()))
     else:
         console.print(result.stdout)
-    
+
     raise typer.Exit(result.exit_code)
 
 
@@ -2100,11 +2115,11 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
     if not vhdx_path:
         # Default WSL vhdx path
         vhdx_path = str(Path(os.environ.get("LOCALAPPDATA", "")) / "wsl" / "{12c19879-cec8-4dd1-9fe4-7049940b6a2f}" / "ext4.vhdx")
-    
+
     vhdx = Path(vhdx_path)
-    
+
     log.info("Starting compact-vhdx", extra={"vhdx_path": str(vhdx)})
-    
+
     if not vhdx.exists():
         return CommandResult(
             exit_code=1,
@@ -2112,16 +2127,16 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
             stderr=f"VHDX not found: {vhdx}",
             data={"error": "VHDX not found"}
         )
-    
+
     before = vhdx.stat().st_size
     before_gb = round(before / 1024**3, 2)
-    
+
     output_lines = [
         "=== WSL VHDX Compaction ===",
         f"VHDX: {vhdx}",
         f"Before: {before_gb} GB",
     ]
-    
+
     # Check if running as admin
     try:
         import ctypes
@@ -2137,17 +2152,17 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
             )
     except Exception:
         pass
-    
+
     # Stop WSL
     output_lines.append("\nStopping WSL...")
     result = await run_command(["wsl", "--shutdown"], timeout=60)
     if result.returncode != 0:
         output_lines.append(f"Warning: wsl --shutdown returned {result.returncode}")
-    
+
     # Wait for vmmem to exit
     import time
     time.sleep(5)
-    
+
     # Kill any remaining vmmem processes
     for proc_name in ["vmmemWSL", "vmmem"]:
         try:
@@ -2156,13 +2171,13 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
                 output_lines.append(f"Killed {proc_name}")
         except Exception:
             pass
-    
+
     # Try Optimize-VHD via PowerShell
     output_lines.append("\nCompacting VHDX (this may take 1-2 minutes)...")
-    
+
     ps_cmd = f"Optimize-VHD -Path '{vhdx}' -Mode Full -ErrorAction Stop"
-    result = await run_elevated(ps_cmd, timeout=300)
-    
+    result = await run_elevated(["powershell", "-NoProfile", "-Command", ps_cmd], timeout=300)
+
     if result.returncode == 0:
         after = vhdx.stat().st_size
         after_gb = round(after / 1024**3, 2)
@@ -2176,15 +2191,15 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
     else:
         output_lines.append(f"\nFAILED: {result.stderr}")
         output_lines.append("\nTrying Mount-VHD approach...")
-        
+
         # Fallback: Mount-VHD approach
         ps_cmd2 = f"""
         Mount-VHD -Path '{vhdx}' -ReadOnly -ErrorAction Stop
         Optimize-VHD -Path '{vhdx}' -Mode Full -ErrorAction Stop
         Dismount-VHD -Path '{vhdx}' -ErrorAction Stop
         """
-        result2 = await run_elevated(ps_cmd2, timeout=300)
-        
+        result2 = await run_elevated(["powershell", "-NoProfile", "-Command", ps_cmd2], timeout=300)
+
         if result2.returncode == 0:
             after = vhdx.stat().st_size
             after_gb = round(after / 1024**3, 2)
@@ -2198,7 +2213,7 @@ async def run_compact_vhdx(params: dict[str, Any]) -> CommandResult:
         else:
             output_lines.append(f"FAILED (alt): {result2.stderr}")
             exit_code = 1
-    
+
     stdout = "\n".join(output_lines)
     return CommandResult(
         exit_code=exit_code,
@@ -2219,7 +2234,7 @@ def compact_vhdx_cmd(
 ):
     """WSL VHDX compaction (requires Administrator)."""
     result = asyncio.run(run_compact_vhdx({"vhdx_path": vhdx_path}))
-    
+
     if json_output:
         import json
         console.print_json(json.dumps(result.to_dict()))
@@ -2227,5 +2242,5 @@ def compact_vhdx_cmd(
         console.print(result.stdout)
         if result.stderr:
             console.print(result.stderr, style="red")
-    
+
     raise typer.Exit(result.exit_code)
