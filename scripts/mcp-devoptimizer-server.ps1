@@ -87,7 +87,7 @@ $tools = @(
         inputSchema = @{
             type = "object"
             properties = @{
-                priority = @{ type = "string"; enum = ["normal", "high"]; default = "high" }
+                priority = @{ type = "string"; enum = @("normal", "high"); default = "high" }
                 startup = @{ type = "boolean"; default = $true }
                 defenderExclusions = @{ type = "boolean"; default = $true }
             }
@@ -208,25 +208,9 @@ function Invoke-DevinRepair {
 function Invoke-DevinCleanupACP {
     param($args)
     $script = "D:\DevOptimizer\scripts\prune-acp.ps1"
-    # Use the prune-acp script with parameters
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "
-        $acpDir = Join-Path \$env:APPDATA 'devin\User\acp-messages'
-        $cutoff = (Get-Date).AddDays(-$($args.days))
-        $files = Get-ChildItem -LiteralPath \$acpDir -Filter '*.db' -File | Where-Object { `$_.LastWriteTime -lt \$cutoff }
-        `$files | ForEach-Object { Write-Host \"Deleting: `$(\$_.Name) (`$([math]::Round(\$_.Length/1MB,1)) MB)\"; Remove-Item -LiteralPath \$_.FullName -Force }
-        $shm = Get-ChildItem -LiteralPath \$acpDir -Filter '*.db-shm' -File | Where-Object { `$_.LastWriteTime -lt \$cutoff }
-        $wal = Get-ChildItem -LiteralPath \$acpDir -Filter '*.db-wal' -File | Where-Object { `$_.LastWriteTime -lt \$cutoff }
-        `$shm | ForEach-Object { Remove-Item -LiteralPath \$_.FullName -Force }
-        `$wal | ForEach-Object { Remove-Item -LiteralPath \$_.FullName -Force }
-        Write-Host \"Deleted `$(\$files.Count) DBs, `$(\$shm.Count) shm, `$(\$wal.Count) wal older than $($args.days) days\"
-        if ($($args.removeLarge)) {
-            $large = @('a3b876c1-e098-4649-811f-eccac5e74217.db','5e1ee798-b1d3-4252-9735-fe38ba1d02c9.db','23d592af-c68d-4e0a-877d-06866aabdd1f.db')
-            foreach ($name in \$large) {
-                \$path = Join-Path \$acpDir \$name
-                if (Test-Path \$path) { \$size = (Get-Item \$path).Length; Write-Host \"Deleting large: \$name (`$([math]::Round(\$size/1MB,1)) MB)\"; Remove-Item -LiteralPath \$path -Force }
-            }
-        }
-    " 2>&1 | Out-String
+    $params = @()
+    if ($args.days) { $params += "-Days"; $params += $args.days }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script @params 2>&1 | Out-String
 }
 
 function Invoke-DevinTuneWindows {

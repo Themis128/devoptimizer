@@ -157,7 +157,7 @@ public class RegistryServiceTests
     // ------------------------------------------------------------------
     // Integration regression lock (D4): the ONLY test that reads the live
     // config/hub-registry.json. Counts were verified against the live file
-    // on 2026-09-28; re-verify if the producer (Build-Registry.ps1) changes.
+    // on 2026-10-31; re-verify if the producer (Build-Registry.ps1) changes.
     // ------------------------------------------------------------------
     [Fact]
     public void Live_Registry_PinsTotalCategoryAndSearchCounts()
@@ -168,23 +168,24 @@ public class RegistryServiceTests
         var livePath = Path.Combine(repoRoot!, "config", "hub-registry.json");
         var snapshot = new RegistryService().LoadSnapshot(livePath);
 
-        Assert.Equal(416, snapshot.Commands.Count);
+        Assert.Equal(451, snapshot.Commands.Count);
 
         var expectedCounts = new Dictionary<string, int>
         {
             ["ai"] = 1,
-            ["ai-ml"] = 43,
-            ["cleanup"] = 68,
-            ["development"] = 10,
+            ["ai-ml"] = 46,
+            ["backup-restore"] = 5,
+            ["cleanup"] = 74,
+            ["development"] = 11,
             ["docker"] = 3,
-            ["gaming"] = 18,
+            ["gaming"] = 28,
             ["maintenance"] = 24,
             ["monitoring"] = 5,
             ["network"] = 5,
             ["security"] = 4,
             ["storage"] = 3,
-            ["system-optimization"] = 12,
-            ["utilities"] = 220,
+            ["system-optimization"] = 2,
+            ["utilities"] = 240,
         };
         var actualCounts = snapshot.Commands
             .GroupBy(c => c.Category, StringComparer.OrdinalIgnoreCase)
@@ -202,9 +203,9 @@ public class RegistryServiceTests
             Assert.False(string.IsNullOrWhiteSpace(c.EntryPoint));
         });
 
-        // Regression-locked search: "cleanup" -> 25, NOT the 68 cleanup-category commands.
+        // Regression-locked search: "cleanup" -> 29, NOT the 74 cleanup-category commands.
         var searchResults = RegistryService.Search(snapshot, "cleanup");
-        Assert.Equal(25, searchResults.Count);
+        Assert.Equal(29, searchResults.Count);
         Assert.NotEqual(RegistryService.ByCategory(snapshot, "cleanup").Count, searchResults.Count);
     }
 }
