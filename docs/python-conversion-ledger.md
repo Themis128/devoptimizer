@@ -1,0 +1,62 @@
+# Python Conversion Ledger
+
+Status of the PowerShell→Python triage conversion (plan approved 2026-10-31).
+One row per original: **converted** (Python port is live, PS deleted), **kept-PS**
+(intentionally PowerShell), **retired** (wrapper/orphan removed, no replacement
+needed), **deferred** (planned for a later tranche).
+
+## Phase 1 — converted (2026-10-31)
+
+| PS original | Python port | Notes |
+|---|---|---|
+| scripts/windows-update-cleanup.ps1 (521 L) | scripts/py/wu-cleanup.py | status/reset/clear-cache/fix; sc.exe/net/regsvr32/netsh/wevtutil/DISM via executor+winops |
+| scripts/dev-cache-cleaner.ps1 (550 L) | scripts/py/dev-cache.py | nodejs/python/ide families, __pycache__ walker, Docker prune (DMR-filtered), git gc |
+
+Deleted with them: portable/dev-cache-cleaner.bat, portable/windows-update-cleanup.bat.
+
+## Phase 2 — wrapper retirement (2026-10-31)
+
+Classification of 261 tracked `.bat/.cmd` + ≤20-line `.ps1` against scheduled
+tasks, Start Menu, desktop shortcuts, hub registry, and tracked-content
+references (tools/classify-wrappers.py + tools/content-refs.py):
+
+| Bucket | Count | Action |
+|---|---|---|
+| Registry commands (live hub surface) | 258 bat + 36 trivial ps1 | KEEP (product) |
+| Task/shortcut/content-referenced | 91 | KEEP |
+| **True orphans (temp/scratch/debug one-offs)** | **29** | **DELETED 2026-10-31** |
+
+Deleted orphans: CheckForUpdates.ps1, CheckUpdateMethods.ps1, Cleanup-CDrive_Test.ps1,
+Create-Scheduled-Cleanup-Task.bat, Testing/{DEMO-REALTIME-FIXER, ENCODING-FIXED-PROGRESS,
+START-ENHANCED-TESTING, START-PRODUCTION-FIXER, WORKING-PROGRESS-FIXER}.bat,
+UpdateWindows.ps1, categories/uncategorized/{COMPREHENSIVE-BAT-SYSTEM-FIXER,
+COMPREHENSIVE-BAT-SYSTEM-FIXER_NOPAUSE, CREATE-DESKTOP-SHORTCUTS-ENHANCED,
+EXAMPLE-CONFIG-USAGE, FINAL-BATCH-SYSTEM-FIXER, IMPLEMENTATION-ROADMAP,
+UI-ACCESS-GUIDE-EXTENDED}.bat, check-temp.ps1, check_camera.ps1, create_task.bat,
+inspect2.ps1, run_cleanup.bat, temp_check_raised_task.ps1, temp_check_tasks.ps1,
+temp_check_tasks_detailed.ps1, test-hub4.ps1, test-hub5.ps1, test-merge2.ps1,
+test_debug.bat.
+
+Registry after Phase 2: **452 commands / 14 categories** (classify-wrappers.py +
+content-refs.py joined as hub tool commands). Pins synced: ci.yml ×2,
+RegistryServiceTests (total + 14-category dict; search lock 29).
+
+## Phase 3 — planned tranches
+
+- **A. Pure orchestration** (deferred): dev-optimizer-fixed.ps1 (1,395 L),
+  nuxt3-optimization.ps1 (693), cursor-ai-optimization.ps1 (587),
+  gpu-nvidia-broadcast-optimization.ps1 (667), screen-settings-management.ps1 (801),
+  prerequisites-checker.ps1 (764)
+- **B. CIM/WMI reads** (deferred): port logic to Python, keep one-line PS shims
+  for CIM queries via run_ps_command
+- **C. Stays PowerShell permanently**: Optimize-VHD/Mount-VHD scripts,
+  Add-Type/WinForms UI, PS modules (DevOptimizer-AppCore.psm1), platform tooling
+  (Discover-Scripts.ps1, Build-Registry.ps1, Hub-Registry.ps1,
+  validate-all-scripts.ps1, Check-Health.ps1, Build-App.ps1, Test-App.ps1),
+  and the battle-tested scheduled-task production set (Invoke-VhdxCompaction.ps1,
+  win11-admin-cleanup-elevated.ps1)
+
+## Battery status at each tranche
+
+pytest 82 · xUnit 78/78 · Pester 37/37 · validate-all-scripts 0 errors ·
+Check-Health 270/275 · parity-check OK
