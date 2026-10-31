@@ -60,6 +60,19 @@ GPU_FN_MAP = {
     "Optimize-GPUComplete": "complete",
 }
 
+SCREEN_FN_MAP = {
+    "Get-DisplayInformation": "info",
+    "Set-DisplayResolution": "set-resolution",
+    "Set-DisplayOrientation": "set-orientation",
+    "Set-DisplayBrightness": "set-brightness",
+    "Set-MultiMonitorConfiguration": "multimonitor",
+    "Get-CommonResolutions": "resolutions",
+    "Get-CommonRefreshRates": "resolutions",
+    "Save-DisplayProfile": "save-profile",
+    "Load-DisplayProfile": "load-profile",
+    "Show-DisplayMenu": "menu",
+}
+
 
 def ps_prereq_checks(ps_text: str) -> list[str]:
     """Test-* function inventory from prerequisites-checker.ps1."""
@@ -136,6 +149,13 @@ def normalize_ps_env(p: str) -> str:
 
 def main() -> int:
     failures = 0
+
+    ps1_screen_path = REPO / "scripts" / "screen-settings-management.ps1"
+    if ps1_screen_path.exists():
+        ps1_screen = ps1_screen_path.read_text(encoding="utf-8-sig", errors="replace")
+        failures += check_screen(ps1_screen)
+    else:
+        print("SKIP screen: PS original already converted (absent)")
 
     ps1_gpu_path = REPO / "scripts" / "gpu-nvidia-broadcast-optimization.ps1"
     if ps1_gpu_path.exists():
@@ -219,10 +239,15 @@ def check_gpu(ps_text: str) -> int:
     return _check_fn_map(ps_text, GPU_FN_MAP, "gpu", "gpu-info")
 
 
+def check_screen(ps_text: str) -> int:
+    """Structural parity: each PS function maps to one screen CLI action."""
+    return _check_fn_map(ps_text, SCREEN_FN_MAP, "screen", "info")
+
+
 def _check_fn_map(ps_text: str, fn_map: dict, label: str, default_action: str) -> int:
     failures = 0
     found = sorted(set(re.findall(r"^function ([A-Za-z0-9\-]+)", ps_text, re.M)))
-    mapped = sorted(fn_map[f] for f in found if f in fn_map)
+    mapped = sorted(set(fn_map[f] for f in found if f in fn_map))
     unmapped = [f for f in found if f not in fn_map]
     if unmapped:
         print(f"FAIL {label}: PS functions missing from map: {unmapped}")
