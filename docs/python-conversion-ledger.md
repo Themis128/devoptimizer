@@ -50,8 +50,9 @@ RegistryServiceTests (total + 14-category dict; search lock 29).
 | scripts/cursor-ai-optimization.ps1 (587 L) | scripts/py/cursor-ai-optimization.py | 6-action CLI (read-only `info` default; mutations explicit), 5 settings profiles ported, safe merge with existing settings.json, keybindings, extension sets, cache clear with dry-run; **discovery regex fixed to capture hyphenated categories** (`[\w-]+` — `ai-ml` no longer collapses to `ai`); parity via shared `_check_fn_map` |
 | scripts/gpu-nvidia-broadcast-optimization.ps1 (667 L) | scripts/py/gpu-nvidia-broadcast-optimization.py | 7-action CLI (read-only `gpu-info` default), CIM reads via PS-shim JSON (tranche-B pattern), registry/powercfg tuning via winops+run_elevated, winget installs gated, per-platform acceleration configs; **fixes latent PS bug: Optimize-SingleGPU was called but never defined**; logs to stderr for clean --json piping |
 | scripts/screen-settings-management.ps1 (801 L) | scripts/py/screen-settings-management.py | 8-action CLI; **ctypes user32 interop (DEVMODE/DISPLAY_DEVICE) replaces PS Add-Type**; live-verified (RTX 3070 Laptop, 42 available modes); WMI brightness via PS shim; DisplaySwitch multimonitor; JSON display profiles; read-only `info` default |
+| scripts/dev-optimizer-fixed.ps1 (1,395 L) | scripts/py/dev-optimizer-fixed.py | 9-action CLI (read-only `info` default): optimize (4 registry levels), devtools, docker (prunes + Desktop/WSL settings with backup), 10-step comprehensive cleanup, network test/optimize, security hardening; **implements the 3 phantom functions the PS called but never defined** (Test-SystemVulnerabilities/Test-SystemSecurity/Set-SecurityHardening — Optimize-SecurityComplete was dead on arrival); Pester admin-specimen repointed to ai-development-tools |
 
-Registry stable at 454 — pins auto-synced via tools/sync-registry-pins.py.
+**Phase 3-A COMPLETE: 6 of 6 ports.** Registry stable at 454 — pins auto-synced via tools/sync-registry-pins.py.
 
 Registry stable at 452 — name preserved, category development, entryPoint python.
 Parity: prerequisites 10/10 Test-* mapping; nuxt3 5/5 function→action mapping (tools/parity-check.py).
