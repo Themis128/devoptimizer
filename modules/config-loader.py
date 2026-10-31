@@ -317,9 +317,9 @@ def save_configuration(config: Optional[Dict[str, Any]] = None,
         
         # Convert to JSON with proper formatting
         json_content = json.dumps(config, indent=2)
-        
-        # Save to file
-        with open(full_path, 'w', encoding='utf-8') as f:
+
+        # Save to file (Path.open form after get_config_path containment validation)
+        with full_path.open('w', encoding='utf-8') as f:
             f.write(json_content)
         
         print(f"[INFO] Configuration saved to: {full_path}")
