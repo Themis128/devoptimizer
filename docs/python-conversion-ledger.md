@@ -54,6 +54,18 @@ RegistryServiceTests (total + 14-category dict; search lock 29).
 
 **Phase 3-A COMPLETE: 6 of 6 ports.** Registry stable at 454 — pins auto-synced via tools/sync-registry-pins.py.
 
+## Regression baseline (2026-10-31)
+
+All 23 port surfaces regression-tested live: 23/23 effective pass
+(one fix shipped: devopt network-test double JSON serialization;
+devopt security exit-1 on genuine findings is by-design).
+Maintenance pipeline: Build-Registry → sync-registry-pins → run-battery → gitops.
+
+## Phase 4 — closeout (2026-10-31)
+
+README updated (454/14, Python surface section, pipeline docs, battery command).
+Plan complete: Phases 0-4 done.
+
 Registry stable at 452 — name preserved, category development, entryPoint python.
 Parity: prerequisites 10/10 Test-* mapping; nuxt3 5/5 function→action mapping (tools/parity-check.py).
 
