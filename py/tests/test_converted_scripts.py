@@ -19,8 +19,8 @@ def _load(name):
     return module
 
 
-wu = _load("wu_cleanup")
-dc = _load("dev_cache")
+wu = _load("wu-cleanup")
+dc = _load("dev-cache")
 
 
 def test_wu_constants():

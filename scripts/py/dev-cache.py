@@ -69,7 +69,7 @@ def expand(p: str) -> Path:
     return Path(os.path.expandvars(p.replace("/", "\\")))
 
 
-FAMILIES: dict[str, list[tuple[str, str]]] = {
+FAMILIES = {
     "nodejs": [
         ("npm cache", "%APPDATA%\\npm-cache"),
         ("npm local cache", "%LOCALAPPDATA%\\npm-cache"),
@@ -115,7 +115,7 @@ def find_pycache(root: Path, depth: int) -> list[Path]:
     return found
 
 
-def resolve_config_paths(values: list[str] | None, script_root: Path) -> list[Path]:
+def resolve_config_paths(values, script_root: Path) -> list[Path]:
     out: list[Path] = []
     for item in values or []:
         if not item or not item.strip():
@@ -156,13 +156,7 @@ def should_exclude(path: Path, exclusions: list[Path], patterns: list[str]) -> b
     return any(pattern.lower() in lowered for pattern in patterns)
 
 
-async def clean_family(
-    family: str,
-    dry_run: bool,
-    exclusions: list[Path],
-    patterns: list[str],
-    stats: dict,
-) -> None:
+async def clean_family(family, dry_run, exclusions, patterns, stats) -> None:
     for name, template in FAMILIES[family]:
         path = expand(template)
         if should_exclude(path, exclusions, patterns):
@@ -186,14 +180,7 @@ async def clean_family(
                 stats["errors"] += 1
 
 
-async def clean_pycache(
-    roots: list[Path],
-    depth: int,
-    dry_run: bool,
-    exclusions: list[Path],
-    patterns: list[str],
-    stats: dict,
-) -> None:
+async def clean_pycache(roots, depth, dry_run, exclusions, patterns, stats) -> None:
     dirs: list[Path] = []
     for root in roots:
         dirs.extend(find_pycache(root, depth))
@@ -223,8 +210,7 @@ async def clean_pycache(
 
 
 async def clean_docker(dry_run: bool, stats: dict) -> None:
-    docker = shutil.which("docker")
-    if not docker:
+    if not shutil.which("docker"):
         log("DEBUG", "Docker not found, skipping Docker cache cleanup")
         return
     if dry_run:
@@ -239,9 +225,9 @@ async def clean_docker(dry_run: bool, stats: dict) -> None:
         timeout=300,
     )
     if result.returncode == 0:
-        log("SUCCESS", "Docker system prune completed")
+        log("SUCCESS", "Docker prune completed")
     else:
-        log("ERROR", f"Docker system prune failed: {result.stderr[:120]}")
+        log("ERROR", f"Docker prune failed: {result.stderr[:120]}")
         stats["errors"] += 1
 
 
@@ -274,7 +260,7 @@ def clean_git(dry: bool, stats: dict) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Development cache cleaner")
     parser.add_argument("--dry-run", action="store_true", help="Preview without deleting")
-    parser.add_argument("--analyze", action="store_true", help="Report sizes only, no changes")
+    parser.add_argument("--analyze", action="store_true", help="Report sizes only")
     parser.add_argument("--pycache-depth", type=int, default=6)
     parser.add_argument("--pycache-roots", nargs="*", default=[])
     for fam in FAMILIES:
@@ -289,8 +275,7 @@ def main() -> None:
     exclusions = resolve_config_paths(config.get("exclusions", {}).get("paths"), script_root)
     patterns = list(config.get("exclusions", {}).get("patterns", []))
     pycache_roots = resolve_config_paths(
-        config.get("searchRoots", {}).get("python"),
-        script_root,
+        config.get("searchRoots", {}).get("python"), script_root
     ) or [Path(a).resolve() for a in args.pycache_roots]
 
     stats = {"freed_mb": 0.0, "would_free_mb": 0.0, "count": 0, "errors": 0}
@@ -299,8 +284,9 @@ def main() -> None:
 
     dry = args.dry_run or args.analyze
     families = [f for f in FAMILIES if getattr(args, f) or args.all]
+
     if args.analyze:
-        for family in families:
+        for family in families or list(FAMILIES):
             for name, template in FAMILIES[family]:
                 path = expand(template)
                 if path.exists():
@@ -313,8 +299,7 @@ def main() -> None:
     for family in families:
         asyncio.run(clean_family(family, dry, exclusions, patterns, stats))
     if args.python or args.all:
-        asyncio.run(clean_pycache(args.pycache_roots and [Path(r) for r in args.pycache_roots] or pycache_roots,
-                                  args.pycache_depth, dry, exclusions, patterns, stats))
+        asyncio.run(clean_pycache(pycache_roots, args.pycache_depth, dry, exclusions, patterns, stats))
     if args.docker or args.all:
         asyncio.run(clean_docker(dry, stats))
     if args.git or args.all:
