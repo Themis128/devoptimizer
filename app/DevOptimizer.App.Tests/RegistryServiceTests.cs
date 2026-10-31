@@ -173,18 +173,18 @@ public class RegistryServiceTests
         var expectedCounts = new Dictionary<string, int>
         {
             ["ai"] = 1,
-            ["ai-ml"] = 25,
+            ["ai-ml"] = 46,
             ["backup-restore"] = 5,
-            ["cleanup"] = 56,
-            ["development"] = 15,
+            ["cleanup"] = 72,
+            ["development"] = 11,
             ["docker"] = 3,
-            ["gaming"] = 18,
-            ["maintenance"] = 49,
-            ["monitoring"] = 3,
-            ["network"] = 7,
+            ["gaming"] = 28,
+            ["maintenance"] = 26,
+            ["monitoring"] = 5,
+            ["network"] = 5,
             ["security"] = 4,
             ["storage"] = 1,
-            ["system-optimization"] = 22,
+            ["system-optimization"] = 2,
             ["utilities"] = 243,
         };
         var actualCounts = snapshot.Commands

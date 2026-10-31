@@ -194,7 +194,9 @@ function Extract-ScriptMetadata {
         # Infer category from path if not explicitly set
         if ($metadata.Category -eq "utilities") {
             $pathLower = $metadata.RelativePath.ToLower()
-            foreach ($catName in $categoryMetadata.Keys) {
+            # Sorted keys: hashtable enumeration order is unspecified in PS 5.1,
+            # and this first-match-wins loop must be deterministic across runs.
+            foreach ($catName in ($categoryMetadata.Keys | Sort-Object)) {
                 $catTags = $categoryMetadata[$catName].tags
                 foreach ($tag in $catTags) {
                     if ($pathLower -like "*$tag*" -or $metadata.Name.ToLower() -like "*$tag*") {
@@ -249,6 +251,7 @@ foreach ($scanDir in $scanDirs) {
     Write-Host "[DISCOVERY] Scanning $($scanDir.Type): $($scanDir.Path)" -ForegroundColor Green
     
     $files = Get-ChildItem -Path $scanDir.Path -Recurse:$scanDir.Recurse -File -ErrorAction SilentlyContinue |
+             Sort-Object FullName |
              Where-Object { $scriptExtensions -contains $_.Extension }
 
     foreach ($file in $files) {
@@ -285,7 +288,7 @@ $discovered.Tools = $typeArrays.Tool
 $discovered.Portable = $typeArrays.Portable
 
 # Build category summary
-foreach ($catName in $categoryMetadata.Keys) {
+foreach ($catName in ($categoryMetadata.Keys | Sort-Object)) {
     $catScripts = $discovered.Scripts + $discovered.Modules + $discovered.Tools + $discovered.Portable |
                   Where-Object { $_.Category -eq $catName }
     
