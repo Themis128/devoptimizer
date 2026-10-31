@@ -33,6 +33,14 @@ PREREQ_TEST_MAP = {
     "Test-SystemRequirements": "system requirements",
 }
 
+NUXT_FN_MAP = {
+    "Get-Nuxt3Environment": "env",
+    "Optimize-Nuxt3Windows": "windows",
+    "Install-Nuxt3Prerequisites": "prereqs",
+    "Optimize-Nuxt3WSL": "wsl",
+    "Test-Nuxt3Performance": "performance",
+}
+
 
 def ps_prereq_checks(ps_text: str) -> list[str]:
     """Test-* function inventory from prerequisites-checker.ps1."""
@@ -110,6 +118,13 @@ def normalize_ps_env(p: str) -> str:
 def main() -> int:
     failures = 0
 
+    ps1_nuxt_path = REPO / "scripts" / "nuxt3-optimization.ps1"
+    if ps1_nuxt_path.exists():
+        ps1_nuxt = ps1_nuxt_path.read_text(encoding="utf-8-sig", errors="replace")
+        failures += check_nuxt3(ps1_nuxt)
+    else:
+        print("SKIP nuxt3: PS original already converted (absent)")
+
     ps1_prereq_path = REPO / "scripts" / "prerequisites-checker.ps1"
     if ps1_prereq_path.exists():
         ps1_prereq = ps1_prereq_path.read_text(encoding="utf-8-sig", errors="replace")
@@ -154,6 +169,27 @@ def main() -> int:
         return 1
     print("PARITY OK: all present source pairs match")
     return 0
+
+
+def check_nuxt3(ps_text: str) -> int:
+    """Structural parity: each PS function maps to one nuxt3 CLI action."""
+    failures = 0
+    found = sorted(set(re.findall(r"^function ([A-Za-z0-9\-]+)", ps_text, re.M)))
+    mapped = sorted(NUXT_FN_MAP[f] for f in found if f in NUXT_FN_MAP)
+    # PS-profile helper functions (nuxt-dev, nuxt-build, ...) live inside the
+    # generated profile block, not the Python CLI surface.
+    unmapped = [
+        f for f in found
+        if f not in NUXT_FN_MAP and not f.startswith("nuxt-")
+    ]
+    if unmapped:
+        print(f"FAIL nuxt3: PS functions missing from map: {unmapped}")
+        failures += 1
+    actions = {"env", "windows", "prereqs", "wsl", "performance"}
+    if mapped != sorted(actions):
+        print(f"FAIL nuxt3: PS-mapped={mapped} PY-actions={sorted(actions)}")
+        failures += 1
+    return failures
 
 
 def expand(template: str) -> str:

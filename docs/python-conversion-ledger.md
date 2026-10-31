@@ -46,9 +46,10 @@ RegistryServiceTests (total + 14-category dict; search lock 29).
 | PS original | Python port | Notes |
 |---|---|---|
 | scripts/prerequisites-checker.ps1 (764 L) | scripts/py/prerequisites-checker.py | 10 check groups (PowerShell/.NET/Windows/Node/Python/Git/Docker/pkg-managers/dev-tools/disk+RAM); winget-free installers (msi/inno) gated behind --install-all; .cmd tools wrapped in cmd /c for CreateProcess |
+| scripts/nuxt3-optimization.ps1 (693 L) | scripts/py/nuxt3-optimization.py | CLI dispatcher added (PS was a function library with no main): env/windows/wsl/prereqs/performance; Nuxt config + package-scripts templates; PS-profile aliases; WSL setup script execution; **.wslconfig overwrite now backs up the existing file first** (PS blindly clobbered it); category corrected gaming→development (one-time pin shift, now deterministic) |
 
-Registry stable at 452 — name/category preserved (utilities), pins untouched.
-Parity: 10/10 PS Test-* functions map 1:1 to Python checks (tools/parity-check.py).
+Registry stable at 452 — name preserved, category development, entryPoint python.
+Parity: prerequisites 10/10 Test-* mapping; nuxt3 5/5 function→action mapping (tools/parity-check.py).
 
 ## Phase 3 — remaining tranches
 

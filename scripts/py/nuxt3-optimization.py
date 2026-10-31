@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -39,6 +40,8 @@ def _exec_args(name: str, extra: list[str]) -> list[str]:
 
 
 async def probe(name: str, args: list[str]) -> str:
+    if not shutil.which(name):
+        return ""
     result = await run_command(_exec_args(name, args), timeout=30)
     return result.stdout.strip() if result.returncode == 0 else ""
 
@@ -49,12 +52,22 @@ def ram_gb() -> float:
         try:
 
             class MEMORYSTATUSEX(ctypes.Structure):
-                _fields_ = [("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
-                            ("ullTotalPhys", ctypes.c_ulonglong)]
+                _fields_ = [
+                    ("dwLength", ctypes.c_ulong),
+                    ("dwMemoryLoad", ctypes.c_ulong),
+                    ("ullTotalPhys", ctypes.c_ulonglong),
+                    ("ullAvailPhys", ctypes.c_ulonglong),
+                    ("ullTotalPageFile", ctypes.c_ulonglong),
+                    ("ullAvailPageFile", ctypes.c_ulonglong),
+                    ("ullTotalVirtual", ctypes.c_ulonglong),
+                    ("ullAvailVirtual", ctypes.c_ulonglong),
+                    ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+                ]
 
             stat = MEMORYSTATUSEX()
             stat.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
-            ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat))
+            if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
+                raise OSError("GlobalMemoryStatusEx failed")
             RAM_GB = round(stat.ullTotalPhys / 1073741824, 2)
         except (OSError, AttributeError):
             RAM_GB = 16.0
@@ -94,13 +107,13 @@ async def get_environment() -> dict:
 
     result = await run_command(["wsl.exe", "-l", "-v"], timeout=30)
     if result.returncode == 0 and result.stdout.strip():
-        lines = [l.strip() for l in result.stdout.replace("\x00", "").splitlines() if l.strip()]
-        distros = [l.split()[0] for l in lines[1:] if l.split()]
+        lines = [line.strip() for line in result.stdout.replace("\x00", "").splitlines() if line.strip()]
+        distros = [line.split()[0] for line in lines[1:] if line.split()]
         env["wsl"]["installed"] = bool(distros)
         env["wsl"]["distributions"] = distros
-        for l in lines[1:]:
-            if "*" in l:
-                env["wsl"]["default"] = l.split()[0]
+        for line in lines[1:]:
+            if "*" in line:
+                env["wsl"]["default"] = line.split()[0]
                 break
 
     git_out = await probe("git", ["--version"])
@@ -116,7 +129,7 @@ async def get_environment() -> dict:
     if shutil.which("code"):
         env["vscode"]["installed"] = True
         ext_out = await probe("code", ["--list-extensions"])
-        env["vscode"]["extensions"] = [l for l in ext_out.splitlines() if l.strip()]
+        env["vscode"]["extensions"] = [line for line in ext_out.splitlines() if line.strip()]
 
     ps = await winops.run_ps_command(
         "Get-PhysicalDisk | Where-Object MediaType -eq 'SSD' | Measure-Object | Select-Object -ExpandProperty Count")
@@ -361,7 +374,7 @@ def wsl_config_for(ram: float) -> str:
 
 
 async def optimize_wsl(distro: str, dry_run: bool) -> bool:
-    log(f"INFO", f"Optimizing Nuxt 3 for WSL ({distro})...")
+    log("INFO", f"Optimizing Nuxt 3 for WSL ({distro})...")
     env = await get_environment()
     if not env["wsl"]["installed"]:
         log("ERROR", "WSL is not installed. Please install WSL first.")
