@@ -175,7 +175,7 @@ public class RegistryServiceTests
             ["ai"] = 1,
             ["ai-ml"] = 46,
             ["backup-restore"] = 5,
-            ["cleanup"] = 72,
+            ["cleanup"] = 71,
             ["development"] = 12,
             ["docker"] = 3,
             ["gaming"] = 27,
@@ -184,7 +184,7 @@ public class RegistryServiceTests
             ["network"] = 5,
             ["security"] = 4,
             ["storage"] = 1,
-            ["system-optimization"] = 2,
+            ["system-optimization"] = 3,
             ["utilities"] = 245,
         };
         var actualCounts = snapshot.Commands

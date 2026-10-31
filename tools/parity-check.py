@@ -73,6 +73,29 @@ SCREEN_FN_MAP = {
     "Show-DisplayMenu": "menu",
 }
 
+DEVOPT_FN_MAP = {
+    "Set-RegistryValueSafe": "optimize",
+    "Install-PackageWithWinget": "devtools",
+    "RefreshEnv": "devtools",
+    "Get-EnhancedSystemInfo": "info",
+    "Optimize-WindowsAdvanced": "optimize",
+    "Install-DevelopmentToolsAdvanced": "devtools",
+    "Optimize-Docker": "docker",
+    "Get-DockerSystemInfo": "info",
+    "Optimize-Quick": "optimize",
+    "Optimize-Ultra": "optimize",
+    "Install-DevTools": "devtools",
+    "Clear-AllCaches": "cleanup",
+    "Optimize-DockerComplete": "docker",
+    "Optimize-NetworkComplete": "network-optimize",
+    "Optimize-SecurityComplete": "security",
+    "Clear-SystemComprehensive": "cleanup",
+    "Test-NetworkPerformance": "network-test",
+    "Optimize-NetworkSettings": "network-optimize",
+    "Test-NetworkConnectivity": "network-test",
+    "Show-OptimizationMenu": "menu",
+}
+
 
 def ps_prereq_checks(ps_text: str) -> list[str]:
     """Test-* function inventory from prerequisites-checker.ps1."""
@@ -149,6 +172,13 @@ def normalize_ps_env(p: str) -> str:
 
 def main() -> int:
     failures = 0
+
+    ps1_devopt_path = REPO / "scripts" / "dev-optimizer-fixed.ps1"
+    if ps1_devopt_path.exists():
+        ps1_devopt = ps1_devopt_path.read_text(encoding="utf-8-sig", errors="replace")
+        failures += check_devopt(ps1_devopt)
+    else:
+        print("SKIP devopt: PS original already converted (absent)")
 
     ps1_screen_path = REPO / "scripts" / "screen-settings-management.ps1"
     if ps1_screen_path.exists():
@@ -244,11 +274,18 @@ def check_screen(ps_text: str) -> int:
     return _check_fn_map(ps_text, SCREEN_FN_MAP, "screen", "info")
 
 
-def _check_fn_map(ps_text: str, fn_map: dict, label: str, default_action: str) -> int:
+def check_devopt(ps_text: str) -> int:
+    """Structural parity: each PS function maps to one devopt CLI action."""
+    return _check_fn_map(ps_text, DEVOPT_FN_MAP, "devopt", "info", helpers={"Write-Log"})
+
+
+def _check_fn_map(ps_text: str, fn_map: dict, label: str, default_action: str,
+                  helpers: set[str] | None = None) -> int:
     failures = 0
+    helpers = helpers or set()
     found = sorted(set(re.findall(r"^function ([A-Za-z0-9\-]+)", ps_text, re.M)))
     mapped = sorted(set(fn_map[f] for f in found if f in fn_map))
-    unmapped = [f for f in found if f not in fn_map]
+    unmapped = [f for f in found if f not in fn_map and f not in helpers]
     if unmapped:
         print(f"FAIL {label}: PS functions missing from map: {unmapped}")
         failures += 1
