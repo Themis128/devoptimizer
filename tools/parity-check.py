@@ -50,6 +50,16 @@ CURSOR_FN_MAP = {
     "Optimize-CursorAIComplete": "complete",
 }
 
+GPU_FN_MAP = {
+    "Get-GPUInformation": "gpu-info",
+    "Get-CommunicationPlatforms": "platforms",
+    "Install-NVIDIABroadcast": "install",
+    "Optimize-DualGPU": "dual-gpu",
+    "Optimize-CommunicationPlatforms": "platforms-optimize",
+    "Configure-NVIDIABroadcast": "configure",
+    "Optimize-GPUComplete": "complete",
+}
+
 
 def ps_prereq_checks(ps_text: str) -> list[str]:
     """Test-* function inventory from prerequisites-checker.ps1."""
@@ -127,6 +137,13 @@ def normalize_ps_env(p: str) -> str:
 def main() -> int:
     failures = 0
 
+    ps1_gpu_path = REPO / "scripts" / "gpu-nvidia-broadcast-optimization.ps1"
+    if ps1_gpu_path.exists():
+        ps1_gpu = ps1_gpu_path.read_text(encoding="utf-8-sig", errors="replace")
+        failures += check_gpu(ps1_gpu)
+    else:
+        print("SKIP gpu: PS original already converted (absent)")
+
     ps1_cursor_path = REPO / "scripts" / "cursor-ai-optimization.ps1"
     if ps1_cursor_path.exists():
         ps1_cursor = ps1_cursor_path.read_text(encoding="utf-8-sig", errors="replace")
@@ -195,6 +212,11 @@ def check_nuxt3(ps_text: str) -> int:
 def check_cursor(ps_text: str) -> int:
     """Structural parity: each PS function maps to one cursor CLI action."""
     return _check_fn_map(ps_text, CURSOR_FN_MAP, "cursor", "info")
+
+
+def check_gpu(ps_text: str) -> int:
+    """Structural parity: each PS function maps to one GPU CLI action."""
+    return _check_fn_map(ps_text, GPU_FN_MAP, "gpu", "gpu-info")
 
 
 def _check_fn_map(ps_text: str, fn_map: dict, label: str, default_action: str) -> int:
