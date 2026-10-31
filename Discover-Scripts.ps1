@@ -165,7 +165,7 @@ function Extract-ScriptMetadata {
             if ($content -match '(?m)^::\s*SYNOPSIS:\s*(.+)$') {
                 $metadata.Description = $matches[1].Trim()
             }
-            if ($content -match '(?m)^::\s*CATEGORY:\s*(\w+)$') {
+            if ($content -match '(?m)^::\s*CATEGORY:\s*([\w-]+)$') {
                 $metadata.Category = $matches[1].Trim().ToLower()
             }
             if ($content -match '(?m)^::\s*TAGS:\s*(.+)$') {
@@ -183,7 +183,7 @@ function Extract-ScriptMetadata {
             if ($content -match '(?s)"""\s*(.+?)\s*"""') {
                 $metadata.Description = $matches[1].Trim()
             }
-            if ($content -match '#\s*CATEGORY:\s*(\w+)') {
+            if ($content -match '#\s*CATEGORY:\s*([\w-]+)') {
                 $metadata.Category = $matches[1].Trim().ToLower()
             }
             if ($content -match '#\s*TAGS:\s*(.+)') {
