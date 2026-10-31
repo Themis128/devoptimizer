@@ -154,8 +154,8 @@ Describe 'Hub registry metadata' {
         }
     }
 
-    It 'marks scripts that carry #Requires -RunAsAdministrator (regression: dev-cache-cleaner)' {
-        $c = $Registry.commands | Where-Object { $_.name -eq 'dev-cache-cleaner' }
+    It 'marks scripts that carry #Requires -RunAsAdministrator (regression: dev-optimizer-fixed)' {
+        $c = $Registry.commands | Where-Object { $_.name -eq 'dev-optimizer-fixed' }
         $c | Should -Not -BeNullOrEmpty
         $c.requiresAdmin | Should -BeTrue
         $target = Join-Path $Root ($c.path -replace '/', '\')
