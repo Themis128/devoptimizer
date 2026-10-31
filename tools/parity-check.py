@@ -20,6 +20,53 @@ def _load(name: str, filename: str):
     return module
 
 
+PREREQ_TEST_MAP = {
+    "Test-PowerShellVersion": "PowerShell",
+    "Test-DotNetFramework": ".NET Framework",
+    "Test-WindowsVersion": "Windows",
+    "Test-NodeJS": "Node.js",
+    "Test-Python": "Python",
+    "Test-Git": "Git",
+    "Test-Docker": "Docker",
+    "Test-PackageManagers": "package managers",
+    "Test-DevelopmentTools": "development tools",
+    "Test-SystemRequirements": "system requirements",
+}
+
+
+def ps_prereq_checks(ps_text: str) -> list[str]:
+    """Test-* function inventory from prerequisites-checker.ps1."""
+    return sorted(set(re.findall(r"^function (Test-[A-Za-z]+)", ps_text, re.M)))
+
+
+def check_prerequisites(ps_text: str) -> int:
+    """Structural parity: each PS Test-* maps to exactly one Python check."""
+    failures = 0
+    found = ps_prereq_checks(ps_text)
+    mapped = sorted(PREREQ_TEST_MAP[t] for t in found if t in PREREQ_TEST_MAP)
+    # Test-Command is the existence-probe helper (PS Get-Command / PY shutil.which),
+    # not a check group.
+    unmapped = [t for t in found if t not in PREREQ_TEST_MAP and t != "Test-Command"]
+
+    sys.path.insert(0, str(REPO / "scripts" / "py"))
+    import importlib
+
+    spec = importlib.util.spec_from_file_location(
+        "prereq_check", REPO / "scripts" / "py" / "prerequisites-checker.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    py_checks = sorted(mod.CHECKS.keys())
+
+    if unmapped:
+        print(f"FAIL prerequisites: PS checks missing from map: {unmapped}")
+        failures += 1
+    if mapped != py_checks:
+        print(f"FAIL prerequisites: PS-mapped={mapped} PY={py_checks}")
+        failures += 1
+    return failures
+
+
 wu_cleanup = _load("wu_cleanup", "wu-cleanup.py")
 dev_cache = _load("dev_cache", "dev-cache.py")
 
@@ -62,6 +109,13 @@ def normalize_ps_env(p: str) -> str:
 
 def main() -> int:
     failures = 0
+
+    ps1_prereq_path = REPO / "scripts" / "prerequisites-checker.ps1"
+    if ps1_prereq_path.exists():
+        ps1_prereq = ps1_prereq_path.read_text(encoding="utf-8-sig", errors="replace")
+        failures += check_prerequisites(ps1_prereq)
+    else:
+        print("SKIP prerequisites: PS original already converted (absent)")
 
     ps1_wu_path = REPO / "scripts" / "windows-update-cleanup.ps1"
     ps1_dc_path = REPO / "scripts" / "dev-cache-cleaner.ps1"

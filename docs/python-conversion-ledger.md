@@ -41,12 +41,20 @@ Registry after Phase 2: **452 commands / 14 categories** (classify-wrappers.py +
 content-refs.py joined as hub tool commands). Pins synced: ci.yml ×2,
 RegistryServiceTests (total + 14-category dict; search lock 29).
 
-## Phase 3 — planned tranches
+## Phase 3 tranche A — converted (2026-10-31)
+
+| PS original | Python port | Notes |
+|---|---|---|
+| scripts/prerequisites-checker.ps1 (764 L) | scripts/py/prerequisites-checker.py | 10 check groups (PowerShell/.NET/Windows/Node/Python/Git/Docker/pkg-managers/dev-tools/disk+RAM); winget-free installers (msi/inno) gated behind --install-all; .cmd tools wrapped in cmd /c for CreateProcess |
+
+Registry stable at 452 — name/category preserved (utilities), pins untouched.
+Parity: 10/10 PS Test-* functions map 1:1 to Python checks (tools/parity-check.py).
+
+## Phase 3 — remaining tranches
 
 - **A. Pure orchestration** (deferred): dev-optimizer-fixed.ps1 (1,395 L),
   nuxt3-optimization.ps1 (693), cursor-ai-optimization.ps1 (587),
-  gpu-nvidia-broadcast-optimization.ps1 (667), screen-settings-management.ps1 (801),
-  prerequisites-checker.ps1 (764)
+  gpu-nvidia-broadcast-optimization.ps1 (667), screen-settings-management.ps1 (801)
 - **B. CIM/WMI reads** (deferred): port logic to Python, keep one-line PS shims
   for CIM queries via run_ps_command
 - **C. Stays PowerShell permanently**: Optimize-VHD/Mount-VHD scripts,
