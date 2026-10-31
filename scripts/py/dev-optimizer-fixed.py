@@ -503,8 +503,9 @@ async def clear_system_comprehensive(dry_run: bool) -> None:
 
 
 def _adapter_query() -> str:
+    # ps_json appends its own ConvertTo-Json - do not double-serialize here.
     return ("Get-NetAdapter | Where-Object Status -eq 'Up' | "
-            "Select-Object Name, LinkSpeed, InterfaceIndex | ConvertTo-Json -Compress")
+            "Select-Object Name, LinkSpeed, InterfaceIndex")
 
 
 async def test_network_performance() -> list[dict]:
