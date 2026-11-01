@@ -617,6 +617,77 @@ private void NotifyRunCommandsChanged()
         }
     }
 
+    // --- Settings panel ---------------------------------------------------
+
+    [ObservableProperty]
+    private bool settingsVisible;
+
+    [ObservableProperty]
+    private string settingsTheme = "dark";
+
+    [ObservableProperty]
+    private bool settingsToasts = true;
+
+    [ObservableProperty]
+    private bool settingsAutostart;
+
+    [ObservableProperty]
+    private bool settingsDefaultDryRun;
+
+    [ObservableProperty]
+    private string settingsLogLevel = "info";
+
+    [ObservableProperty]
+    private int settingsToastMinSeconds = 10;
+
+    /// <summary>Opens the settings panel pre-filled from config/app-settings.json.</summary>
+    [RelayCommand]
+    private void ShowSettings()
+    {
+        var settings = _settingsService.Load(Path.Combine(_repoRoot, "config", "app-settings.json"));
+        SettingsTheme = settings.Theme;
+        SettingsToasts = settings.Toasts;
+        SettingsAutostart = settings.Autostart;
+        SettingsDefaultDryRun = settings.DefaultDryRun;
+        SettingsLogLevel = settings.LogLevel;
+        SettingsToastMinSeconds = settings.ToastMinSeconds;
+        SettingsVisible = true;
+    }
+
+    /// <summary>Validates and persists the panel values (schema-locked keys/valid sets).</summary>
+    [RelayCommand]
+    private void SaveSettings()
+    {
+        if (!SettingsService.ValidThemes.Contains(SettingsTheme, StringComparer.OrdinalIgnoreCase))
+        {
+            StatusText = $"Invalid theme '{SettingsTheme}' - not saved.";
+            return;
+        }
+
+        if (!SettingsService.ValidLogLevels.Contains(SettingsLogLevel, StringComparer.OrdinalIgnoreCase))
+        {
+            StatusText = $"Invalid log level '{SettingsLogLevel}' - not saved.";
+            return;
+        }
+
+        var settings = new AppSettings
+        {
+            Theme = SettingsTheme.Trim().ToLowerInvariant(),
+            Toasts = SettingsToasts,
+            Autostart = SettingsAutostart,
+            DefaultDryRun = SettingsDefaultDryRun,
+            LogLevel = SettingsLogLevel.Trim().ToLowerInvariant(),
+            ToastMinSeconds = SettingsToastMinSeconds,
+        };
+        _settingsService.Save(Path.Combine(_repoRoot, "config", "app-settings.json"), settings);
+        DryRun = settings.DefaultDryRun;
+        SettingsVisible = false;
+        StatusText = "Settings saved.";
+    }
+
+    [RelayCommand]
+    private void CancelSettings() => SettingsVisible = false;
+
     private void ClearSearch()
     {
         SearchText = string.Empty;

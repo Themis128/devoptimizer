@@ -39,7 +39,7 @@ public static class SelfTestRunner
 
     public const int CategoryProbeIndex = 3;
 
-    public static IReadOnlyList<SelfTestCheck> RunChecks(MainViewModel viewModel, string repoRoot, string searchQuery, int detailPanelChildCount)
+    public static async Task<IReadOnlyList<SelfTestCheck>> RunChecksAsync(MainViewModel viewModel, string repoRoot, string searchQuery, int detailPanelChildCount)
     {
         var checks = new List<SelfTestCheck>();
         var snapshot = new RegistryService().LoadSnapshot(Path.Combine(repoRoot, "config", "hub-registry.json"));
@@ -47,8 +47,8 @@ public static class SelfTestRunner
 
         checks.Add(CheckSidebar(viewModel, commands));
         checks.Add(CheckCategoryFilter(viewModel, commands));
-        checks.Add(CheckSearch(viewModel, snapshot, searchQuery));
-        checks.Add(CheckCategoryNameExclusion(viewModel, snapshot));
+        checks.Add(await CheckSearchAsync(viewModel, snapshot, searchQuery));
+        checks.Add(await CheckCategoryNameExclusionAsync(viewModel, snapshot));
 
         viewModel.SearchText = string.Empty;
         viewModel.SelectedCategory = viewModel.Categories.FirstOrDefault(c => c.Name == "All");
@@ -103,10 +103,13 @@ public static class SelfTestRunner
             $"shown {viewModel.FilteredCount}, expected {expected}");
     }
 
-    private static SelfTestCheck CheckSearch(MainViewModel viewModel, RegistrySnapshot snapshot, string searchQuery)
+    private static async Task<SelfTestCheck> CheckSearchAsync(MainViewModel viewModel, RegistrySnapshot snapshot, string searchQuery)
     {
         viewModel.SelectedCategory = viewModel.Categories.FirstOrDefault(c => c.Name == "All");
         viewModel.SearchText = searchQuery;
+        // The view model debounces SearchText (SearchDebounceMs) before ApplyFilter runs;
+        // settle past it plus one dispatcher cycle before reading the filtered count.
+        await Task.Delay(MainViewModel.SearchDebounceMs + 300);
         var expectedQuery = RegistryService.Search(snapshot, searchQuery).Count;
         return new SelfTestCheck(
             $"all + search '{searchQuery}'",
@@ -114,7 +117,7 @@ public static class SelfTestRunner
             $"shown {viewModel.FilteredCount}, expected {expectedQuery} (positive control)");
     }
 
-    private static SelfTestCheck CheckCategoryNameExclusion(MainViewModel viewModel, RegistrySnapshot snapshot)
+    private static async Task<SelfTestCheck> CheckCategoryNameExclusionAsync(MainViewModel viewModel, RegistrySnapshot snapshot)
     {
         var probed = viewModel.Categories.Count > CategoryProbeIndex ? viewModel.Categories[CategoryProbeIndex] : null;
         if (probed is null)
@@ -123,6 +126,7 @@ public static class SelfTestRunner
         }
 
         viewModel.SearchText = probed.Name;
+        await Task.Delay(MainViewModel.SearchDebounceMs + 300);
         var expected = RegistryService.Search(snapshot, probed.Name).Count;
         return new SelfTestCheck(
             $"search category name '{probed.Name}' excludes category",

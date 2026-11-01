@@ -20,45 +20,58 @@ namespace DevOptimizer.App.Services
         /// <param name="type">The type of toast (Info, Success, Warning, Error).</param>
         /// <param name="repositoryRoot">The repository root path (used to load settings).</param>
         /// <param name="displaySeconds">Optional override for display duration in seconds.</param>
-        public static void Show(string message, 
-                               ToastType type = ToastType.Info, 
+        /// <summary>
+    /// Pure settings decision for a toast: whether it should show and for how long.
+    /// Extracted from Show so the policy is unit-testable without a WPF context.
+    /// </summary>
+    public static ToastDecision Resolve(string message, ToastType type, string? repositoryRoot, int? displaySeconds)
+    {
+        bool showToast = true;
+        int secondsToDisplay = 5; // Default
+
+        if (!string.IsNullOrEmpty(repositoryRoot))
+        {
+            try
+            {
+                var settingsFile = System.IO.Path.Combine(repositoryRoot, "config", "app-settings.json");
+                if (System.IO.File.Exists(settingsFile))
+                {
+                    var json = System.IO.File.ReadAllText(settingsFile);
+                    var settings = System.Text.Json.JsonSerializer.Deserialize<AppSettings>(json);
+                    if (settings != null)
+                    {
+                        showToast = settings.Toasts;
+                        secondsToDisplay = Math.Max(settings.ToastMinSeconds, 1); // Minimum 1 second
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // If we can't read settings, default to showing toast
+            }
+        }
+
+        // Override display seconds if provided
+        if (displaySeconds.HasValue && displaySeconds.Value > 0)
+        {
+            secondsToDisplay = displaySeconds.Value;
+        }
+
+        return new ToastDecision(showToast, secondsToDisplay);
+    }
+
+    public sealed record ToastDecision(bool Show, int Seconds);
+
+    public static void Show(string message,
+                               ToastType type = ToastType.Info,
                                string? repositoryRoot = null,
                                int? displaySeconds = null)
         {
-            // If repository root is provided, check user settings
-            bool showToast = true;
-            int secondsToDisplay = 5; // Default
-
-            if (!string.IsNullOrEmpty(repositoryRoot))
+            var decision = Resolve(message, type, repositoryRoot, displaySeconds);
+            if (!decision.Show)
             {
-                try
-                {
-                    var settingsFile = System.IO.Path.Combine(repositoryRoot, "config", "app-settings.json");
-                    if (System.IO.File.Exists(settingsFile))
-                    {
-                        var json = System.IO.File.ReadAllText(settingsFile);
-                        var settings = System.Text.Json.JsonSerializer.Deserialize<AppSettings>(json);
-                        if (settings != null)
-                        {
-                            showToast = settings.Toasts;
-                            secondsToDisplay = Math.Max(settings.ToastMinSeconds, 1); // Minimum 1 second
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    // If we can't read settings, default to showing toast
-                }
-            }
-
-            // Override display seconds if provided
-            if (displaySeconds.HasValue && displaySeconds.Value > 0)
-            {
-                secondsToDisplay = displaySeconds.Value;
-            }
-
-            if (!showToast)
                 return;
+            }
 
             // Get the main window to add toast to
             if (Application.Current == null || Application.Current.MainWindow == null)
@@ -82,7 +95,7 @@ namespace DevOptimizer.App.Services
             else if (!string.IsNullOrEmpty(repositoryRoot))
             {
                 // Use settings-based duration
-                toast.DisplaySeconds = secondsToDisplay;
+                toast.DisplaySeconds = decision.Seconds;
             }
 
             // Add to toast container (we'll need to add this to MainWindow)

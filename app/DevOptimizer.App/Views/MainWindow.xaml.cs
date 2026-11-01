@@ -25,6 +25,6 @@ public partial class MainWindow : Window
     private async void OnLoaded(object sender, RoutedEventArgs e) => await ViewModel.LoadAsync();
 
     /// <summary>Selftest hook: registry-driven checks against the bound ViewModel and this window's visual structure.</summary>
-    public IReadOnlyList<SelfTestCheck> RunSelfTestChecks(string repoRoot) =>
-        SelfTestRunner.RunChecks(ViewModel, repoRoot, SelfTestRunner.SelfTestQuery, SelfTestRunner.CountDetailPanelChildren(this));
+    public async Task<IReadOnlyList<SelfTestCheck>> RunSelfTestChecksAsync(string repoRoot) =>
+        await SelfTestRunner.RunChecksAsync(ViewModel, repoRoot, SelfTestRunner.SelfTestQuery, SelfTestRunner.CountDetailPanelChildren(this));
 }

@@ -43,6 +43,25 @@
 
         <!-- Top bar: search text drives MainViewModel.SearchText live (Task 2 semantics). -->
         <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Right"
+                    Content="⚙"
+                    ToolTip="Settings"
+                    Width="24"
+                    Height="24"
+                    Margin="4,0,0,0"
+                    Command="{Binding ShowSettingsCommand}"
+                    Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
+                    BorderThickness="0"
+                    Background="Transparent"
+                    Foreground="#8A8A98"
+                    Padding="0"
+                    FontSize="14">
+                <Button.Resources>
+                    <Style TargetType="{x:Type Border}">
+                        <Setter Property="CornerRadius" Value="3"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
             <TextBlock DockPanel.Dock="Right"
                        Text="{Binding StatusText}"
                        VerticalAlignment="Center"
@@ -258,6 +277,55 @@
             </Grid>
         </Grid>
         
+        <!-- Settings overlay: toggled by ShowSettingsCommand or the settings deep link. -->
+        <Grid Grid.Row="0"
+              Grid.RowSpan="2"
+              Background="#B0181818"
+              Visibility="{Binding SettingsVisible, Converter={StaticResource BoolToVisibility}, FallbackValue=Collapsed}">
+            <Border Background="#252526"
+                    BorderBrush="#3F3F46"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="24"
+                    Width="460"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="Settings" FontSize="18" FontWeight="SemiBold" Foreground="#4EC9B0" Margin="0,0,0,12" />
+                    <Grid Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="180" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Theme (dark, light)" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SettingsTheme, Mode=TwoWay}" Padding="2" />
+                        <TextBlock Grid.Row="1" Text="Toasts" VerticalAlignment="Center" />
+                        <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding SettingsToasts, Mode=TwoWay}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="2" Text="Autostart with Windows" VerticalAlignment="Center" />
+                        <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding SettingsAutostart, Mode=TwoWay}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="3" Text="Default dry run" VerticalAlignment="Center" />
+                        <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding SettingsDefaultDryRun, Mode=TwoWay}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="4" Text="Log level (debug..error)" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding SettingsLogLevel, Mode=TwoWay}" Padding="2" />
+                        <TextBlock Grid.Row="5" Text="Toast min seconds" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding SettingsToastMinSeconds, Mode=TwoWay}" Padding="2" />
+                    </Grid>
+                    <UniformGrid Columns="2" Margin="0,16,0,0">
+                        <Button Content="Save" Command="{Binding SaveSettingsCommand}" Padding="10,4" Margin="0,0,4,0" />
+                        <Button Content="Cancel" Command="{Binding CancelSettingsCommand}" Padding="10,4" Margin="4,0,0,0" />
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
         <!-- Toast container positioned at bottom-right -->
         <Canvas x:Name="ToastContainer"
                 Grid.Row="1" 

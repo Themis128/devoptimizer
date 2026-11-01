@@ -62,6 +62,18 @@ New-ItemProperty -Path $uninstKey -Name 'NoModify'         -Value 1             
 New-ItemProperty -Path $uninstKey -Name 'NoRepair'         -Value 1                                    -PropertyType DWord  -Force | Out-Null
 New-ItemProperty -Path $uninstKey -Name 'SystemComponent'  -Value 0                                    -PropertyType DWord  -Force | Out-Null
 
+# devoptimizer: protocol handler (deep links) — devoptimizer://command/<name>,
+# devoptimizer://category/<name>, devoptimizer://settings. Points DIRECTLY at the
+# app exe: the launcher's "--" separator breaks single-URL argument passthrough.
+$protoKey = 'HKCU:\Software\Classes\devoptimizer'
+New-Item -Path $protoKey -Force | Out-Null
+New-ItemProperty -Path $protoKey -Name '(Default)'      -Value 'URL:DevOptimizer Protocol' -PropertyType String -Force | Out-Null
+New-ItemProperty -Path $protoKey -Name 'URL Protocol'   -Value ''                          -PropertyType String -Force | Out-Null
+New-Item -Path "$protoKey\shell\open\command" -Force | Out-Null
+$appExe = Join-Path $repo 'app\bin\DevOptimizer.App.exe'
+New-ItemProperty -Path "$protoKey\shell\open\command" -Name '(Default)' -Value ('"{0}" "%1"' -f $appExe) -PropertyType String -Force | Out-Null
+
 Write-Host ("DevOptimizer {0} installed (per user)." -f $Version)
 Write-Host ("  Start menu : {0}" -f $lnk)
 Write-Host ("  Apps list  : HKCU Uninstall\DevOptimizer")
+Write-Host ("  Protocol   : devoptimizer:")

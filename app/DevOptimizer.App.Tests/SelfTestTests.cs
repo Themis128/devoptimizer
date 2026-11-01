@@ -68,7 +68,7 @@ public class SelfTestTests
         {
             var vm = await CreateLoadedViewModelAsync(root);
 
-            var checks = SelfTestRunner.RunChecks(vm, root, searchQuery: "cleanup", detailPanelChildCount: 8);
+            var checks = await SelfTestRunner.RunChecksAsync(vm, root, searchQuery: "cleanup", detailPanelChildCount: 8);
 
             Assert.Equal(5, checks.Count); // sidebar, category filter, search, exclusion regression, detail structure
             Assert.All(checks, c => Assert.True(c.Passed, $"{c.Name}: {c.Detail}"));
@@ -87,7 +87,7 @@ public class SelfTestTests
         {
             var vm = await CreateLoadedViewModelAsync(root);
 
-            var checks = SelfTestRunner.RunChecks(vm, root, searchQuery: "zzz-no-such-token", detailPanelChildCount: 8);
+            var checks = await SelfTestRunner.RunChecksAsync(vm, root, searchQuery: "zzz-no-such-token", detailPanelChildCount: 8);
 
             var searchCheck = Assert.Single(checks, c => c.Name.StartsWith("all + search", StringComparison.Ordinal));
             Assert.False(searchCheck.Passed); // expected 0 matches -> positive control fails
@@ -104,7 +104,7 @@ public class SelfTestTests
         {
             var vm = await CreateLoadedViewModelAsync(root);
 
-            var checks = SelfTestRunner.RunChecks(vm, root, searchQuery: "cleanup", detailPanelChildCount: 0);
+            var checks = await SelfTestRunner.RunChecksAsync(vm, root, searchQuery: "cleanup", detailPanelChildCount: 0);
 
             var detailCheck = Assert.Single(checks, c => c.Name == "detail panel children");
             Assert.False(detailCheck.Passed);
@@ -124,7 +124,7 @@ public class SelfTestTests
         {
             var vm = await CreateLoadedViewModelAsync(root);
 
-            var passing = SelfTestRunner.LogResults(root, SelfTestRunner.RunChecks(vm, root, "cleanup", 8));
+            var passing = SelfTestRunner.LogResults(root, await SelfTestRunner.RunChecksAsync(vm, root, "cleanup", 8));
             Assert.True(passing);
             Assert.Contains("SELFTEST PASS", ReadLog(root));
 
@@ -315,7 +315,7 @@ public class SelfTestTests
             App.ApplyDeepLinks(vm, App.ParseArgs(new[] { "-Settings" }), root);
 
             Assert.Contains("deeplink: settings view requested", ReadLog(root));
-            Assert.Contains("Settings", vm.StatusText);
+            Assert.True(vm.SettingsVisible);
         }
         finally { Cleanup(root); }
     }

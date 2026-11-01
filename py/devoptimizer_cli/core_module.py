@@ -9,7 +9,7 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass, asdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
@@ -233,7 +233,7 @@ def export_event_logs(
         log_names = ["System", "Application", "Microsoft-Windows-Diagnostics-Performance/Operational"]
     
     if start_time is None:
-        start_time = datetime.now().replace(day=datetime.now().day - 1)
+        start_time = datetime.now() - timedelta(days=1)
 
     output_dir = DEVOPTIMIZER_ROOT / "logs" / "eventlogs"
     output_dir.mkdir(parents=True, exist_ok=True)

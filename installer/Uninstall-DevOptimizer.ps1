@@ -25,6 +25,7 @@ $actions = @(
     @{ Name = 'Start menu shortcut'; If = { Test-Path $lnk };                Do = { Remove-Item -LiteralPath $lnk -Force } },
     @{ Name = 'Start menu folder';   If = { Test-Path $startMenuDir };       Do = { Remove-Item -LiteralPath $startMenuDir -Force } },
     @{ Name = 'Apps list entry';     If = { Test-Path $uninstKey };          Do = { Remove-Item -Path $uninstKey -Recurse -Force } },
+    @{ Name = 'Protocol handler';    If = { Test-Path 'HKCU:\Software\Classes\devoptimizer' }; Do = { Remove-Item -Path 'HKCU:\Software\Classes\devoptimizer' -Recurse -Force } },
     @{ Name = 'Autostart value';     If = { (Get-ItemProperty -Path $runKey -Name 'DevOptimizer' -ErrorAction SilentlyContinue) -ne $null }; Do = { Remove-ItemProperty -Path $runKey -Name 'DevOptimizer' -ErrorAction SilentlyContinue } }
 )
 

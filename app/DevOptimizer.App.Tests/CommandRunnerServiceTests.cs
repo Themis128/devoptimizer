@@ -184,7 +184,11 @@ public class CommandRunnerServiceTests
         // Interpreters are absolute system paths — never resolved via PATH.
         Assert.Equal(CommandRunnerService.PowerShellPath, psi.FileName);
         Assert.True(Path.IsPathRooted(psi.FileName));
-        Assert.Equal("-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"D:\\repo\\logs\\app-runs\\run-x.runner.ps1\"", psi.Arguments);
+        // Non-elevated spawns use ArgumentList exclusively — setting Arguments as well
+        // makes Process.Start throw ("Only one of Arguments or ArgumentList may be used").
+        Assert.Equal(
+            new[] { "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", @"D:\repo\logs\app-runs\run-x.runner.ps1" },
+            psi.ArgumentList.Cast<string>());
         // Non-elevated uses UseShellExecute=false for security (CWE-78 command injection prevention)
         Assert.False(psi.UseShellExecute);
         Assert.Equal(string.Empty, psi.Verb);
@@ -212,7 +216,7 @@ public class CommandRunnerServiceTests
 
         Assert.Equal(CommandRunnerService.CmdPath, psi.FileName);
         Assert.True(Path.IsPathRooted(psi.FileName));
-        Assert.Equal("/k \"D:\\repo\\portable\\tool.bat\"", psi.Arguments);
+        Assert.Equal(new[] { "/k", @"D:\repo\portable\tool.bat" }, psi.ArgumentList.Cast<string>());
         Assert.Equal(@"D:\repo\portable", psi.WorkingDirectory);
         Assert.Equal(string.Empty, psi.Verb);
         // Non-elevated uses UseShellExecute=false for security (CWE-78 command injection prevention)

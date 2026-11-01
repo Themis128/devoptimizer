@@ -22,6 +22,7 @@ internal sealed record AppArgs(string? Command, string? Category, bool Settings,
 public partial class App : Application
 {
     private IHost? _host;
+    private Mutex? _instanceMutex;
 
     /// <summary>
     /// Repo root: first directory walking up from the executable that contains
@@ -38,7 +39,21 @@ public partial class App : Application
         // Global safety net: log every unhandled dispatcher exception and keep the app alive.
         DispatcherUnhandledException += OnDispatcherUnhandledException;
 
+        // Single instance: a second INTERACTIVE launch exits; headless modes (selftest,
+        // run-now) are legitimate concurrent processes — automation and deep links spawn
+        // them while the GUI runs.
         var args = ParseArgs(e.Args);
+        if (!args.SelfTest && !args.RunNow)
+        {
+            _instanceMutex = new Mutex(initiallyOwned: true, @"Local\DevOptimizer.App.SingleInstance", out var createdNew);
+            if (!createdNew)
+            {
+                AppendDebugLog(FindRepoRoot(AppContext.BaseDirectory) ?? AppContext.BaseDirectory,
+                    "single-instance: second launch detected - exiting");
+                Shutdown(0);
+                return;
+            }
+        }
         RepoRoot = FindRepoRoot(AppContext.BaseDirectory);
         if (RepoRoot is null)
         {
@@ -67,11 +82,30 @@ public partial class App : Application
         window.Show();
         Log(RepoRoot, "checkpoint: view loaded");
 
+        BuildJumpList();
         _ = FinishStartupAsync(window, args);
+    }
+
+    /// <summary>
+    /// Jump tasks deep-link into the app's own argument surface. Application-scoped
+    /// (JumpList.SetJumpList targets Application.Current, not the window).
+    /// </summary>
+    private void BuildJumpList()
+    {
+        var exe = Environment.ProcessPath ?? System.Reflection.Assembly.GetExecutingAssembly().Location;
+        var tasks = new[]
+        {
+            new System.Windows.Shell.JumpTask { Title = "Settings", Description = "Open the settings panel", ApplicationPath = exe, Arguments = "--settings" },
+            new System.Windows.Shell.JumpTask { Title = "Cleanup category", Description = "Browse cleanup commands", ApplicationPath = exe, Arguments = "--category cleanup" },
+            new System.Windows.Shell.JumpTask { Title = "Run selftest", Description = "Headless verification pass", ApplicationPath = exe, Arguments = "--selftest" },
+        };
+        System.Windows.Shell.JumpList.SetJumpList(this, new System.Windows.Shell.JumpList(tasks, false, false));
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
+        _instanceMutex?.ReleaseMutex();
+        _instanceMutex?.Dispose();
         _host?.Dispose();
         base.OnExit(e);
     }
@@ -134,7 +168,7 @@ public partial class App : Application
             }
             else
             {
-                var checks = window.RunSelfTestChecks(repoRoot);
+                var checks = await window.RunSelfTestChecksAsync(repoRoot);
                 var passed = SelfTestRunner.LogResults(repoRoot, checks);
                 Log(repoRoot, "checkpoint: selftest finished");
                 exitCode = passed ? 0 : 1;
@@ -254,7 +288,7 @@ public partial class App : Application
         if (args.Settings)
         {
             LogService.Append(repoRoot, "deeplink: settings view requested");
-            viewModel.StatusText = "Settings view is not available in this build.";
+            viewModel.ShowSettingsCommand.Execute(null);
         }
         else if (category is not null)
         {
@@ -288,9 +322,18 @@ public partial class App : Application
         }
     }
 
-    /// <summary>Parses raw CLI arguments into <see cref="AppArgs"/> (case-insensitive, -x / --x).</summary>
+    /// <summary>
+    /// Parses raw CLI arguments into <see cref="AppArgs"/> (case-insensitive, -x / --x).
+    /// Protocol activation passes a single devoptimizer:// URL, converted here:
+    /// devoptimizer://command/&lt;name&gt;, devoptimizer://category/&lt;name&gt;, devoptimizer://settings.
+    /// </summary>
     internal static AppArgs ParseArgs(IReadOnlyList<string> args)
     {
+        if (args.Count == 1 && args[0].StartsWith("devoptimizer://", StringComparison.OrdinalIgnoreCase))
+        {
+            return ParseProtocolUrl(args[0]);
+        }
+
         string? command = null;
         string? category = null;
         bool settings = false;
@@ -320,6 +363,34 @@ public partial class App : Application
         }
 
         return new AppArgs(command, category, settings, selfTest, runNow);
+    }
+
+    /// <summary>
+    /// Converts a devoptimizer:// URL into AppArgs. Host is ignored; the first path
+    /// segment selects the target (command/category/settings). Unknown segments and
+    /// missing values yield empty args (logged later by the deep-link applier).
+    /// </summary>
+    internal static AppArgs ParseProtocolUrl(string url)
+    {
+        // Strip the scheme and split the path; Uri decoding handles %20-style spaces.
+        var raw = url["devoptimizer://".Length..].TrimEnd('/');
+        var segments = raw.Split('/', StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => Uri.UnescapeDataString(s))
+            .ToArray();
+
+        var value = segments.Length > 1 ? string.Join('/', segments.Skip(1)) : null;
+        if (segments.Length == 0)
+        {
+            return new AppArgs(null, null, false, false, false);
+        }
+
+        return segments[0].ToLowerInvariant() switch
+        {
+            "command" => new AppArgs(value, null, false, false, false),
+            "category" => new AppArgs(null, value, false, false, false),
+            "settings" => new AppArgs(null, null, true, false, false),
+            _ => new AppArgs(null, null, false, false, false),
+        };
     }
 
     /// <summary>

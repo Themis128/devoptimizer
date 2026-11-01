@@ -1,5 +1,8 @@
-{
-  "Toasts": true,
-  "ToastMinSeconds": 5,
-  "DefaultDryRun": false
+﻿{
+  "theme": "dark",
+  "toasts": true,
+  "autostart": true,
+  "defaultDryRun": false,
+  "logLevel": "info",
+  "toastMinSeconds": 5
 }
