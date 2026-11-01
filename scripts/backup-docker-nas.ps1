@@ -174,6 +174,15 @@ Log ("transferred {0}/{1} file(s) to omv:{2}/{3}" -f $okCount, ($files.Count + 1
 ssh -o BatchMode=yes omv ("cd {0}/nightly && ls -1t | grep -E '^(pgdumpall|vol-|wsl-|manifest-)' | tail -n +{1} | xargs -r rm -f" -f $NasDir, ($KeepNightly * 4 + 1)) 2>$null
 ssh -o BatchMode=yes omv ("cd {0}/weekly && ls -1t | grep -E '^(vol-|wsl-home|manifest-)' | tail -n +{1} | xargs -r rm -f" -f $NasDir, ($KeepWeekly * 6 + 1)) 2>$null
 ssh -o BatchMode=yes omv ("cd {0}/monthly && ls -1t | grep -E '^(vol-|wsl-monthly|manifest-)' | tail -n +{1} | xargs -r rm -f" -f $NasDir, ($KeepMonthly + 1)) 2>$null
+# Local staging: on a fully successful transfer delete the current run's
+# staging too (the files live on the NAS + manifest); keep partial runs for
+# retry, and never retain more than 2 older runs regardless. Two weekly
+# stagings can hold 45+ GB (DMR models volume + WSL monthly layer), which
+# filled D: to 0 bytes free on 2026-11-01.
+if ($okCount -eq ($files.Count + 1)) {
+    Remove-Item -LiteralPath $nightlyDir -Recurse -Force -ErrorAction SilentlyContinue
+    Log ("staging purged after full transfer: {0}" -f (Split-Path $nightlyDir -Leaf))
+}
 Get-ChildItem $StagingRoot -Directory | Sort-Object Name -Descending | Select-Object -Skip 2 | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 
 Log ("--- nas-backup run complete: tier={0}, files={1} ---" -f $tier, $okCount)
