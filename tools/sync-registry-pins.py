@@ -56,6 +56,9 @@ def main() -> int:
     new_ci, n2 = re.subn(
         r"(if \(\$cmdCount -ne )\d+(\))", rf"\g<1>{total}\g<2>", new_ci
     )
+    new_ci, n3 = re.subn(
+        r"(Command count mismatch: \$cmdCount != )\d+", rf"\g<1>{total}", new_ci
+    )
     if new_ci != ci_text:
         write_text_preserve(CI, new_ci)
         print(f"ci.yml: {n1 + n2} pin(s) -> {total}")
