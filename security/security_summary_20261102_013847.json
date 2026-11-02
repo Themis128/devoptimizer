@@ -1,0 +1,21 @@
+﻿{
+    "hardening_applied":  {
+                              "IsPresent":  false
+                          },
+    "timestamp":  {
+                      "value":  "\/Date(1793576327908)\/",
+                      "DisplayHint":  2,
+                      "DateTime":  "Monday, November 2, 2026 1:38:47 AM"
+                  },
+    "sysinternals_downloaded":  {
+                                    "IsPresent":  true
+                                },
+    "security_audit_completed":  {
+                                     "IsPresent":  true
+                                 },
+    "output_directory":  "D:\\DevOptimizer\\security",
+    "status":  "Completed",
+    "malware_scan_completed":  {
+                                   "IsPresent":  false
+                               }
+}

@@ -1,0 +1,66 @@
+﻿{
+    "timestamp":  {
+                      "value":  "\/Date(1793576291183)\/",
+                      "DisplayHint":  2,
+                      "DateTime":  "Monday, November 2, 2026 1:38:11 AM"
+                  },
+    "tools_downloaded":  [
+                             {
+                                 "path":  "D:\\DevOptimizer\\bin\\sysinternals\\Autoruns",
+                                 "name":  "Autoruns",
+                                 "status":  "success"
+                             },
+                             {
+                                 "path":  "D:\\DevOptimizer\\bin\\sysinternals\\ProcessExplorer",
+                                 "name":  "ProcessExplorer",
+                                 "status":  "success"
+                             },
+                             {
+                                 "path":  "D:\\DevOptimizer\\bin\\sysinternals\\ProcessMonitor",
+                                 "name":  "ProcessMonitor",
+                                 "status":  "success"
+                             },
+                             {
+                                 "path":  "D:\\DevOptimizer\\bin\\sysinternals\\Handle",
+                                 "name":  "Handle",
+                                 "status":  "success"
+                             },
+                             {
+                                 "path":  "D:\\DevOptimizer\\bin\\sysinternals\\VMMap",
+                                 "name":  "VMMap",
+                                 "status":  "success"
+                             },
+                             {
+                                 "path":  "D:\\DevOptimizer\\bin\\sysinternals\\RAMMap",
+                                 "name":  "RAMMap",
+                                 "status":  "success"
+                             },
+                             {
+                                 "path":  "D:\\DevOptimizer\\bin\\sysinternals\\DiskMon",
+                                 "name":  "DiskMon",
+                                 "status":  "success"
+                             }
+                         ],
+    "errors":  [
+                   {
+                       "error":  "The remote server returned an error: (404) Not Found.",
+                       "tool":  "SigCheck"
+                   },
+                   {
+                       "error":  "The remote server returned an error: (404) Not Found.",
+                       "tool":  "TcpView"
+                   },
+                   {
+                       "error":  "The remote server returned an error: (404) Not Found.",
+                       "tool":  "ProcDump"
+                   },
+                   {
+                       "error":  "The remote server returned an error: (404) Not Found.",
+                       "tool":  "FileMon"
+                   },
+                   {
+                       "error":  "The remote server returned an error: (404) Not Found.",
+                       "tool":  "RegMon"
+                   }
+               ]
+}

@@ -1,0 +1,2042 @@
+﻿{
+    "defender_status":  {
+                            "cloud_protection":  null,
+                            "real_time_protection":  true,
+                            "definition_version":  "1.463.73.0",
+                            "antivirus_enabled":  true,
+                            "last_scan":  "\/Date(1791347381462)\/",
+                            "firewall_enabled":  null
+                        },
+    "system_info":  {
+                        "domain":  "OFFICE",
+                        "architecture":  "64-bit",
+                        "username":  "tbaltzakis",
+                        "hostname":  "OFFICE",
+                        "total_memory":  31.73,
+                        "install_date":  "20260903061530.000000+180",
+                        "last_boot":  "20261101094210.500000+120",
+                        "cpu_info":  "12th Gen Intel(R) Core(TM) i9-12900H",
+                        "os_version":  "Microsoft Windows 11 Enterprise Insider Preview"
+                    },
+    "network_connections":  [
+                                {
+                                    "local_port":  9390,
+                                    "process_id":  5444,
+                                    "remote_address":  "192.168.1.200",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  44660
+                                },
+                                {
+                                    "local_port":  12435,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  54849
+                                },
+                                {
+                                    "local_port":  12435,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  58014
+                                },
+                                {
+                                    "local_port":  12435,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  54848
+                                },
+                                {
+                                    "local_port":  12435,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  52655
+                                },
+                                {
+                                    "local_port":  12435,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  52636
+                                },
+                                {
+                                    "local_port":  12435,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  65421
+                                },
+                                {
+                                    "local_port":  12435,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  54847
+                                },
+                                {
+                                    "local_port":  12435,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  58093
+                                },
+                                {
+                                    "local_port":  12435,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  52609
+                                },
+                                {
+                                    "local_port":  35339,
+                                    "process_id":  4860,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  62853
+                                },
+                                {
+                                    "local_port":  50103,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  50761,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  50974,
+                                    "process_id":  5876,
+                                    "remote_address":  "20.86.94.139",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  50989,
+                                    "process_id":  48076,
+                                    "remote_address":  "134.224.4.33",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  50996,
+                                    "process_id":  39152,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  50997
+                                },
+                                {
+                                    "local_port":  51111,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  51368,
+                                    "process_id":  28948,
+                                    "remote_address":  "34.160.81.0",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  52195,
+                                    "process_id":  10232,
+                                    "remote_address":  "43.109.215.37",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  52198,
+                                    "process_id":  12296,
+                                    "remote_address":  "123.56.37.46",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  52204,
+                                    "process_id":  49712,
+                                    "remote_address":  "20.189.172.73",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  52598,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  52600,
+                                    "process_id":  28948,
+                                    "remote_address":  "35.223.238.178",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  52609,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  12435
+                                },
+                                {
+                                    "local_port":  52636,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  12435
+                                },
+                                {
+                                    "local_port":  52655,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  12435
+                                },
+                                {
+                                    "local_port":  52722,
+                                    "process_id":  5444,
+                                    "remote_address":  "18.165.72.65",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  52992,
+                                    "process_id":  27188,
+                                    "remote_address":  "23.35.208.179",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  53043,
+                                    "process_id":  9076,
+                                    "remote_address":  "185.40.234.53",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  53649,
+                                    "process_id":  9076,
+                                    "remote_address":  "192.200.0.108",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  53671,
+                                    "process_id":  10196,
+                                    "remote_address":  "72.145.35.37",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  53903,
+                                    "process_id":  10196,
+                                    "remote_address":  "64.239.123.1",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  53906,
+                                    "process_id":  12296,
+                                    "remote_address":  "123.57.116.48",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  54489,
+                                    "process_id":  39152,
+                                    "remote_address":  "192.168.1.77",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  5555
+                                },
+                                {
+                                    "local_port":  54697,
+                                    "process_id":  39580,
+                                    "remote_address":  "40.100.4.200",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  54847,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  12435
+                                },
+                                {
+                                    "local_port":  54848,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  12435
+                                },
+                                {
+                                    "local_port":  54849,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  12435
+                                },
+                                {
+                                    "local_port":  54903,
+                                    "process_id":  17872,
+                                    "remote_address":  "170.114.52.119",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  55044,
+                                    "process_id":  23236,
+                                    "remote_address":  "104.21.67.68",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  55083,
+                                    "process_id":  48076,
+                                    "remote_address":  "170.114.5.95",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  55323,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  55441,
+                                    "process_id":  8156,
+                                    "remote_address":  "35.223.238.178",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  55475,
+                                    "process_id":  45448,
+                                    "remote_address":  "35.223.238.178",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  55745,
+                                    "process_id":  9616,
+                                    "remote_address":  "3.68.63.139",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  56297,
+                                    "process_id":  29308,
+                                    "remote_address":  "18.244.87.40",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  56770,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  56969,
+                                    "process_id":  10196,
+                                    "remote_address":  "20.184.175.9",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  56971,
+                                    "process_id":  5444,
+                                    "remote_address":  "172.64.146.215",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  56973,
+                                    "process_id":  12296,
+                                    "remote_address":  "59.110.96.221",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  56997,
+                                    "process_id":  11872,
+                                    "remote_address":  "8.130.222.211",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  57675,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  57694,
+                                    "process_id":  12404,
+                                    "remote_address":  "162.125.66.13",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  57697,
+                                    "process_id":  12404,
+                                    "remote_address":  "162.125.6.20",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  57723,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  57968,
+                                    "process_id":  36788,
+                                    "remote_address":  "104.18.41.41",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  58093,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  12435
+                                },
+                                {
+                                    "local_port":  58138,
+                                    "process_id":  27188,
+                                    "remote_address":  "23.35.208.7",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  58139,
+                                    "process_id":  27188,
+                                    "remote_address":  "23.35.208.7",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  58140,
+                                    "process_id":  27188,
+                                    "remote_address":  "23.35.208.7",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  58141,
+                                    "process_id":  27188,
+                                    "remote_address":  "23.35.208.7",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  58142,
+                                    "process_id":  27188,
+                                    "remote_address":  "23.35.208.7",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  58155,
+                                    "process_id":  12404,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  58156
+                                },
+                                {
+                                    "local_port":  58156,
+                                    "process_id":  12404,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  58155
+                                },
+                                {
+                                    "local_port":  58157,
+                                    "process_id":  12404,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  58158
+                                },
+                                {
+                                    "local_port":  58158,
+                                    "process_id":  12404,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  58157
+                                },
+                                {
+                                    "local_port":  58231,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  58238,
+                                    "process_id":  7652,
+                                    "remote_address":  "199.165.136.101",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  59075,
+                                    "process_id":  43024,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59161
+                                },
+                                {
+                                    "local_port":  59117,
+                                    "process_id":  5444,
+                                    "remote_address":  "157.240.234.58",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  55323
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  62040
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  62646
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59654
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  50103
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  56770
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  50761
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59432
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  52598
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  51690
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  62245
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  51111
+                                },
+                                {
+                                    "local_port":  59146,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  65273
+                                },
+                                {
+                                    "local_port":  59161,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59075
+                                },
+                                {
+                                    "local_port":  59162,
+                                    "process_id":  28948,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59165
+                                },
+                                {
+                                    "local_port":  59165,
+                                    "process_id":  43024,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59162
+                                },
+                                {
+                                    "local_port":  59178,
+                                    "process_id":  23236,
+                                    "remote_address":  "13.32.12.96",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  59226,
+                                    "process_id":  23236,
+                                    "remote_address":  "192.178.24.165",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  59432,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  59654,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  59711,
+                                    "process_id":  5444,
+                                    "remote_address":  "104.21.67.68",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  59880,
+                                    "process_id":  23236,
+                                    "remote_address":  "104.21.67.68",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  59966,
+                                    "process_id":  48076,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59967
+                                },
+                                {
+                                    "local_port":  59967,
+                                    "process_id":  48076,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59966
+                                },
+                                {
+                                    "local_port":  59970,
+                                    "process_id":  5444,
+                                    "remote_address":  "157.240.9.2",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  59974,
+                                    "process_id":  5444,
+                                    "remote_address":  "157.240.9.2",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  59977,
+                                    "process_id":  5444,
+                                    "remote_address":  "157.240.9.2",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  59984,
+                                    "process_id":  49712,
+                                    "remote_address":  "20.118.198.34",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  60897,
+                                    "process_id":  23236,
+                                    "remote_address":  "108.177.96.188",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  5228
+                                },
+                                {
+                                    "local_port":  61388,
+                                    "process_id":  6404,
+                                    "remote_address":  "98.66.133.185",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  61483,
+                                    "process_id":  23236,
+                                    "remote_address":  "104.21.67.68",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  62040,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  62610,
+                                    "process_id":  5444,
+                                    "remote_address":  "157.240.9.2",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  62617,
+                                    "process_id":  48076,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  62618
+                                },
+                                {
+                                    "local_port":  62646,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  62680,
+                                    "process_id":  5444,
+                                    "remote_address":  "44.197.81.201",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  62853,
+                                    "process_id":  43024,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  35339
+                                },
+                                {
+                                    "local_port":  63135,
+                                    "process_id":  23236,
+                                    "remote_address":  "35.190.80.1",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  63523,
+                                    "process_id":  12460,
+                                    "remote_address":  "149.154.167.92",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  63530,
+                                    "process_id":  18316,
+                                    "remote_address":  "98.66.133.185",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  63531,
+                                    "process_id":  21196,
+                                    "remote_address":  "98.66.133.185",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  63812,
+                                    "process_id":  23236,
+                                    "remote_address":  "44.196.253.201",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  63888,
+                                    "process_id":  12404,
+                                    "remote_address":  "162.125.21.2",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  63928,
+                                    "process_id":  5444,
+                                    "remote_address":  "192.168.1.200",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  30100
+                                },
+                                {
+                                    "local_port":  63934,
+                                    "process_id":  5444,
+                                    "remote_address":  "198.41.200.113",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  7844
+                                },
+                                {
+                                    "local_port":  63936,
+                                    "process_id":  5444,
+                                    "remote_address":  "198.41.192.47",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  7844
+                                },
+                                {
+                                    "local_port":  63937,
+                                    "process_id":  5444,
+                                    "remote_address":  "198.41.192.57",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  7844
+                                },
+                                {
+                                    "local_port":  64421,
+                                    "process_id":  12564,
+                                    "remote_address":  "52.110.4.149",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  64605,
+                                    "process_id":  10232,
+                                    "remote_address":  "43.109.215.59",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  65272,
+                                    "process_id":  10196,
+                                    "remote_address":  "40.104.162.210",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                },
+                                {
+                                    "local_port":  65273,
+                                    "process_id":  29308,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  59146
+                                },
+                                {
+                                    "local_port":  65421,
+                                    "process_id":  5444,
+                                    "remote_address":  "127.0.0.1",
+                                    "local_address":  "127.0.0.1",
+                                    "remote_port":  12435
+                                },
+                                {
+                                    "local_port":  65428,
+                                    "process_id":  37916,
+                                    "remote_address":  "20.118.198.33",
+                                    "local_address":  "192.168.1.23",
+                                    "remote_port":  443
+                                }
+                            ],
+    "services":  [
+                     {
+                         "status":  "Running",
+                         "name":  "AdobeARMservice",
+                         "display_name":  "Adobe Acrobat Update Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "AppXSvc",
+                         "display_name":  "AppX Deployment Service (AppXSVC)",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "AudioEndpointBuilder",
+                         "display_name":  "Windows Audio Endpoint Builder",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "Audiosrv",
+                         "display_name":  "Windows Audio",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "BFE",
+                         "display_name":  "Base Filtering Engine",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "BITS",
+                         "display_name":  "Background Intelligent Transfer Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "BrokerInfrastructure",
+                         "display_name":  "Background Tasks Infrastructure Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "camsvc",
+                         "display_name":  "Capability Access Manager Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "cbdhsvc_c2920",
+                         "display_name":  "Clipboard User Service_c2920",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "CDPSvc",
+                         "display_name":  "Connected Devices Platform Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "CDPUserSvc_c2920",
+                         "display_name":  "Connected Devices Platform User Service_c2920",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "ClickToRunSvc",
+                         "display_name":  "Microsoft Office Click-to-Run Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "CoreMessagingRegistrar",
+                         "display_name":  "CoreMessaging",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "CoworkVMService",
+                         "display_name":  "Claude",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "cplspcon",
+                         "display_name":  "Intel(R) Content Protection HDCP Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "CryptSvc",
+                         "display_name":  "Cryptographic Services",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "DbxSvc",
+                         "display_name":  "DbxSvc",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "DCAgent",
+                         "display_name":  "Epson Data Collection Agent",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "DcomLaunch",
+                         "display_name":  "DCOM Server Process Launcher",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "DeviceAssociationService",
+                         "display_name":  "Device Association Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "Dhcp",
+                         "display_name":  "DHCP Client",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "DiagTrack",
+                         "display_name":  "Connected User Experiences and Telemetry",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "DispBrokerDesktopSvc",
+                         "display_name":  "Display Policy Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "Dnscache",
+                         "display_name":  "DNS Client",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "DoSvc",
+                         "display_name":  "Delivery Optimization",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "DPS",
+                         "display_name":  "Diagnostic Policy Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "dptftcs",
+                         "display_name":  "Intel(R) Dynamic Tuning Technology Telemetry Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "DSAService",
+                         "display_name":  "Intel(R) Driver \u0026 Support Assistant",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "DSAUpdateService",
+                         "display_name":  "Intel(R) Driver \u0026 Support Assistant Updater",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "DusmSvc",
+                         "display_name":  "Data Usage",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "ElevocService",
+                         "display_name":  "Elevoc Control Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "EpsonScanSvc",
+                         "display_name":  "Epson Scanner Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "EventLog",
+                         "display_name":  "Windows Event Log",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "EventSystem",
+                         "display_name":  "COM+ Event System",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "FontCache",
+                         "display_name":  "Windows Font Cache Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "gpsvc",
+                         "display_name":  "Group Policy Client",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "IKEEXT",
+                         "display_name":  "IKE and AuthIP IPsec Keying Modules",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "ImControllerService",
+                         "display_name":  "System Interface Foundation Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "IntelAudioService",
+                         "display_name":  "Intel(R) Audio Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "IntelCollectorService",
+                         "display_name":  "Intel(R) Collector Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "IntelGraphicsSoftwareService",
+                         "display_name":  "Intel® Graphics Software Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "IntelTelemetryAgent",
+                         "display_name":  "Intel(R) Telemetry Agent Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "InventorySvc",
+                         "display_name":  "Inventory and Compatibility Appraisal service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "ipfsvc",
+                         "display_name":  "Intel(R) Innovation Platform Framework Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "iphlpsvc",
+                         "display_name":  "IP Helper",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "jhi_service",
+                         "display_name":  "Intel(R) Dynamic Application Loader Host Interface Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "LanmanServer",
+                         "display_name":  "Server",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "LanmanWorkstation",
+                         "display_name":  "Workstation",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "LenovoFnAndFunctionKeys",
+                         "display_name":  "Lenovo Fn and function keys service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "LenovoVantageService",
+                         "display_name":  "LenovoVantageService",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "LSM",
+                         "display_name":  "Local Session Manager",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "McAfee WebAdvisor",
+                         "display_name":  "McAfee WebAdvisor",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "MDCoreSvc",
+                         "display_name":  "Microsoft Defender Core Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "mpssvc",
+                         "display_name":  "Windows Defender Firewall",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "NahimicService",
+                         "display_name":  "Nahimic service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "nsi",
+                         "display_name":  "Network Store Interface Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "NvContainerLocalSystem",
+                         "display_name":  "NVIDIA LocalSystem Container",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "NVDisplay.ContainerLocalSystem",
+                         "display_name":  "NVIDIA Display Container LS",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "PcaSvc",
+                         "display_name":  "Program Compatibility Assistant Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "Power",
+                         "display_name":  "Power",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "PresentMonSharedService",
+                         "display_name":  "PresentMon Shared Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "ProfSvc",
+                         "display_name":  "User Profile Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "RpcEptMapper",
+                         "display_name":  "RPC Endpoint Mapper",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "RpcSs",
+                         "display_name":  "Remote Procedure Call (RPC)",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "RtkAudioUniversalService",
+                         "display_name":  "Realtek Audio Universal Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "SamSs",
+                         "display_name":  "Security Accounts Manager",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "Schedule",
+                         "display_name":  "Task Scheduler",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "SENS",
+                         "display_name":  "System Event Notification Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "ShellHWDetection",
+                         "display_name":  "Shell Hardware Detection",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "Spooler",
+                         "display_name":  "Print Spooler",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "sshd",
+                         "display_name":  "OpenSSH SSH Server",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "StateRepository",
+                         "display_name":  "State Repository Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "StiSvc",
+                         "display_name":  "Windows Image Acquisition (WIA)",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "StorSvc",
+                         "display_name":  "Storage Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "SysMain",
+                         "display_name":  "SysMain",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "SystemEventsBroker",
+                         "display_name":  "System Events Broker",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "Tailscale",
+                         "display_name":  "Tailscale",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "TextInputManagementService",
+                         "display_name":  "Text Input Management Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "Themes",
+                         "display_name":  "Themes",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "TrkWks",
+                         "display_name":  "Distributed Link Tracking Client",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "UDCService",
+                         "display_name":  "Universal Device Client Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "UserManager",
+                         "display_name":  "User Manager",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "UsoSvc",
+                         "display_name":  "Update Orchestrator Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "vmms",
+                         "display_name":  "Hyper-V Virtual Machine Management",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "W32Time",
+                         "display_name":  "Windows Time",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "Wcmsvc",
+                         "display_name":  "Windows Connection Manager",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "webthreatdefusersvc_c2920",
+                         "display_name":  "Web Threat Defense User Service_c2920",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "whesvc",
+                         "display_name":  "Windows Health and Optimized Experiences",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "WinDefend",
+                         "display_name":  "Microsoft Defender Antivirus Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "Winmgmt",
+                         "display_name":  "Windows Management Instrumentation",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "WlanSvc",
+                         "display_name":  "WLAN AutoConfig",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "WMIRegistrationService",
+                         "display_name":  "Intel(R) Management Engine WMI Provider Registration",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "WpnService",
+                         "display_name":  "Windows Push Notifications System Service",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "WpnUserService_c2920",
+                         "display_name":  "Windows Push Notifications User Service_c2920",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "WSAIFabricSvc",
+                         "display_name":  "Windows AI Components Host",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "wscsvc",
+                         "display_name":  "Security Center",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "WSearch",
+                         "display_name":  "Windows Search",
+                         "start_type":  "Automatic"
+                     },
+                     {
+                         "status":  "Running",
+                         "name":  "WSLService",
+                         "display_name":  "WSL Service",
+                         "start_type":  "Automatic"
+                     }
+                 ],
+    "timestamp":  {
+                      "value":  "\/Date(1793576318968)\/",
+                      "DisplayHint":  2,
+                      "DateTime":  "Monday, November 2, 2026 1:38:38 AM"
+                  },
+    "startup_programs":  [
+                             {
+                                 "user":  "NT AUTHORITY\\LOCAL SERVICE",
+                                 "command":  "C:\\Windows\\System32\\OneDriveSetup.exe /thfirstsetup",
+                                 "name":  "OneDriveSetup",
+                                 "location":  "HKU\\S-1-5-19\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+                             },
+                             {
+                                 "user":  "NT AUTHORITY\\NETWORK SERVICE",
+                                 "command":  "C:\\Windows\\System32\\OneDriveSetup.exe /thfirstsetup",
+                                 "name":  "OneDriveSetup",
+                                 "location":  "HKU\\S-1-5-20\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+                             },
+                             {
+                                 "user":  "OFFICE\\tbaltzakis",
+                                 "command":  "start-chrome-debug.bat",
+                                 "name":  "start-chrome-debug",
+                                 "location":  "Startup"
+                             },
+                             {
+                                 "user":  "OFFICE\\tbaltzakis",
+                                 "command":  "win_agent.bat",
+                                 "name":  "win_agent",
+                                 "location":  "Startup"
+                             },
+                             {
+                                 "user":  "OFFICE\\tbaltzakis",
+                                 "command":  "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe",
+                                 "name":  "Docker Desktop",
+                                 "location":  "HKU\\S-1-5-21-486103825-3846941666-1414135869-1001\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+                             },
+                             {
+                                 "user":  "OFFICE\\tbaltzakis",
+                                 "command":  "powershell -WindowStyle Hidden -File C:\\Users\\tbaltzakis\\chrome-debug-watch.ps1",
+                                 "name":  "ChromeDebugWatch",
+                                 "location":  "HKU\\S-1-5-21-486103825-3846941666-1414135869-1001\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+                             },
+                             {
+                                 "user":  "OFFICE\\tbaltzakis",
+                                 "command":  "\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --startup-foreground-launch",
+                                 "name":  "GoogleChromeAutoLaunch_2475659B2A33E60AF496526F81280674",
+                                 "location":  "HKU\\S-1-5-21-486103825-3846941666-1414135869-1001\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+                             },
+                             {
+                                 "user":  "OFFICE\\tbaltzakis",
+                                 "command":  "\"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\" --no-startup-window --win-session-start",
+                                 "name":  "MicrosoftEdgeAutoLaunch_A01BB405273478455F34CB9FB316D156",
+                                 "location":  "HKU\\S-1-5-21-486103825-3846941666-1414135869-1001\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+                             },
+                             {
+                                 "user":  "NT SERVICE\\IntelTelemetryAgent",
+                                 "command":  "C:\\Windows\\System32\\OneDriveSetup.exe /thfirstsetup",
+                                 "name":  "OneDriveSetup",
+                                 "location":  "HKU\\S-1-5-80-863171341-2975503981-1811344707-3769924460-3995132968\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+                             },
+                             {
+                                 "user":  "Public",
+                                 "command":  "C:\\PROGRA~1\\TAILSC~1\\TAILSC~1.EXE ",
+                                 "name":  "Tailscale",
+                                 "location":  "Common Startup"
+                             },
+                             {
+                                 "user":  "Public",
+                                 "command":  "%windir%\\system32\\SecurityHealthSystray.exe",
+                                 "name":  "SecurityHealth",
+                                 "location":  "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+                             },
+                             {
+                                 "user":  "Public",
+                                 "command":  "\"C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\realtekservice.inf_amd64_04ff63d068f8c626\\RtkAudUService64.exe\" -background",
+                                 "name":  "RtkAudUService",
+                                 "location":  "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+                             }
+                         ],
+    "recommendations":  [
+                            {
+                                "issue":  "Suspicious processes detected",
+                                "category":  "Processes",
+                                "details":  [
+                                                {
+                                                    "id":  30596,
+                                                    "name":  "ZCode",
+                                                    "start_time":  "\/Date(1793519010729)\/",
+                                                    "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\ZCode\\ZCode.exe",
+                                                    "memory_mb":  1272.05,
+                                                    "cpu":  6376.765625
+                                                },
+                                                {
+                                                    "id":  21828,
+                                                    "name":  "ZCode",
+                                                    "start_time":  "\/Date(1793519009638)\/",
+                                                    "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\ZCode\\ZCode.exe",
+                                                    "memory_mb":  98.43,
+                                                    "cpu":  4244.09375
+                                                },
+                                                {
+                                                    "id":  30520,
+                                                    "name":  "Devin",
+                                                    "start_time":  "\/Date(1793571627106)\/",
+                                                    "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\Devin\\Devin.exe",
+                                                    "memory_mb":  803.31,
+                                                    "cpu":  1139.03125
+                                                },
+                                                {
+                                                    "id":  20880,
+                                                    "name":  "ZCode",
+                                                    "start_time":  "\/Date(1793519044171)\/",
+                                                    "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\ZCode\\ZCode.exe",
+                                                    "memory_mb":  261.94,
+                                                    "cpu":  943.09375
+                                                },
+                                                {
+                                                    "id":  48076,
+                                                    "name":  "Zoom",
+                                                    "start_time":  "\/Date(1793528628151)\/",
+                                                    "path":  "C:\\Users\\tbaltzakis\\AppData\\Roaming\\Zoom\\bin\\Zoom.exe",
+                                                    "memory_mb":  67.33,
+                                                    "cpu":  817.921875
+                                                },
+                                                {
+                                                    "id":  11872,
+                                                    "name":  "ZCode",
+                                                    "start_time":  "\/Date(1793519021492)\/",
+                                                    "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\ZCode\\ZCode.exe",
+                                                    "memory_mb":  463.46,
+                                                    "cpu":  735.296875
+                                                },
+                                                {
+                                                    "id":  27908,
+                                                    "name":  "ZCode",
+                                                    "start_time":  "\/Date(1793519011505)\/",
+                                                    "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\ZCode\\ZCode.exe",
+                                                    "memory_mb":  165.75,
+                                                    "cpu":  668.25
+                                                },
+                                                {
+                                                    "id":  6580,
+                                                    "name":  "Devin",
+                                                    "start_time":  "\/Date(1793571626503)\/",
+                                                    "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\Devin\\Devin.exe",
+                                                    "memory_mb":  170.66,
+                                                    "cpu":  627.953125
+                                                }
+                                            ],
+                                "action":  "Investigate and remove if malicious",
+                                "severity":  "High"
+                            },
+                            {
+                                "issue":  "Too many startup programs",
+                                "category":  "Startup",
+                                "details":  "12 startup programs found",
+                                "action":  "Review and disable unnecessary startup programs",
+                                "severity":  "Medium"
+                            }
+                        ],
+    "file_permissions":  [
+
+                         ],
+    "errors":  [
+
+               ],
+    "processes":  [
+                      {
+                          "id":  42020,
+                          "name":  "vmmemWSL",
+                          "start_time":  "\/Date(1793551619225)\/",
+                          "path":  null,
+                          "memory_mb":  -1110.81,
+                          "cpu":  53183.78125
+                      },
+                      {
+                          "id":  4,
+                          "name":  "System",
+                          "start_time":  "\/Date(1793518933825)\/",
+                          "path":  null,
+                          "memory_mb":  10.63,
+                          "cpu":  43905.96875
+                      },
+                      {
+                          "id":  6480,
+                          "name":  "MsMpEng",
+                          "start_time":  "\/Date(1793518953718)\/",
+                          "path":  null,
+                          "memory_mb":  505.06,
+                          "cpu":  42342.90625
+                      },
+                      {
+                          "id":  30596,
+                          "name":  "ZCode",
+                          "start_time":  "\/Date(1793519010729)\/",
+                          "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\ZCode\\ZCode.exe",
+                          "memory_mb":  1272.05,
+                          "cpu":  6376.765625
+                      },
+                      {
+                          "id":  3904,
+                          "name":  "NVDisplay.Container",
+                          "start_time":  "\/Date(1793518952915)\/",
+                          "path":  "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\nvltsi.inf_amd64_5d84567099725329\\Display.NvContainer\\NVDisplay.Container.exe",
+                          "memory_mb":  19.72,
+                          "cpu":  4953.0625
+                      },
+                      {
+                          "id":  2344,
+                          "name":  "dwm",
+                          "start_time":  "\/Date(1793518952614)\/",
+                          "path":  "C:\\WINDOWS\\system32\\dwm.exe",
+                          "memory_mb":  75.57,
+                          "cpu":  4681.390625
+                      },
+                      {
+                          "id":  21828,
+                          "name":  "ZCode",
+                          "start_time":  "\/Date(1793519009638)\/",
+                          "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\ZCode\\ZCode.exe",
+                          "memory_mb":  98.43,
+                          "cpu":  4244.09375
+                      },
+                      {
+                          "id":  5444,
+                          "name":  "com.docker.backend",
+                          "start_time":  "\/Date(1793538893212)\/",
+                          "path":  "C:\\Program Files\\Docker\\Docker\\resources\\com.docker.backend.exe",
+                          "memory_mb":  255.8,
+                          "cpu":  2803.953125
+                      },
+                      {
+                          "id":  12564,
+                          "name":  "explorer",
+                          "start_time":  "\/Date(1793518956289)\/",
+                          "path":  "C:\\WINDOWS\\Explorer.EXE",
+                          "memory_mb":  237.93,
+                          "cpu":  2798.203125
+                      },
+                      {
+                          "id":  5404,
+                          "name":  "NVDisplay.Container",
+                          "start_time":  "\/Date(1793518953428)\/",
+                          "path":  "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\nvltsi.inf_amd64_5d84567099725329\\Display.NvContainer\\NVDisplay.Container.exe",
+                          "memory_mb":  20.55,
+                          "cpu":  2574.0625
+                      },
+                      {
+                          "id":  4260,
+                          "name":  "Memory Compression",
+                          "start_time":  "\/Date(1793518952987)\/",
+                          "path":  null,
+                          "memory_mb":  394.49,
+                          "cpu":  2330.171875
+                      },
+                      {
+                          "id":  10588,
+                          "name":  "PresentMonService",
+                          "start_time":  "\/Date(1793518954912)\/",
+                          "path":  "C:\\Program Files\\Intel\\Intel Graphics Software\\PresentMonService.exe",
+                          "memory_mb":  6.96,
+                          "cpu":  2061.84375
+                      },
+                      {
+                          "id":  12404,
+                          "name":  "Dropbox",
+                          "start_time":  "\/Date(1793519270821)\/",
+                          "path":  "C:\\Program Files (x86)\\Dropbox\\Client\\Dropbox.exe",
+                          "memory_mb":  320.55,
+                          "cpu":  2005.046875
+                      },
+                      {
+                          "id":  5876,
+                          "name":  "CrossDeviceService",
+                          "start_time":  "\/Date(1793518957362)\/",
+                          "path":  "C:\\Program Files\\WindowsApps\\MicrosoftWindows.CrossDevice_1.26101.74.0_x64__cw5n1h2txyewy\\CrossDeviceService.exe",
+                          "memory_mb":  130.71,
+                          "cpu":  1803.890625
+                      },
+                      {
+                          "id":  20300,
+                          "name":  "PhoneExperienceHost",
+                          "start_time":  "\/Date(1793518961974)\/",
+                          "path":  "C:\\Program Files\\WindowsApps\\Microsoft.YourPhone_1.26101.110.0_x64__8wekyb3d8bbwe\\PhoneExperienceHost.exe",
+                          "memory_mb":  142.86,
+                          "cpu":  1623.65625
+                      },
+                      {
+                          "id":  11580,
+                          "name":  "SearchIndexer",
+                          "start_time":  "\/Date(1793518955718)\/",
+                          "path":  "C:\\WINDOWS\\system32\\SearchIndexer.exe",
+                          "memory_mb":  62.53,
+                          "cpu":  1441.703125
+                      },
+                      {
+                          "id":  5452,
+                          "name":  "WmiPrvSE",
+                          "start_time":  "\/Date(1793518953445)\/",
+                          "path":  "C:\\WINDOWS\\system32\\wbem\\wmiprvse.exe",
+                          "memory_mb":  39.84,
+                          "cpu":  1320.171875
+                      },
+                      {
+                          "id":  6228,
+                          "name":  "LenovoVantageService",
+                          "start_time":  "\/Date(1793518953700)\/",
+                          "path":  "C:\\Program Files (x86)\\Lenovo\\VantageService\\5.1.2609.9\\LenovoVantageService.exe",
+                          "memory_mb":  57.66,
+                          "cpu":  1291.15625
+                      },
+                      {
+                          "id":  19952,
+                          "name":  "svchost",
+                          "start_time":  "\/Date(1793548127814)\/",
+                          "path":  "C:\\WINDOWS\\system32\\svchost.exe",
+                          "memory_mb":  22.58,
+                          "cpu":  1153.484375
+                      },
+                      {
+                          "id":  30520,
+                          "name":  "Devin",
+                          "start_time":  "\/Date(1793571627106)\/",
+                          "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\Devin\\Devin.exe",
+                          "memory_mb":  803.31,
+                          "cpu":  1139.03125
+                      },
+                      {
+                          "id":  3360,
+                          "name":  "svchost",
+                          "start_time":  "\/Date(1793518952806)\/",
+                          "path":  "C:\\WINDOWS\\system32\\svchost.exe",
+                          "memory_mb":  43.6,
+                          "cpu":  1029.203125
+                      },
+                      {
+                          "id":  3544,
+                          "name":  "svchost",
+                          "start_time":  "\/Date(1793518952837)\/",
+                          "path":  "C:\\WINDOWS\\system32\\svchost.exe",
+                          "memory_mb":  9.2,
+                          "cpu":  999.421875
+                      },
+                      {
+                          "id":  20880,
+                          "name":  "ZCode",
+                          "start_time":  "\/Date(1793519044171)\/",
+                          "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\ZCode\\ZCode.exe",
+                          "memory_mb":  261.94,
+                          "cpu":  943.09375
+                      },
+                      {
+                          "id":  47472,
+                          "name":  "IntelGraphicsSoftware",
+                          "start_time":  "\/Date(1793519320878)\/",
+                          "path":  "C:\\Program Files\\Intel\\Intel Graphics Software\\IntelGraphicsSoftware.exe",
+                          "memory_mb":  19.75,
+                          "cpu":  862.671875
+                      },
+                      {
+                          "id":  16080,
+                          "name":  "msedgewebview2",
+                          "start_time":  "\/Date(1793518986241)\/",
+                          "path":  "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\156.0.4314.58\\msedgewebview2.exe",
+                          "memory_mb":  129.04,
+                          "cpu":  858.046875
+                      },
+                      {
+                          "id":  48076,
+                          "name":  "Zoom",
+                          "start_time":  "\/Date(1793528628151)\/",
+                          "path":  "C:\\Users\\tbaltzakis\\AppData\\Roaming\\Zoom\\bin\\Zoom.exe",
+                          "memory_mb":  67.33,
+                          "cpu":  817.921875
+                      },
+                      {
+                          "id":  11872,
+                          "name":  "ZCode",
+                          "start_time":  "\/Date(1793519021492)\/",
+                          "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\ZCode\\ZCode.exe",
+                          "memory_mb":  463.46,
+                          "cpu":  735.296875
+                      },
+                      {
+                          "id":  5736,
+                          "name":  "svchost",
+                          "start_time":  "\/Date(1793518953693)\/",
+                          "path":  "C:\\WINDOWS\\System32\\svchost.exe",
+                          "memory_mb":  64.13,
+                          "cpu":  731.0625
+                      },
+                      {
+                          "id":  1936,
+                          "name":  "LenovoVantage-(LenovoGamingSystemAddin)",
+                          "start_time":  "\/Date(1793518981168)\/",
+                          "path":  "C:\\Program Files (x86)\\Lenovo\\VantageService\\5.1.2609.9\\LenovoVantage-(LenovoGamingSystemAddin).exe",
+                          "memory_mb":  12.46,
+                          "cpu":  679.3125
+                      },
+                      {
+                          "id":  11740,
+                          "name":  "LenovoVantage-(IdeaNotebookAddin)",
+                          "start_time":  "\/Date(1793518987534)\/",
+                          "path":  "C:\\Program Files (x86)\\Lenovo\\VantageService\\5.1.2609.9\\LenovoVantage-(IdeaNotebookAddin).exe",
+                          "memory_mb":  22.85,
+                          "cpu":  670.390625
+                      },
+                      {
+                          "id":  11172,
+                          "name":  "svchost",
+                          "start_time":  "\/Date(1793518955444)\/",
+                          "path":  null,
+                          "memory_mb":  22.2,
+                          "cpu":  669.609375
+                      },
+                      {
+                          "id":  27908,
+                          "name":  "ZCode",
+                          "start_time":  "\/Date(1793519011505)\/",
+                          "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\ZCode\\ZCode.exe",
+                          "memory_mb":  165.75,
+                          "cpu":  668.25
+                      },
+                      {
+                          "id":  6580,
+                          "name":  "Devin",
+                          "start_time":  "\/Date(1793571626503)\/",
+                          "path":  "C:\\Users\\tbaltzakis\\AppData\\Local\\Programs\\Devin\\Devin.exe",
+                          "memory_mb":  170.66,
+                          "cpu":  627.953125
+                      },
+                      {
+                          "id":  6364,
+                          "name":  "collector_service",
+                          "start_time":  "\/Date(1793518953708)\/",
+                          "path":  "C:\\Program Files\\Intel\\CollectorService\\collector_service.exe",
+                          "memory_mb":  5.63,
+                          "cpu":  626.703125
+                      },
+                      {
+                          "id":  2160,
+                          "name":  "svchost",
+                          "start_time":  "\/Date(1793518952455)\/",
+                          "path":  "C:\\WINDOWS\\system32\\svchost.exe",
+                          "memory_mb":  20.16,
+                          "cpu":  622.59375
+                      },
+                      {
+                          "id":  1824,
+                          "name":  "csrss",
+                          "start_time":  "\/Date(1793518950068)\/",
+                          "path":  null,
+                          "memory_mb":  3.78,
+                          "cpu":  590.6875
+                      },
+                      {
+                          "id":  17700,
+                          "name":  "svchost",
+                          "start_time":  "\/Date(1793518960536)\/",
+                          "path":  "C:\\WINDOWS\\System32\\svchost.exe",
+                          "memory_mb":  8.66,
+                          "cpu":  517.328125
+                      },
+                      {
+                          "id":  1964,
+                          "name":  "lsass",
+                          "start_time":  "\/Date(1793518950403)\/",
+                          "path":  null,
+                          "memory_mb":  19.25,
+                          "cpu":  515.28125
+                      },
+                      {
+                          "id":  13396,
+                          "name":  "unsecapp",
+                          "start_time":  "\/Date(1793518957030)\/",
+                          "path":  "C:\\WINDOWS\\system32\\wbem\\unsecapp.exe",
+                          "memory_mb":  4.11,
+                          "cpu":  479.84375
+                      },
+                      {
+                          "id":  18244,
+                          "name":  "NVIDIA Overlay",
+                          "start_time":  "\/Date(1793518960908)\/",
+                          "path":  "C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\CEF\\NVIDIA Overlay.exe",
+                          "memory_mb":  62.42,
+                          "cpu":  477.234375
+                      },
+                      {
+                          "id":  43232,
+                          "name":  "msedgewebview2",
+                          "start_time":  "\/Date(1793519756329)\/",
+                          "path":  "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\156.0.4314.58\\msedgewebview2.exe",
+                          "memory_mb":  253.16,
+                          "cpu":  456.828125
+                      },
+                      {
+                          "id":  30680,
+                          "name":  "BatteryWidgetHost",
+                          "start_time":  "\/Date(1793518984677)\/",
+                          "path":  "C:\\ProgramData\\Lenovo\\Vantage\\Addins\\BatteryWidgetAddin\\3.0.0.208\\BatteryWidgetHost\\BatteryWidgetHost.exe",
+                          "memory_mb":  27.08,
+                          "cpu":  423.640625
+                      },
+                      {
+                          "id":  29636,
+                          "name":  "FvContainer.System",
+                          "start_time":  "\/Date(1793518968639)\/",
+                          "path":  "C:\\Program Files\\NVIDIA Corporation\\FrameViewSDK\\FvContainer\\FvContainer.System.exe",
+                          "memory_mb":  23.89,
+                          "cpu":  419.921875
+                      },
+                      {
+                          "id":  25192,
+                          "name":  "NVIDIA Overlay",
+                          "start_time":  "\/Date(1793518964164)\/",
+                          "path":  "C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\CEF\\NVIDIA Overlay.exe",
+                          "memory_mb":  26.26,
+                          "cpu":  412.921875
+                      },
+                      {
+                          "id":  9076,
+                          "name":  "tailscaled",
+                          "start_time":  "\/Date(1793518954725)\/",
+                          "path":  "C:\\Program Files\\Tailscale\\tailscaled.exe",
+                          "memory_mb":  78.32,
+                          "cpu":  387.875
+                      },
+                      {
+                          "id":  17716,
+                          "name":  "SearchProtocolHost",
+                          "start_time":  "\/Date(1793572758270)\/",
+                          "path":  "C:\\WINDOWS\\System32\\SearchProtocolHost.exe",
+                          "memory_mb":  22.92,
+                          "cpu":  385.140625
+                      },
+                      {
+                          "id":  28140,
+                          "name":  "PresentMon_x64",
+                          "start_time":  "\/Date(1793518968738)\/",
+                          "path":  "C:\\Program Files\\NVIDIA Corporation\\FrameViewSDK\\bin\\PresentMon_x64.exe",
+                          "memory_mb":  13.73,
+                          "cpu":  383.734375
+                      },
+                      {
+                          "id":  11164,
+                          "name":  "svchost",
+                          "start_time":  "\/Date(1793518955444)\/",
+                          "path":  "C:\\WINDOWS\\system32\\svchost.exe",
+                          "memory_mb":  18.82,
+                          "cpu":  363.984375
+                      },
+                      {
+                          "id":  36556,
+                          "name":  "msedgewebview2",
+                          "start_time":  "\/Date(1793519755805)\/",
+                          "path":  "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\156.0.4314.58\\msedgewebview2.exe",
+                          "memory_mb":  100.4,
+                          "cpu":  341
+                      },
+                      {
+                          "id":  46680,
+                          "name":  "wsl",
+                          "start_time":  "\/Date(1793551626245)\/",
+                          "path":  "C:\\Program Files\\WSL\\wsl.exe",
+                          "memory_mb":  0.61,
+                          "cpu":  339.90625
+                      }
+                  ]
+}
