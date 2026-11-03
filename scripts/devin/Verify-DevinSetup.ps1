@@ -48,16 +48,16 @@ if ($devinCli) {
     Log "Devin CLI: Not in PATH" 'WARN'
 }
 
-# 3. WSL Ubuntu-26.04
-$distro = 'Ubuntu-26.04'
+# 3. WSL Ubuntu-24.04
+$distro = 'Ubuntu-24.04'
 $ping = & wsl.exe -d $distro -- bash -c 'echo ok' 2>$null
 if ($ping -match 'ok') {
     $uptime = & wsl.exe -d $distro -- bash -c 'cat /proc/uptime' 2>$null
     $upSec = [double]($uptime -split '\s+')[0]
-    Add-Result 'WSL Ubuntu-26.04' 'OK' "Reachable, uptime: $([timespan]::FromSeconds($upSec))"
+    Add-Result 'WSL Ubuntu-24.04' 'OK' "Reachable, uptime: $([timespan]::FromSeconds($upSec))"
     Log "WSL: Reachable ($([timespan]::FromSeconds($upSec)))" 'OK'
 } else {
-    Add-Result 'WSL Ubuntu-26.04' 'FAIL' "Unreachable" "Run: wsl -d Ubuntu-26.04 --exec true"
+    Add-Result 'WSL Ubuntu-24.04' 'FAIL' "Unreachable" "Run: wsl -d Ubuntu-24.04 --exec true"
     Log "WSL: UNREACHABLE" 'FAIL'
 }
 

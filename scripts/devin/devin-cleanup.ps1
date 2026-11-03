@@ -14,7 +14,7 @@ param(
     [switch]$Force
 )
 
-$distro = 'Ubuntu-26.04'
+$distro = 'Ubuntu-24.04'
 $scriptRoot = $PSScriptRoot
 
 function Invoke-Wsl([string]$cmd) {

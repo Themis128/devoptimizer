@@ -21,7 +21,7 @@ function Log-Hook {
 Log-Hook "Devin CLI session started"
 
 # Quick WSL check
-$distro = 'Ubuntu-26.04'
+$distro = 'Ubuntu-24.04'
 $ping = & wsl.exe -d $distro -- bash -c 'echo ok' 2>$null
 $wslOk = $ping -match 'ok'
 

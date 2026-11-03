@@ -2,7 +2,7 @@
 # CATEGORY: maintenance
 <#
 .SYNOPSIS
-    Opt-in repair actions for Devin Desktop's WSL remote (devin-server in Ubuntu-26.04).
+    Opt-in repair actions for Devin Desktop's WSL remote (devin-server in Ubuntu-24.04).
 
 .DESCRIPTION
     Companion to Check-DevinHealth.ps1 (which detects problems and can repair a corrupt
@@ -68,7 +68,7 @@ param(
     [switch]$Force
 )
 
-$distro = 'Ubuntu-26.04'
+$distro = 'Ubuntu-24.04'
 
 function Invoke-Wsl([string]$cmd) {
     $out = & wsl.exe -d $distro -- bash -c $cmd 2>$null

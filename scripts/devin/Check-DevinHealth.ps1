@@ -6,7 +6,7 @@
 #>
 
 # Check-DevinHealth.ps1 - health check + repair for Devin Desktop's WSL remote
-# (devin-server in ~/.devin-server inside Ubuntu-26.04).
+# (devin-server in ~/.devin-server inside Ubuntu-24.04).
 #
 # Detects the three known failure classes from 2026-09:
 #   1. WSL distro down / unreachable              -> Devin cannot connect at all
@@ -20,7 +20,7 @@
 #          data, or settings. See memory: devin-desktop-install.
 param([switch]$Repair)
 
-$distro = 'Ubuntu-26.04'
+$distro = 'Ubuntu-24.04'
 $fail = @()
 $warn = @()
 

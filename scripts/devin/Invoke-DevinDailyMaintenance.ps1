@@ -35,7 +35,7 @@ param(
     [string]$ReportDir = 'D:\DevOptimizer\logs\devin-maintenance'
 )
 
-$distro = 'Ubuntu-26.04'
+$distro = 'Ubuntu-24.04'
 $cliPath = "$env:LOCALAPPDATA\Programs\Devin\bin\devin-desktop.cmd"
 $cacheDir = "$env:APPDATA\Devin\Cache"
 $hostLogsDir = "$env:APPDATA\Devin\logs"

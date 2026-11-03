@@ -21,11 +21,11 @@ function Log-Hook {
 Log-Hook "Tool: $ToolName"
 
 # Check WSL is reachable
-$distro = 'Ubuntu-26.04'
+$distro = 'Ubuntu-24.04'
 $ping = & wsl.exe -d $distro -- bash -c 'echo ok' 2>$null
 if ($ping -notmatch 'ok') {
     Log-Hook "BLOCK: WSL distro '$distro' unreachable"
-    Write-Output '{"decision": "block", "reason": "WSL distro unreachable. Run `wsl -d Ubuntu-26.04 --exec true` first."}'
+    Write-Output '{"decision": "block", "reason": "WSL distro unreachable. Run `wsl -d Ubuntu-24.04 --exec true` first."}'
     exit 2
 }
 

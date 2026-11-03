@@ -30,7 +30,7 @@ param(
     [string]$OutFile
 )
 
-$distro = 'Ubuntu-26.04'
+$distro = 'Ubuntu-24.04'
 
 function Invoke-Wsl([string]$cmd) {
     $out = & wsl.exe -d $distro -- bash -c $cmd 2>$null
