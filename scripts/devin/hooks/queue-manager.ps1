@@ -246,11 +246,11 @@ function Send-Next-Queued {
     
     # Execute the command via Devin CLI
     # Use `devin -p --permission-mode=dangerous --respect-workspace-trust=false -- <command>` (dangerous auto-approves all tools in non-interactive mode)
-    $cmd = "`"$devinCli`" -p --permission-mode=dangerous --respect-workspace-trust=false -- `"$($entry.command)`""
+    $devinArgs = @("-p", "--permission-mode=dangerous", "--respect-workspace-trust=false", "--", $entry.command)
     
     for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
         Write-Host "Attempt $attempt/$MaxRetries..." -ForegroundColor Cyan
-        $result = & cmd.exe /c $cmd 2>&1
+        $result = & $devinCli @devinArgs 2>&1
         $exitCode = $LASTEXITCODE
         
         if ($exitCode -eq 0) {
