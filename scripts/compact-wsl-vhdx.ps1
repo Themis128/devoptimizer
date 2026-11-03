@@ -33,7 +33,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 # --- Paths ------------------------------------------------------------------
 $dockerVhdx = "$env:LOCALAPPDATA\Docker\wsl\disk\docker_data.vhdx"
 $wslVhdxDir = "$env:LOCALAPPDATA\wsl"
-$wslDistro = 'Ubuntu-26.04'
+$wslDistro = 'Ubuntu-24.04'
 
 # Find WSL distro VHDX
 $wslVhdx = $null

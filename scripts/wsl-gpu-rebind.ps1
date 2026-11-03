@@ -27,14 +27,14 @@ Log 'wsl --shutdown'
 Start-Sleep -Seconds 15
 
 # 2. Prewarm the distro (same call the WSL-PreWarm task uses).
-Log 'prewarming Ubuntu-26.04'
-& wsl.exe -d Ubuntu-26.04 --exec true 2>&1 | ForEach-Object { Log $_ }
+Log 'prewarming Ubuntu-24.04'
+& wsl.exe -d Ubuntu-24.04 --exec true 2>&1 | ForEach-Object { Log $_ }
 Start-Sleep -Seconds 10
 
 # 3. Docker Desktop needs a moment to re-attach its WSL backend, then run
 #    the in-VM verifier (nvidia-smi + comfyui torch.cuda + recreate).
 Log 'running in-VM gpu verify'
-& wsl.exe -d Ubuntu-26.04 -e bash /home/tbaltzakis/cu130-slim/.devin/skills/windows-host-ops/scripts/wsl-gpu-verify.sh 2>&1 |
+& wsl.exe -d Ubuntu-24.04 -e bash /home/tbaltzakis/cu130-slim/.devin/skills/windows-host-ops/scripts/wsl-gpu-verify.sh 2>&1 |
     ForEach-Object { Log $_ }
 
 Log '=== WSL GPU rebind finished ==='

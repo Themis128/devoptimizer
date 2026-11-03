@@ -19,7 +19,7 @@
 
 [CmdletBinding()]
 param(
-    [string]$Distro           = 'Ubuntu-26.04',
+    [string]$Distro           = 'Ubuntu-24.04',
     [int]$ProbeTimeoutSec     = 20,
     [int]$DeepCheckEvery      = 3,        # deep-check every Nth probe (~15 min)
     [int]$T1After             = 2,        # container restart after N deep fails

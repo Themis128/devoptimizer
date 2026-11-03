@@ -14,7 +14,7 @@ $services = @('mautic','metabase','n8n','social-api','authentik','nextcloud','po
 $vm = Get-Process vmmemWSL -ErrorAction SilentlyContinue
 if (-not $vm) { Add-Content $logFile "$stamp WSL not running (skipped)"; exit 0 }
 
-& wsl.exe -d Ubuntu-26.04 -e bash -c 'command -v docker >/dev/null 2>&1'
+& wsl.exe -d Ubuntu-24.04 -e bash -c 'command -v docker >/dev/null 2>&1'
 if ($LASTEXITCODE -ne 0) {
     Add-Content $logFile "$stamp docker CLI absent in distro (Docker Desktop down?) - sweep skipped"
     exit 0
@@ -22,7 +22,7 @@ if ($LASTEXITCODE -ne 0) {
 
 $findings = 0
 foreach ($s in $services) {
-    $out = @(& wsl.exe -d Ubuntu-26.04 -e bash $script $s 2>&1)
+    $out = @(& wsl.exe -d Ubuntu-24.04 -e bash $script $s 2>&1)
     $out | ForEach-Object { Add-Content $logFile "$stamp [$s] $_" }
     $hits = ($out | Select-String -Pattern 'WARN:|FAIL:|DRIFT:').Count
     if ($hits -gt 0) {

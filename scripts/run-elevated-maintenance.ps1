@@ -56,7 +56,7 @@ do {
     $eng = docker version --format '{{.Server.Version}}' 2>$null
 } while (-not $eng -and (Get-Date) -lt $deadline)
 Log ("Docker engine after restart: {0}" -f $(if ($eng) { $eng } else { 'NOT UP (will check later)' }))
-$wslOk = wsl -d Ubuntu-26.04 -- echo wsl-ok 2>&1
+$wslOk = wsl -d Ubuntu-24.04 -- echo wsl-ok 2>&1
 Log ("WSL exec after restart: $wslOk")
 
 # --- 4. DISM component store cleanup (long) ---

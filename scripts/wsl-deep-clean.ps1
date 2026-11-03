@@ -8,7 +8,7 @@
 # WSL Ubuntu Deep Clean
 # Run this to thoroughly clean WSL Ubuntu environment
 
-$Distro = "Ubuntu-26.04"
+$Distro = "Ubuntu-24.04"
 Write-Host "=== WSL Deep Clean: $Distro ===" -ForegroundColor Cyan
 
 # Ensure distro is running

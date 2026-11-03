@@ -41,7 +41,7 @@ if ($swapLine -match '^Swap:\s+(\d+)\s+(\d+)\s+(\d+)') {
             # script previously only advised at 95%. Level 1 (pagecache only)
             # is non-destructive: dirty pages are synced first, cold cache
             # refills from disk on next touch.
-            wsl -d Ubuntu-26.04 -u root -- sh -c "sync; echo 1 > /proc/sys/vm/drop_caches" | Out-Null
+            wsl -d Ubuntu-24.04 -u root -- sh -c "sync; echo 1 > /proc/sys/vm/drop_caches" | Out-Null
             Add-Content -Path $logFile -Value "$stamp ACTION: swap ${pct}% - dropped guest page cache"
         }
         if ($pct -ge 95) {

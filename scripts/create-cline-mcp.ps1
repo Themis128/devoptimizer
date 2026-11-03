@@ -5,7 +5,7 @@
     Creates cline mcp.
 #>
 
-wsl -d Ubuntu-26.04 -e bash -c '
+wsl -d Ubuntu-24.04 -e bash -c '
 cat > ~/.vscode-server/data/User/globalStorage/saoudrizwan.claude-dev/cline_mcp_settings.json << "EOF"
 {
   "mcpServers": {

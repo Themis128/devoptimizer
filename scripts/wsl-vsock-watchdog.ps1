@@ -4,7 +4,7 @@
 # the distro still reports Running (vsock degradation under VM memory pressure,
 # observed 2026-11-01: 30+ queued wsl.exe, calls timing out for ~40 min).
 #
-# Probe: wsl -d Ubuntu-26.04 -e true with a hard 45s timeout, every 2 min via
+# Probe: wsl -d Ubuntu-24.04 -e true with a hard 45s timeout, every 2 min via
 # the WSL-Vsock-Watchdog scheduled task (user context, conhost --headless).
 # 5 consecutive probe failures (~10 min wedged) triggers the sanctioned
 # \DevOptimizer\WSL-GPU-Rebind task (shutdown -> prewarm -> GPU verify) rather
@@ -16,7 +16,7 @@
 
 $ErrorActionPreference = 'Continue'
 
-$distro          = 'Ubuntu-26.04'
+$distro          = 'Ubuntu-24.04'
 $threshold       = 5
 $probeTimeoutSec = 45
 $cooldownMin     = 25

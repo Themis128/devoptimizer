@@ -3,7 +3,7 @@
     Docker Desktop <-> WSL Ubuntu sync & heal (scheduled): recovers containers, WSL
     integration, and published-port proxies after either side restarts.
 .DESCRIPTION
-    Brings the combined Docker Desktop + Ubuntu-26.04 system back to a consistent state:
+    Brings the combined Docker Desktop + Ubuntu-24.04 system back to a consistent state:
       [1] Guards: skip without waking when the WSL VM is down; skip when the engine is
           unreachable (Docker Desktop autostart owns bringing it up).
       [2] WSL integration check: docker CLI inside the distro must reach the engine.
@@ -27,7 +27,7 @@ param(
     [string]$ProbePorts = '9390|/metrics',   # comma-separated port|path pairs
     [int]$BridgeWaitSeconds = 150,           # max time spent retrying exit-127 starts
     [int]$ProbeTimeoutSec = 8,
-    [string]$Distro = 'Ubuntu-26.04'
+    [string]$Distro = 'Ubuntu-24.04'
 )
 
 $ErrorActionPreference = 'SilentlyContinue'
@@ -190,7 +190,7 @@ foreach ($pair in ($ProbePorts -split ',')) {
     $wdir = $labels.'com.docker.compose.project.working_dir'
     if ($proj -and $svc -and $wdir) {
         Log "  restart insufficient - force-recreating compose service $proj/$svc (workdir $wdir)"
-        wsl -d Ubuntu-26.04 -- docker compose --project-directory $wdir -p $proj up -d --no-deps --force-recreate $svc 2>$null | Out-Null
+        wsl -d Ubuntu-24.04 -- docker compose --project-directory $wdir -p $proj up -d --no-deps --force-recreate $svc 2>$null | Out-Null
         $actions++
         Start-Sleep -Seconds 45
         $code = curl.exe -s -o NUL -w '%{http_code}' -m ($ProbeTimeoutSec * 2) ("http://localhost:{0}{1}" -f $port, $path)

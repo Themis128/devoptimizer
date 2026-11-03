@@ -41,7 +41,7 @@ if ($devinProc) {
 
 # --- 2. devin-server in WSL -------------------------------------------------
 Write-Out "[2/8] Checking devin-server in WSL..."
-$devinSrv = wsl.exe -d Ubuntu-26.04 -e sh -lc 'pgrep -fc "out/server-main.js" 2>/dev/null' 2>$null
+$devinSrv = wsl.exe -d Ubuntu-24.04 -e sh -lc 'pgrep -fc "out/server-main.js" 2>/dev/null' 2>$null
 if ("$devinSrv".Trim() -match '^[1-9]') {
     $warnings += "devin-server alive in WSL ($devinSrv processes). Container recreate won't touch it, but CLI may be affected."
     Write-Warn "  devin-server: RUNNING ($devinSrv processes)"

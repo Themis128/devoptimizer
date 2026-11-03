@@ -68,7 +68,7 @@ $engineUp = ($LASTEXITCODE -eq 0)
 
 # --- T2: soft pressure -> guest drop_caches ---------------------------------------
 if ($wslUp -and $availMB -lt $SoftThresholdMB -and ((LastAction 'lastDropCaches') -lt $now.AddMinutes(-$RateLimitMinutes))) {
-    wsl.exe -d Ubuntu-26.04 -u root -- sh -c "sync; echo 3 > /proc/sys/vm/drop_caches" 2>$null | Out-Null
+    wsl.exe -d Ubuntu-24.04 -u root -- sh -c "sync; echo 3 > /proc/sys/vm/drop_caches" 2>$null | Out-Null
     Note 1006 ("Available {0} MB < {1} - guest drop_caches applied" -f $availMB, $SoftThresholdMB)
     SaveState @{ lastDropCaches = $now }
     Start-Sleep -Seconds 10

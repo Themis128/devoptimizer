@@ -7,7 +7,7 @@
 $overridePath = '/home/tbaltzakis/cu130-slim/docker-compose.override.yml'
 
 # Read the file via WSL
-$content = wsl -d Ubuntu-26.04 -- bash -c "cat '$overridePath'"
+$content = wsl -d Ubuntu-24.04 -- bash -c "cat '$overridePath'"
 
 # Containers to convert to restart: no
 $containersToConvert = @(
@@ -49,7 +49,7 @@ foreach ($line in $lines) {
 
 # Write back via WSL
 $newContent = $output -join "`n"
-wsl -d Ubuntu-26.04 -- bash -c "cat > '$overridePath' << 'EOF'
+wsl -d Ubuntu-24.04 -- bash -c "cat > '$overridePath' << 'EOF'
 $newContent
 EOF"
 

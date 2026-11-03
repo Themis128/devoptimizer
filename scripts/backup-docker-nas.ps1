@@ -150,7 +150,7 @@ if ($monthly) {
 } else {
     $cmd = "tar czf - -C /home/tbaltzakis cu130-slim/docker-compose.yml cu130-slim/.env cloudless.gr 2>/dev/null"
 }
-& wsl.exe -d Ubuntu-26.04 -e sh -lc $cmd > $wslOut 2>$null
+& wsl.exe -d Ubuntu-24.04 -e sh -lc $cmd > $wslOut 2>$null
 if ((Test-Path $wslOut) -and ((Get-Item $wslOut).Length -gt 1KB)) { $files += $wslOut; Log ("wsl layer OK: {0:N1} MB" -f ((Get-Item $wslOut).Length/1MB)) }
 else { NoteFail 'wsl layer tar empty' }
 

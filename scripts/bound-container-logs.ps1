@@ -7,7 +7,7 @@
     the 40 existing containers still write unbounded json-file logs. This script
     snapshots which containers have restart=no (the deliberate trims), groups
     unbounded containers by compose project, and with -Apply runs
-    'docker compose up -d --force-recreate' per project from inside Ubuntu-26.04
+    'docker compose up -d --force-recreate' per project from inside Ubuntu-24.04
     (the compose files live there), then re-applies restart=no and stops those
     trimmed containers again. Gates: defers while Devin.exe or devin-server is
     alive - recreate bounces the stack Devin works against.
@@ -18,7 +18,7 @@
 param(
     [switch]$Apply,
     [switch]$Force,
-    [string]$Distro = 'Ubuntu-26.04'
+    [string]$Distro = 'Ubuntu-24.04'
 )
 $ErrorActionPreference = 'SilentlyContinue'
 $logFile = 'D:\DevOptimizer\logs\bound-container-logs.log'

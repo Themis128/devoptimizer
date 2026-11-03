@@ -14,9 +14,9 @@
 # DEVIN PROTECTION (the whole point): never touches WSL while Devin could be
 # using it. Gates, checked BEFORE anything is stopped:
 #   1. Any Devin.exe process  -> DEFERRED (exit 2). Retried by Task Scheduler.
-#   2. devin-server alive in Ubuntu-26.04 -> DEFERRED (Devin's remote-auto-shutdown
+#   2. devin-server alive in Ubuntu-24.04 -> DEFERRED (Devin's remote-auto-shutdown
 #      clears it shortly after the app closes, unblocking a later run).
-# UNC folders (\\wsl.localhost\Ubuntu-26.04\home\...) are only served while the VM
+# UNC folders (\\wsl.localhost\Ubuntu-24.04\home\...) are only served while the VM
 # runs, so gating on the app + server means an active session can never be killed.
 #
 # Robust unlock (fixes the 0x80070020 file-in-use failure of 2026-09-27):
@@ -27,7 +27,7 @@
 # since the last successful compaction (state: logs\vhdx-compaction-state.json).
 #
 # Restart after: Docker Desktop (containers return via restart policies) and the
-# Ubuntu-26.04 distro (UNC paths resolve again immediately).
+# Ubuntu-24.04 distro (UNC paths resolve again immediately).
 #
 # Exit codes: 0 = compacted or skipped-by-threshold, 1 = failure (system restored),
 # 2 = deferred (Devin active). Pass -AsLibrary to reuse from another script
@@ -39,7 +39,7 @@ param(
     [switch]$AsLibrary
 )
 
-$distro = 'Ubuntu-26.04'
+$distro = 'Ubuntu-24.04'
 $dockerDesktopExe = "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe"
 
 function Invoke-Wsl([string]$cmd) {
@@ -87,7 +87,7 @@ function Invoke-VhdxCompactionMain {
     $server = Invoke-Wsl "pgrep -f 'server-mai[n]' || true"
     if ($server -match '\d') {
         $result.status = 'deferred'
-        & $log '[DEFERRED] devin-server still alive in Ubuntu-26.04 - WSL untouched. Its auto-shutdown clears this gate shortly after Devin closes.'
+        & $log '[DEFERRED] devin-server still alive in Ubuntu-24.04 - WSL untouched. Its auto-shutdown clears this gate shortly after Devin closes.'
         return $result
     }
     & $log '[ OK ] Devin gates passed (no app, no server)'
@@ -177,7 +177,7 @@ function Invoke-VhdxCompactionMain {
     $state | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $StatePath -Encoding UTF8
 
     # --- Restart WSL + Docker (UNC paths and containers come back) ---
-    & $log '[ .. ] restarting Ubuntu-26.04 and Docker Desktop...'
+    & $log '[ .. ] restarting Ubuntu-24.04 and Docker Desktop...'
     [void](Invoke-Wsl 'echo ok')
     if (Test-Path $dockerDesktopExe) { Start-Process $dockerDesktopExe }
     & $log ("[ OK ] done: {0} vhdx compacted, {1} GB freed. Devin will reconnect cleanly on next open." -f $compacted, $freedTotal)

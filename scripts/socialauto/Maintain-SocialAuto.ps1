@@ -1,5 +1,5 @@
 # Maintain-SocialAuto.ps1 - zero-downtime maintenance for the socialauto stack
-# (cu130-slim compose + Docker Model Runner inside WSL Ubuntu-26.04)
+# (cu130-slim compose + Docker Model Runner inside WSL Ubuntu-24.04)
 # CATEGORY: maintenance
 <#
 .SYNOPSIS
@@ -60,7 +60,7 @@ param(
     [string]$LogDir = 'D:\DevOptimizer\logs'
 )
 
-$distro = 'Ubuntu-26.04'
+$distro = 'Ubuntu-24.04'
 $ErrorActionPreference = 'Continue'
 
 function Invoke-Wsl([string]$cmd, [switch]$AsRoot) {

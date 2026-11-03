@@ -7,7 +7,7 @@
 
 # Clean VS Code extensions in WSL
 # CATEGORY: cleanup
-wsl -d Ubuntu-26.04 -e bash -c '
+wsl -d Ubuntu-24.04 -e bash -c '
 rm -rf "/home/tbaltzakis/.vscode-server/extensions/bradlc.vscode-tailwindcss-0.16.0"
 rm -rf "/home/tbaltzakis/.vscode-server/extensions/christian-kohler.path-intellisense-2.10.0"
 rm -rf "/home/tbaltzakis/.vscode-server/extensions/dbaeumer.vscode-eslint-3.0.34"

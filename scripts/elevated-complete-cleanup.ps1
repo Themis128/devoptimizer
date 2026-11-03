@@ -33,7 +33,7 @@ function GB { param($b) [math]::Round($b/1GB, 2) }
 function MB { param($b) [math]::Round($b/1MB, 1) }
 
 # ================================================================
-# PART 1: VHDX COMPACTION (WSL Ubuntu-26.04)
+# PART 1: VHDX COMPACTION (WSL Ubuntu-24.04)
 # ================================================================
 if (-not $SkipVhdx) {
     Write-Host "`n=== PART 1: WSL/DOCKER VHDX COMPACTION ===" -ForegroundColor Magenta

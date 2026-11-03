@@ -2,7 +2,7 @@
 .SYNOPSIS
     WSL Ubuntu garbage sweep (daily 03:00 scheduled): apt cache, journal, uv cache, gh cache.
 .DESCRIPTION
-    Cleans inside Ubuntu-26.04 as root: apt archive cache, systemd journal vacuum to 100 MB,
+    Cleans inside Ubuntu-24.04 as root: apt archive cache, systemd journal vacuum to 100 MB,
     tbaltzakis uv package cache, gh cache files older than 30 days. Never touches Docker
     images/containers/volumes (own lineage is not garbage) or any user data outside caches.
     Host-side guard: if the WSL VM is not running, log and exit WITHOUT invoking wsl.exe
@@ -21,7 +21,7 @@ if (-not $vm) {
     exit 0
 }
 
-$before = (wsl.exe -d Ubuntu-26.04 -u root -- sh -c "df -B1 / | tail -1 | awk '{print `$4}'") -replace "`r", ""
+$before = (wsl.exe -d Ubuntu-24.04 -u root -- sh -c "df -B1 / | tail -1 | awk '{print `$4}'") -replace "`r", ""
 
 $steps = @(
     @{ Name = 'apt-get clean';          Cmd = 'apt-get clean -y' },
@@ -32,11 +32,11 @@ $steps = @(
 
 $results = @()
 foreach ($s in $steps) {
-    $out = (wsl.exe -d Ubuntu-26.04 -u root -- bash -c $s.Cmd) -replace "`r", "" | Select-Object -Last 1
+    $out = (wsl.exe -d Ubuntu-24.04 -u root -- bash -c $s.Cmd) -replace "`r", "" | Select-Object -Last 1
     $results += ("  [{0}] {1}" -f $s.Name, $out)
 }
 
-$after = (wsl.exe -d Ubuntu-26.04 -u root -- sh -c "df -B1 / | tail -1 | awk '{print `$4}'") -replace "`r", ""
+$after = (wsl.exe -d Ubuntu-24.04 -u root -- sh -c "df -B1 / | tail -1 | awk '{print `$4}'") -replace "`r", ""
 $freedMB = 0
 try { $freedMB = [math]::Round(([long]$after - [long]$before) / 1MB, 1) } catch { }
 
