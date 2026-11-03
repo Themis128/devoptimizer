@@ -60,3 +60,4 @@ app/DevOptimizer.App.Tests/obj/
 app/launcher/bin/
 app/launcher/obj/
 config/discovered-scripts.json
+.playwright-mcp/
