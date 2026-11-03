@@ -25,7 +25,12 @@ $fail = @()
 $warn = @()
 
 function Invoke-Wsl([string]$cmd) {
+    # Use bash -c for commands that need shell features, --exec for simple commands
     $out = & wsl.exe -d $distro -- bash -c $cmd 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        # Try with --exec for simple commands
+        $out = & wsl.exe -d $distro --exec $cmd 2>$null
+    }
     $joined = (@($out) -join "`n") -replace "`0", ''
     # wsl.exe can deliver multi-line output as ONE element with embedded
     # newlines; split so callers always get real lines.
@@ -52,7 +57,9 @@ try {
 # 3. devin-server process + current commit
 $procs = Invoke-Wsl "pgrep -af 'devin acp' || true"
 $commit = $null
-if ($procs -match '\.devin-server/bin/([a-f0-9]{40})/') {
+# Filter out the bash -c pgrep command itself (PID matching)
+$serverProcs = $procs | Where-Object { $_ -match '\.devin-server/bin/[a-f0-9]{40}/' }
+if ($serverProcs -match '\.devin-server/bin/([a-f0-9]{40})/') {
     $commit = $Matches[1]
     Write-Host "[ OK ] devin-server running (commit $commit)" -ForegroundColor Green
 } else {
