@@ -50,7 +50,7 @@ try {
 } catch { $warn += "could not read WSL uptime" }
 
 # 3. devin-server process + current commit
-$procs = Invoke-Wsl "pgrep -af 'server-mai[n]' || true"
+$procs = Invoke-Wsl "pgrep -af 'devin acp' || true"
 $commit = $null
 if ($procs -match '\.devin-server/bin/([a-f0-9]{40})/') {
     $commit = $Matches[1]
@@ -71,7 +71,7 @@ if ($commit) {
         $fail += "bundle corrupt: $commit"
         if ($Repair) {
             Write-Host "[FIX ] killing server and deleting corrupt commit dir..." -ForegroundColor Yellow
-            [void](Invoke-Wsl "pkill -f 'server-mai[n]'; rm -rf `$HOME/.devin-server/bin/$commit; echo repaired")
+            [void](Invoke-Wsl "pkill -f 'devin acp'; rm -rf `$HOME/.devin-server/bin/$commit; echo repaired")
             Write-Host "[FIX ] done. In Devin: click 'Reload Window' (or reopen) - a fresh bundle will download (~700 MB)." -ForegroundColor Yellow
             exit 2
         } else {
