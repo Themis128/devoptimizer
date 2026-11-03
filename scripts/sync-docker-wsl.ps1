@@ -176,9 +176,33 @@ foreach ($pair in ($ProbePorts -split ',')) {
     $code = curl.exe -s -o NUL -w '%{http_code}' -m ($ProbeTimeoutSec * 2) ("http://localhost:{0}{1}" -f $port, $path)
     if ("$code" -match '^2|^3') {
         Log "  recovered: $port$path -> $code after restarting $publisher"
+        continue
+    }
+    # docker restart cannot heal a stale Docker Desktop bind/port registration.
+    # Proven remedy (2026-11-02): force-recreate the compose service via the
+    # in-distro CLI so DD builds a fresh bridge entry. Labels carry project,
+    # service, and working dir, so no paths are hardcoded here.
+    $labelsJson = docker inspect --format '{{json .Config.Labels}}' $publisher 2>$null
+    $labels = $null
+    try { $labels = $labelsJson | ConvertFrom-Json } catch { }
+    $proj = $labels.'com.docker.compose.project'
+    $svc = $labels.'com.docker.compose.service'
+    $wdir = $labels.'com.docker.compose.project.working_dir'
+    if ($proj -and $svc -and $wdir) {
+        Log "  restart insufficient - force-recreating compose service $proj/$svc (workdir $wdir)"
+        wsl -d Ubuntu-26.04 -- docker compose --project-directory $wdir -p $proj up -d --no-deps --force-recreate $svc 2>$null | Out-Null
+        $actions++
+        Start-Sleep -Seconds 45
+        $code = curl.exe -s -o NUL -w '%{http_code}' -m ($ProbeTimeoutSec * 2) ("http://localhost:{0}{1}" -f $port, $path)
+        if ("$code" -match '^2|^3') {
+            Log "  recovered: $port$path -> $code after force-recreate"
+        } else {
+            Log "  STILL BROKEN: $port$path -> $code after restart + force-recreate of $publisher - needs manual check"
+            Note-Event "port $port still broken after restart and force-recreate of $publisher"
+        }
     } else {
-        Log "  STILL BROKEN: $port$path -> $code after restarting $publisher - needs manual check"
-        Note-Event "port $port still broken after restarting $publisher"
+        Log "  STILL BROKEN: $port$path -> $code after restarting $publisher (no compose labels - cannot force-recreate) - needs manual check"
+        Note-Event "port $port still broken after restarting $publisher (no compose labels)"
     }
 }
 
