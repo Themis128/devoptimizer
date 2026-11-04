@@ -375,6 +375,7 @@ if ($raw) { ($raw | ConvertFrom-Json).PSObject.Properties | ForEach-Object { $pa
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
 "DevOptimizer run: __NAME__   |   started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File -LiteralPath $outFile -Encoding UTF8
 $ok = $true
+$LASTEXITCODE = 0   # pre-clear: a piped & child's `exit N` lands here; success leaves 0
 try {
     & (Join-Path '__ROOT__' 'Execute-Command.ps1') -Command '__NAME__' -Parameters $params__DRY__ *>&1 |
         ForEach-Object { $_.ToString() } | Out-File -LiteralPath $outFile -Append -Encoding UTF8
@@ -385,6 +386,11 @@ try {
 }
 $sw.Stop()
 $lastCode = $LASTEXITCODE
+# exit-code-aware success (2026-11-04 Phase E finding): Execute-Command `exit 1`s on
+# unknown command / missing file / missing required param - the piped call SURVIVES with
+# $LASTEXITCODE=N and no exception, so non-zero code must flip $ok or the app reports
+# a failed run as "done" green.
+if ($lastCode -ne 0) { $ok = $false }
 "" | Out-File -LiteralPath $outFile -Append -Encoding UTF8
 "---- finished in $([int]$sw.Elapsed.TotalSeconds) s (exit code: $lastCode) ----" | Out-File -LiteralPath $outFile -Append -Encoding UTF8
 "exitOk=$ok code=$lastCode" | Out-File -LiteralPath $doneFile -Encoding ASCII

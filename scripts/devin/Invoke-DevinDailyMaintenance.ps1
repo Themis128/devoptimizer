@@ -18,13 +18,17 @@
 #   4. Remove superseded/corrupt server bundle commit dirs (~/.devin-server/bin)
 #      - the recurring Sep-21/25/26 corrupt-bundle failure. Deleting a corrupt
 #        commit dir is the verified repair: next app launch re-downloads fresh.
-#   5. Run Check-DevinHealth.ps1 for the standard verdict, captured in the log.
-#   6. Write <ReportDir>\latest.json so the Hub / user can inspect the last run.
+#   5. VACUUM the CLI sessions.db when Devin is closed and the SQLite freelist
+#      holds >= $VacuumThresholdMB reclaimable (2026-11-04: 1.6 GiB db, 86%
+#      freelist -> ~220 MiB after VACUUM). Read-only probe even while running.
+#   6. Run Check-DevinHealth.ps1 for the standard verdict, captured in the log.
+#   7. Write <ReportDir>\latest.json so the Hub / user can inspect the last run.
 #
-# Safety: bundle deletion is the ONLY gated operation - it is DEFERRED while
-# Devin.exe runs. The cache sweep skips locked files per-item (proven safe
-# live); log prunes are age-gated. Never touched: ~/.devin-server/extensions,
-# ~/.devin-server/data, .installation_lock, the live intact commit dir.
+# Safety: bundle deletion AND sessions.db VACUUM are GATED operations - both
+# are DEFERRED while Devin.exe runs. The cache sweep skips locked files
+# per-item (proven safe live); log prunes are age-gated. Never touched:
+# ~/.devin-server/extensions, ~/.devin-server/data, .installation_lock, the
+# live intact commit dir.
 #
 # Exit code: 0 = completed (warnings/deferrals included), 1 = WSL unreachable,
 # 2 = performed a repair (corrupt commit dir removed; ~700 MB re-download on
@@ -32,6 +36,7 @@
 param(
     [int]$LogRetentionDays = 14,
     [int]$ReportRetentionDays = 30,
+    [int]$VacuumThresholdMB = 256,
     [string]$ReportDir = 'D:\DevOptimizer\logs\devin-maintenance'
 )
 
@@ -196,11 +201,74 @@ if (-not $liveCommit -and $binDirs.Count -gt 0) {
     }
 }
 
-# --- 6. Standard health verdict (captured into the transcript) ---------------
+# --- 6. sessions.db VACUUM: reclaim SQLite freelist (Devin-closed gated) -----
+# Probe is read-only (safe while Devin runs); the VACUUM itself only fires when
+# the app is closed AND the freelist holds >= $VacuumThresholdMB reclaimable.
+# The python helper is emitted at runtime (no repo file -> no registry churn).
+$sessionsDb = "$env:APPDATA\devin\cli\sessions.db"
+$py = (Get-Command python -ErrorAction SilentlyContinue).Source
+$vacuumHelper = Join-Path $ReportDir 'vacuum-sessions.py'
+if (-not $py -or -not (Test-Path -LiteralPath $sessionsDb)) {
+    Add-Step 'sessions-db-vacuum' 'SKIP' "python or $sessionsDb unavailable - skipped"
+} else {
+    @'
+import os, sys, sqlite3
+
+DB = os.path.expandvars(r"%APPDATA%\\devin\\cli\\sessions.db")
+
+def probe():
+    con = sqlite3.connect("file:{}?mode=ro".format(DB), uri=True)
+    cur = con.cursor()
+    page_size = cur.execute("PRAGMA page_size").fetchone()[0]
+    page_count = cur.execute("PRAGMA page_count").fetchone()[0]
+    freelist = cur.execute("PRAGMA freelist_count").fetchone()[0]
+    con.close()
+    return page_count * page_size, freelist * page_size
+
+def vacuum():
+    before = os.path.getsize(DB)
+    con = sqlite3.connect(DB)
+    con.execute("VACUUM")
+    con.close()
+    after = os.path.getsize(DB)
+    return before, after
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--vacuum":
+        before, after = vacuum()
+        print("VACUUMED {} -> {} bytes".format(before, after))
+    else:
+        total, free = probe()
+        print("PROBE total={} free={}".format(total, free))
+'@ | Set-Content -LiteralPath $vacuumHelper -Encoding ASCII
+
+    $probeRaw = & $py $vacuumHelper 2>&1 | Select-Object -Last 1
+    if ($probeRaw -match 'PROBE total=(\d+) free=(\d+)') {
+        $totalBytes = [long]$Matches[1]; $freeBytes = [long]$Matches[2]
+        $freeMB = [int]($freeBytes / 1MB)
+        if ($script:appRunning) {
+            Add-Step 'sessions-db-vacuum' 'DEFER' ("app running; {0} MiB db, {1} MiB freelist reclaimable - VACUUM deferred until Devin is closed" -f ($totalBytes / 1MB), $freeMB)
+        } elseif ($freeMB -lt $VacuumThresholdMB) {
+            Add-Step 'sessions-db-vacuum' 'SKIP' ("{0} MiB freelist < {1} MiB threshold - not worth compacting" -f $freeMB, $VacuumThresholdMB)
+        } else {
+            $vacRaw = & $py $vacuumHelper --vacuum 2>&1 | Select-Object -Last 1
+            if ($vacRaw -match 'VACUUMED (\d+) -> (\d+)') {
+                $before = [long]$Matches[1]; $after = [long]$Matches[2]
+                Add-Step 'sessions-db-vacuum' 'OK' ("{0:N0} -> {1:N0} bytes ({2:N0} MiB reclaimed)" -f $before, $after, (($before - $after) / 1MB))
+            } else {
+                Add-Step 'sessions-db-vacuum' 'WARN' "vacuum output not parseable: $vacRaw"
+            }
+        }
+    } else {
+        Add-Step 'sessions-db-vacuum' 'WARN' "probe output not parseable: $probeRaw"
+    }
+}
+
+# --- 7. Standard health verdict (captured into the transcript) ---------------
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $healthScript
 $script:healthExit = $LASTEXITCODE
 
-# --- 7. Report + retention ---------------------------------------------------
+# --- 8. Report + retention ---------------------------------------------------
 $stepSummary = ($script:steps | ForEach-Object { "$($_.name)=$($_.status)" }) -join '; '
 switch ($script:finalExit) {
     0 { Write-MaintenanceEvent 1000 'Information' "Devin daily maintenance OK (Devin running: $script:appRunning). Steps: $stepSummary. Health exit: $script:healthExit." }

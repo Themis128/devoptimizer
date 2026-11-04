@@ -21,8 +21,11 @@ if ($Remove) {
     return
 }
 
-$action = New-ScheduledTaskAction -Execute 'powershell.exe' `
-    -Argument '-NoProfile -ExecutionPolicy Bypass -File "D:\DevOptimizer\scripts\devin\Invoke-DevinDailyMaintenance.ps1"' `
+# conhost --headless wrapper = the hub's popup-suppression pattern (same shape as
+# Devin-Session-Manager / Devin-Weekly-Restart). Do NOT put --headless on
+# powershell.exe itself: it only parses conhost's flag set and dies instantly.
+$action = New-ScheduledTaskAction -Execute 'conhost.exe' `
+    -Argument '--headless powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -File "D:\DevOptimizer\scripts\devin\Invoke-DevinDailyMaintenance.ps1"' `
     -WorkingDirectory 'D:\DevOptimizer'
 $trigger = New-ScheduledTaskTrigger -Daily -At '04:30'
 $settings = New-ScheduledTaskSettingsSet -WakeToRun -StartWhenAvailable `
