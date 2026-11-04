@@ -1,0 +1,6 @@
+D:\DevOptimizer\JsonValidator\obj\Release\net8.0\JsonValidator.csproj.AssemblyReference.cache
+D:\DevOptimizer\JsonValidator\obj\Release\net8.0\JsonValidator.GeneratedMSBuildEditorConfig.editorconfig
+D:\DevOptimizer\JsonValidator\obj\Release\net8.0\JsonValidator.AssemblyInfoInputs.cache
+D:\DevOptimizer\JsonValidator\obj\Release\net8.0\JsonValidator.AssemblyInfo.cs
+D:\DevOptimizer\JsonValidator\obj\Release\net8.0\JsonValidator.csproj.CoreCompileInputs.cache
+D:\DevOptimizer\JsonValidator\obj\Release\net8.0\JsonValidator.sourcelink.json

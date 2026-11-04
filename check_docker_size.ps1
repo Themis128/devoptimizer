@@ -1,0 +1,1 @@
+Get-Item 'C:\Users\tbaltzakis\AppData\Local\Docker\wsl\disk\docker_data.vhdx' | Select-Object FullName, @{Name='SizeGB';Expression={[math]::Round($_.Length/1GB,2)}}

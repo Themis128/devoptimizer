@@ -32,17 +32,13 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 # --- Paths ------------------------------------------------------------------
 $dockerVhdx = "$env:LOCALAPPDATA\Docker\wsl\disk\docker_data.vhdx"
-$wslVhdxDir = "$env:LOCALAPPDATA\wsl"
 $wslDistro = 'Ubuntu-24.04'
+$wslVhdxPath = 'E:\WSL\Ubuntu-24.04\ext4.vhdx'
 
 # Find WSL distro VHDX
 $wslVhdx = $null
-if (Test-Path $wslVhdxDir) {
-    $dirs = Get-ChildItem $wslVhdxDir -Directory -ErrorAction SilentlyContinue
-    foreach ($d in $dirs) {
-        $vhdx = Join-Path $d.FullName 'ext4.vhdx'
-        if (Test-Path $vhdx) { $wslVhdx = $vhdx; break }
-    }
+if (Test-Path $wslVhdxPath) {
+    $wslVhdx = $wslVhdxPath
 }
 
 Write-Out "=== WSL VHDX Compaction Tool ==="
@@ -103,23 +99,27 @@ if (-not (Wait-ProcessExit 'vmmemWSL' 60)) {
 }
 
 # --- Step 2: Shutdown WSL ---------------------------------------------------
-Write-Out "[2/6] Shutting down WSL ($wslDistro)..."
-wsl.exe --terminate $wslDistro 2>$null | Out-Null
-Start-Sleep -Seconds 3
-wsl.exe --shutdown 2>$null | Out-Null
-Start-Sleep -Seconds 5
+if (-not $SkipWSL) {
+    Write-Out "[2/6] Shutting down WSL ($wslDistro)..."
+    wsl.exe --terminate $wslDistro 2>$null | Out-Null
+    Start-Sleep -Seconds 3
+    wsl.exe --shutdown 2>$null | Out-Null
+    Start-Sleep -Seconds 5
 
-# Verify WSL is down
-$attempts = 0
-while ((Get-Process vmmemWSL -ErrorAction SilentlyContinue) -and $attempts -lt 30) {
-    Start-Sleep -Seconds 2
-    $attempts++
+    # Verify WSL is down
+    $attempts = 0
+    while ((Get-Process vmmemWSL -ErrorAction SilentlyContinue) -and $attempts -lt 30) {
+        Start-Sleep -Seconds 2
+        $attempts++
+    }
+    if (Get-Process vmmemWSL -ErrorAction SilentlyContinue) {
+        Write-Err "WSL did not shut down completely (vmmemWSL still running)"
+        exit 1
+    }
+    Write-Out "WSL shut down confirmed"
+} else {
+    Write-Out "[2/6] Skipping WSL shutdown (SkipWSL)"
 }
-if (Get-Process vmmemWSL -ErrorAction SilentlyContinue) {
-    Write-Err "WSL did not shut down completely (vmmemWSL still running)"
-    exit 1
-}
-Write-Out "WSL shut down confirmed"
 
 # --- Step 3: Compact docker_data.vhdx ---------------------------------------
 if ((-not $SkipDocker) -and (Test-Path $dockerVhdx)) {

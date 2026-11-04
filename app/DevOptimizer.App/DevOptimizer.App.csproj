@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.19041</TargetFramework>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -15,9 +15,10 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageReference Include="WinUIEx" Version="3.1.0" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.Runtime" Version="1.8.250907003" />
+    <PackageReference Include="WinUIEx" Version="2.9.3" />
     <PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
-    <PackageReference Include="MaterialDesignColors" Version="3.1.0" />
+    <PackageReference Include="MaterialDesignColors" Version="5.2.1" />
   </ItemGroup>
 
   <ItemGroup>

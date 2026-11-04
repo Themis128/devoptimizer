@@ -1,0 +1,1 @@
+Get-Item 'E:\WSL\Ubuntu-24.04\ext4.vhdx' | Select-Object FullName, @{Name='SizeGB';Expression={[math]::Round($_.Length/1GB,2)}}

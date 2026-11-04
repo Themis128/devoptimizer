@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("JsonValidator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7d0a38037c0bcc8f5a4b30ac58cad04ebfa3e72b")]
 [assembly: System.Reflection.AssemblyProductAttribute("JsonValidator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("JsonValidator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,0 +1,1 @@
+Get-ChildItem 'C:\Users\tbaltzakis\AppData\Local\Packages' -Recurse -Filter '*.vhdx' -ErrorAction SilentlyContinue | Select-Object FullName, @{Name='SizeGB';Expression={[math]::Round($_.Length/1GB,2)}}

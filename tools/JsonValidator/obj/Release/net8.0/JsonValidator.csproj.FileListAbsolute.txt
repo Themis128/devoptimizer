@@ -18,3 +18,4 @@ D:\DevOptimizer\tools\JsonValidator\obj\Release\net8.0\refint\JsonValidator.dll
 D:\DevOptimizer\tools\JsonValidator\obj\Release\net8.0\JsonValidator.pdb
 D:\DevOptimizer\tools\JsonValidator\obj\Release\net8.0\JsonValidator.genruntimeconfig.cache
 D:\DevOptimizer\tools\JsonValidator\obj\Release\net8.0\ref\JsonValidator.dll
+D:\DevOptimizer\tools\JsonValidator\obj\Release\net8.0\JsonValidator.sourcelink.json

@@ -19,6 +19,9 @@
         "originalTargetFrameworks": [
           "net8.0"
         ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
@@ -61,7 +64,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.424/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.427/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

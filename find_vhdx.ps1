@@ -1,0 +1,1 @@
+Get-ChildItem "C:\Users\tbaltzakis\AppData\Local\Packages" -Directory | Where-Object {$_.Name -like "Canonical*"} | Select-Object FullName

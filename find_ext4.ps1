@@ -1,0 +1,1 @@
+Get-ChildItem 'C:\Users' -Recurse -Filter 'ext4.vhdx' -ErrorAction SilentlyContinue | Select-Object FullName, @{Name='SizeGB';Expression={[math]::Round($_.Length/1GB,2)}}
