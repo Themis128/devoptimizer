@@ -79,7 +79,7 @@ The skill will:
 ## Customization
 
 The skill can be customized by modifying:
-- WSL distribution name (default: Ubuntu-26.04)
+- WSL distribution name (default: Ubuntu-24.04)
 - Log file patterns to clean
 - Temporary file age thresholds
 - Exclusion lists for Devin protection

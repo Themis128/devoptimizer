@@ -18,8 +18,8 @@ This skill automates safe system maintenance workflows for DevOptimizer environm
 ./scripts/Execute-Command.ps1 -ScriptPath scripts/win11-safe-cleanup.ps1 -RunNow
 
 # 2. WSL cleanup (stopped containers, temp files)
-wsl.exe -d Ubuntu-26.04 docker container prune -f
-wsl.exe -d Ubuntu-26.04 find /tmp /var/tmp -type f -mtime +1 -delete 2>/dev/null || true
+wsl.exe -d Ubuntu-24.04 docker container prune -f
+wsl.exe -d Ubuntu-24.04 find /tmp /var/tmp -type f -mtime +1 -delete 2>/dev/null || true
 
 # 3. Windows log cleanup (user-specific logs)
 Remove-Item -Path "$HOME/.aws/amazonq/lspLog.log" -ErrorAction SilentlyContinue
@@ -125,7 +125,7 @@ All maintenance actions logged to:
 
 Requires:
 - PowerShell 5.1+
-- WSL2 with Ubuntu-26.04 (configurable)
+- WSL2 with Ubuntu-24.04 (configurable)
 - Docker Desktop or Docker Engine
 - DevOptimizer script hub (Check-Health.ps1, win11-safe-cleanup.ps1, etc.)
 - Standard Windows utilities (Remove-Item, wsl.exe, docker)

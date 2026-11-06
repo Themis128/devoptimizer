@@ -11,8 +11,8 @@ Write-Host "Actions: User temp cleanup, package manager cache clear, Docker imag
 Write-Host ""
 
 Write-Host "Step 2: WSL Cleanup" -ForegroundColor Yellow
-Write-Host "Command: wsl.exe -d Ubuntu-26.04 docker container prune -f"
-Write-Host "Command: wsl.exe -d Ubuntu-26.04 find /tmp /var/tmp -type f -mtime +1 -delete 2>/dev/null || true"
+Write-Host "Command: wsl.exe -d Ubuntu-24.04 docker container prune -f"
+Write-Host "Command: wsl.exe -d Ubuntu-24.04 find /tmp /var/tmp -type f -mtime +1 -delete 2>/dev/null || true"
 Write-Host "Actions: Remove stopped containers, clean temporary files"
 Write-Host ""
 

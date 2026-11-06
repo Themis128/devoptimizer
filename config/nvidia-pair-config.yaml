@@ -46,6 +46,6 @@ Cline:
 
 ClusterIntent:                # optional future nodes, paired via PIN
   - Windows-laptop (this machine, RTX 3070 Laptop 8GB)
-  # - WSL Ubuntu-26.04: same physical GPU - no VRAM gain; only pair if running
+  # - WSL Ubuntu-24.04: same physical GPU - no VRAM gain; only pair if running
   #   PAIR in the distro for Linux-side clients (service-binaries-linux-x64.zip)
   # - Other LAN machines running PAIR appear under Nodes and pair via PIN
