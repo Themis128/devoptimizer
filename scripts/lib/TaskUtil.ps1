@@ -50,21 +50,21 @@ function Get-DevOptTrigger {
         [Parameter(ParameterSetName='Logon')]
         [switch]$AtLogon,
         [Parameter(ParameterSetName='Logon')]
-        [int]$RepetitionMinutes = 0,
+        [int]$LogonRepetitionMinutes = 0,
         [Parameter(ParameterSetName='Logon')]
-        [int]$RepetitionDurationHours = 24,
+        [int]$LogonRepetitionDurationHours = 24,
         [Parameter(ParameterSetName='Once')]
-        [datetime]$At,
+        [datetime]$OnceAt,
         [Parameter(ParameterSetName='Once')]
-        [int]$RepetitionMinutes = 0,
+        [int]$OnceRepetitionMinutes = 0,
         [Parameter(ParameterSetName='Once')]
-        [int]$RepetitionDurationHours = 24,
+        [int]$OnceRepetitionDurationHours = 24,
         [Parameter(ParameterSetName='Daily')]
-        [datetime]$At,
+        [datetime]$DailyAt,
         [Parameter(ParameterSetName='Daily')]
         [int]$DaysInterval = 1,
         [Parameter(ParameterSetName='Weekly')]
-        [datetime]$At,
+        [datetime]$WeeklyAt,
         [Parameter(ParameterSetName='Weekly')]
         [int]$WeeksInterval = 1,
         [Parameter(ParameterSetName='Weekly')]
@@ -73,25 +73,25 @@ function Get-DevOptTrigger {
     switch ($PSCmdlet.ParameterSetName) {
         'Logon' {
             $trigger = New-ScheduledTaskTrigger -AtLogOn
-            if ($RepetitionMinutes -gt 0) {
-                $trigger.RepetitionInterval = (New-TimeSpan -Minutes $RepetitionMinutes)
-                $trigger.RepetitionDuration = (New-TimeSpan -Hours $RepetitionDurationHours)
+            if ($LogonRepetitionMinutes -gt 0) {
+                $trigger.RepetitionInterval = (New-TimeSpan -Minutes $LogonRepetitionMinutes)
+                $trigger.RepetitionDuration = (New-TimeSpan -Hours $LogonRepetitionDurationHours)
             }
             return $trigger
         }
         'Once' {
-            $trigger = New-ScheduledTaskTrigger -Once -At $At
-            if ($RepetitionMinutes -gt 0) {
-                $trigger.RepetitionInterval = (New-TimeSpan -Minutes $RepetitionMinutes)
-                $trigger.RepetitionDuration = (New-TimeSpan -Hours $RepetitionDurationHours)
+            $trigger = New-ScheduledTaskTrigger -Once -At $OnceAt
+            if ($OnceRepetitionMinutes -gt 0) {
+                $trigger.RepetitionInterval = (New-TimeSpan -Minutes $OnceRepetitionMinutes)
+                $trigger.RepetitionDuration = (New-TimeSpan -Hours $OnceRepetitionDurationHours)
             }
             return $trigger
         }
         'Daily' {
-            return New-ScheduledTaskTrigger -Daily -At $At -DaysInterval $DaysInterval
+            return New-ScheduledTaskTrigger -Daily -At $DailyAt -DaysInterval $DaysInterval
         }
         'Weekly' {
-            return New-ScheduledTaskTrigger -Weekly -At $At -WeeksInterval $WeeksInterval -DaysOfWeek $DaysOfWeek
+            return New-ScheduledTaskTrigger -Weekly -At $WeeklyAt -WeeksInterval $WeeksInterval -DaysOfWeek $DaysOfWeek
         }
     }
 }

@@ -35,7 +35,7 @@ function Test-RateLimit {
     $now = [DateTime]::Now
     $lastKey = "last_$Key"
     if ($state.PSObject.Properties[$lastKey]) {
-        $last = [DateTime]::Parse($state.$lastKey)
+        $last = [DateTime]::Parse($state.($lastKey))
         if (($now - $last).TotalMinutes -lt $script:RateLimitMinutes) {
             return $false
         }
@@ -147,7 +147,7 @@ function Send-DevOptAlert {
     $eventIdToUse = if ($EventId -gt 0) { $EventId } else { $defaultEventId }
 
     # Add severity tag
-    $allTags = $Tags + @($Severity.ToLower())
+    $allTags = $Tags + @($($Severity).ToLower())
 
     # Send via ntfy
     $ntfyOk = Send-Ntfy -Title $Title -Message $Message -Priority $ntfyPriority -Tags $allTags

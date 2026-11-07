@@ -59,5 +59,7 @@ app/DevOptimizer.App.Tests/bin/
 app/DevOptimizer.App.Tests/obj/
 app/launcher/bin/
 app/launcher/obj/
+app/bin/
+JsonValidator/obj/
 config/discovered-scripts.json
 .playwright-mcp/

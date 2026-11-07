@@ -28,7 +28,8 @@ function Load-State {
             # Normalize: ensure all default properties exist
             foreach ($key in $Defaults.Keys) {
                 if (-not $state.PSObject.Properties[$key]) {
-                    $state | Add-Member -NotePropertyName $key -NotePropertyValue $Defaults[$key] -Force
+                    $val = $Defaults[$key]
+                    $state | Add-Member -NotePropertyName $key -NotePropertyValue $val -Force
                 }
             }
             return $state
@@ -57,7 +58,7 @@ function Save-State {
     try {
         $State | ConvertTo-Json -Depth $Depth -Compress | Set-Content -Path $StateFile -Force -Encoding ASCII
     } catch {
-        throw "Failed to save state to ${StateFile}: $($_.Exception.Message)"
+        throw "Failed to save state to $($StateFile): $($_.Exception.Message)"
     }
 }
 
@@ -72,7 +73,8 @@ function Merge-State {
         if ($State.PSObject.Properties[$key]) {
             $State.$key = $Updates[$key]
         } else {
-            $State | Add-Member -NotePropertyName $key -NotePropertyValue $Updates[$key] -Force
+            $val = $Updates[$key]
+            $State | Add-Member -NotePropertyName $key -NotePropertyValue $val -Force
         }
     }
     return $State
