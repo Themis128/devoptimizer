@@ -35,7 +35,7 @@ function Load-State {
             return $state
         } catch {
             # Corrupted state file - return defaults, log warning
-            Write-Warning "State file $StateFile corrupted, using defaults: $($_.Exception.Message)"
+            Write-Warning "State file ${StateFile} corrupted, using defaults: $($_.Exception.Message)"
             return $Defaults
         }
     }
@@ -58,7 +58,7 @@ function Save-State {
     try {
         $State | ConvertTo-Json -Depth $Depth -Compress | Set-Content -Path $StateFile -Force -Encoding ASCII
     } catch {
-        throw "Failed to save state to $($StateFile): $($_.Exception.Message)"
+        throw "Failed to save state to ${StateFile}: $($_.Exception.Message)"
     }
 }
 

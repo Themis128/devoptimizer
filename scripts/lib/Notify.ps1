@@ -147,7 +147,7 @@ function Send-DevOptAlert {
     $eventIdToUse = if ($EventId -gt 0) { $EventId } else { $defaultEventId }
 
     # Add severity tag
-    $allTags = $Tags + @($($Severity).ToLower())
+    $allTags = $Tags + @($Severity.ToLower())
 
     # Send via ntfy
     $ntfyOk = Send-Ntfy -Title $Title -Message $Message -Priority $ntfyPriority -Tags $allTags
