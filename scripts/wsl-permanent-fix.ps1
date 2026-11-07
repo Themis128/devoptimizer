@@ -367,3 +367,9 @@ if ($Install) {
     Invoke-ActiveGuard
     Write-Debug "Active guard completed"
 }
+# --- sshd ensure (2026-11-07): omv watchdog remediation ssh-hop needs Windows sshd ---
+try {
+    $sshd = Get-Service sshd -ErrorAction SilentlyContinue
+    if ($sshd -and $sshd.StartType -ne 'Automatic') { Set-Service sshd -StartupType Automatic }
+    if ($sshd -and $sshd.Status -ne 'Running') { Start-Service sshd }
+} catch {}

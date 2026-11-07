@@ -13,6 +13,27 @@
 # the wedge precondition that killed Devin sessions on 2026-10-02.
 # Host-side guard: if the WSL VM is not running, log and exit WITHOUT invoking
 # wsl.exe (invoking it would wake the VM every run).
+# --- sshd ensure (2026-11-07): omv watchdog remediation ssh-hop needs Windows sshd ---
+try {
+    $sshd = Get-Service sshd -ErrorAction SilentlyContinue
+    if ($sshd -and $sshd.StartType -ne 'Automatic') { Set-Service sshd -StartupType Automatic }
+    if ($sshd -and $sshd.Status -ne 'Running') {
+        try { Start-Service sshd -ErrorAction Stop }
+        catch {
+            "$(Get-Date -Format o) $($_.Exception.Message)" | Out-File -Append C:\Users\tbaltzakis\devin-scripts\sshd_err.txt
+            & 'C:\Program Files\OpenSSH\sshd.exe' -t 2>&1 | Out-File -Append C:\Users\tbaltzakis\devin-scripts\sshd_err.txt
+        }
+    }
+} catch {}
+
+
+# --- CDP relay firewall pin (2026-11-07): WSL->host 9229 blocked inbound ---
+try {
+    if (-not (Get-NetFirewallRule -DisplayName 'CDP-Relay-9229' -ErrorAction SilentlyContinue)) {
+        New-NetFirewallRule -DisplayName 'CDP-Relay-9229' -Direction Inbound -Protocol TCP -LocalPort 9229 -Action Allow | Out-Null
+    }
+} catch {}
+
 $ErrorActionPreference = 'SilentlyContinue'
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
 $logFile = 'D:\DevOptimizer\logs\wsl-memory-pressure.log'
@@ -75,3 +96,4 @@ if ($swapLine -match '^Swap:\s+(\d+)\s+(\d+)\s+(\d+)') {
         }
     }
 }
+

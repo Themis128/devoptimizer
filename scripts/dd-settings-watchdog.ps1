@@ -82,7 +82,7 @@ function Test-SettingsDrift {
         $currentVal = $current.settings[$key]
         $desiredVal = $desired.settings[$key]
         if ($currentVal -ne $desiredVal) {
-            $drift += "settings.$key: current=$currentVal desired=$desiredVal"
+            $drift += "settings.${key}: current=$currentVal desired=$desiredVal"
         }
     }
     
@@ -90,7 +90,7 @@ function Test-SettingsDrift {
         $currentVal = $current.daemon[$key]
         $desiredVal = $desired.daemon[$key]
         if ($currentVal -ne $desiredVal) {
-            $drift += "daemon.$key: current=$currentVal desired=$desiredVal"
+            $drift += "daemon.${key}: current=$currentVal desired=$desiredVal"
         }
     }
     
