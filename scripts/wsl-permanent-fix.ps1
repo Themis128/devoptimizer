@@ -51,6 +51,11 @@ $stateFile = 'D:\DevOptimizer\logs\wsl-permanent-fix-state.json'
 $ddSettingsFile = "$env:APPDATA\Docker\settings.json"
 $ddDaemonFile = "$env:APPDATA\Docker\daemon.json"
 
+# Import shared modules
+. "$PSScriptRoot\lib\Notify.ps1"
+. "$PSScriptRoot\lib\Log.ps1"
+. "$PSScriptRoot\lib\State.ps1"
+
 function Log { param($msg) Add-Content -Path $logFile -Value ("{0} {1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg) }
 function Write-Out { param($msg) Write-Host $msg; Log $msg }
 function Write-Warn { param($msg) Write-Host $msg -ForegroundColor Yellow; Log "WARN: $msg" }
@@ -208,6 +213,7 @@ function Invoke-ActiveGuard {
     if ($wslexecRunning) {
         Write-Debug "wslexec process detected - potential docker group setup in progress"
         $state.wslexecDetected = $true
+        Send-DevOptAlert -Severity Warning -Title "wslexec Detected" -Message "Docker Desktop wslexec process detected (docker group setup in progress). Pre-stabilization engaged." -Tags 'wsl', 'docker', 'wslexec'
     } else {
         $state.wslexecDetected = $false
     }
@@ -227,6 +233,7 @@ function Invoke-ActiveGuard {
         if (-not $wslOk) {
             Write-Warn "[LAYER 2] WSL not ready - running emergency stabilization"
             Log "WSL not ready at Docker startup - emergency stabilization"
+            Send-DevOptAlert -Severity Warning -Title "WSL Not Ready at Docker Startup" -Message "WSL Ubuntu-24.04 was not ready when Docker Desktop started. Running emergency stabilization." -Tags 'wsl', 'docker', 'layer2'
             
             # T1 equivalent: ensure integration
             wsl.exe -d Ubuntu-24.04 -e docker version 2>$null | Out-Null
@@ -240,6 +247,7 @@ function Invoke-ActiveGuard {
             } else {
                 Write-Err "[LAYER 2] WSL stabilization FAILED - may need T2/T3"
                 Log "Emergency stabilization FAILED"
+                Send-DevOptAlert -Severity Critical -Title "WSL Stabilization Failed" -Message "Emergency stabilization failed after Docker Desktop startup. WSL may need T2/T3 recovery." -Tags 'wsl', 'docker', 'layer2' -Force
             }
         }
         

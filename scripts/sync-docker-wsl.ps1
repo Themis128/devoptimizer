@@ -34,12 +34,16 @@ $ErrorActionPreference = 'SilentlyContinue'
 $logFile = 'D:\DevOptimizer\logs\docker-wsl-sync.log'
 $actions = 0
 
+# Import shared modules
+. "$PSScriptRoot\lib\Notify.ps1"
+
 function Log { param($msg)
     Add-Content -Path $logFile -Value ("{0} {1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg)
 }
 function Note-Event { param($msg)
     Write-EventLog -LogName 'DevOptimizer' -Source 'DevOptimizer' -EventId 1004 `
         -EntryType Warning -Message "Docker-WSL sync: $msg" -ErrorAction SilentlyContinue
+    Send-DevOptAlert -Severity Warning -Title "Docker-WSL Sync Event" -Message $msg -Tags 'docker', 'wsl', 'sync' -EventId 1004
 }
 
 # --- [1] Guards ---------------------------------------------------------------
@@ -190,6 +194,7 @@ foreach ($pair in ($ProbePorts -split ',')) {
     $wdir = $labels.'com.docker.compose.project.working_dir'
     if ($proj -and $svc -and $wdir) {
         Log "  restart insufficient - force-recreating compose service $proj/$svc (workdir $wdir)"
+        Send-DevOptAlert -Severity Warning -Title "Docker Port Proxy Force-Recreate" -Message "Port $port proxy dead - force-recreating compose service $proj/$svc" -Tags 'docker', 'wsl', 'sync', 'force-recreate' -EventId 1004
         wsl -d Ubuntu-24.04 -- docker compose --project-directory $wdir -p $proj up -d --no-deps --force-recreate $svc 2>$null | Out-Null
         $actions++
         Start-Sleep -Seconds 45
@@ -199,10 +204,12 @@ foreach ($pair in ($ProbePorts -split ',')) {
         } else {
             Log "  STILL BROKEN: $port$path -> $code after restart + force-recreate of $publisher - needs manual check"
             Note-Event "port $port still broken after restart and force-recreate of $publisher"
+            Send-DevOptAlert -Severity Critical -Title "Docker Port Proxy STILL BROKEN After Force-Recreate" -Message "Port $port proxy still dead after restart + force-recreate of $publisher ($proj/$svc). Manual intervention required." -Tags 'docker', 'wsl', 'sync', 'force-recreate', 'critical' -Force
         }
     } else {
         Log "  STILL BROKEN: $port$path -> $code after restarting $publisher (no compose labels - cannot force-recreate) - needs manual check"
         Note-Event "port $port still broken after restarting $publisher (no compose labels)"
+        Send-DevOptAlert -Severity Critical -Title "Docker Port Proxy STILL BROKEN (No Compose Labels)" -Message "Port $port proxy still dead after restarting $publisher. Cannot force-recreate (no compose labels). Manual intervention required." -Tags 'docker', 'wsl', 'sync', 'critical' -Force
     }
 }
 

@@ -8,6 +8,9 @@
 # Windows 11 Admin Cleanup - Run Elevated
 $ErrorActionPreference = 'Continue'
 
+# Import shared modules
+. "$PSScriptRoot\lib\Notify.ps1"
+
 function MB { param($b) [math]::Round($b/1MB, 1) }
 function GB { param($b) [math]::Round($b/1GB, 2) }
 
@@ -34,6 +37,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "[1] DISM component cleanup: EXIT CODE $LASTEXITCODE" -ForegroundColor Red
     Write-Host "  This script is running with administrator privileges." -ForegroundColor Yellow
     Write-Host "  The DISM error may be transient; consider running DISM /Online /Cleanup-Image /RestoreHealth first." -ForegroundColor Yellow
+    Send-DevOptAlert -Severity Warning -Title "Admin Cleanup: DISM Failed" -Message "DISM /StartComponentCleanup exited with code $LASTEXITCODE. Output: $($dismResult -join '; ')" -Tags 'cleanup', 'dism', 'admin' -EventId 1005
 }
 
 # 2. Windows Update Download Cache
@@ -101,9 +105,15 @@ try {
         Write-Host "[4] Oldest shadow copy: DELETED" -ForegroundColor Green
     } else {
         Write-Host "[4] Shadow copy: EXIT CODE $LASTEXITCODE (may be none to delete)" -ForegroundColor DarkGray
+        # Alert on unexpected vssadmin failures (not just "no shadows")
+        $vssOutput = $vssResult -join ' '
+        if ($vssOutput -notmatch 'no items|no shadows|nothing to delete') {
+            Send-DevOptAlert -Severity Warning -Title "Admin Cleanup: Shadow Copy Failed" -Message "vssadmin delete shadows exited with code $LASTEXITCODE. Output: $vssOutput" -Tags 'cleanup', 'vss', 'admin' -EventId 1006
+        }
     }
 } catch {
     Write-Host "[4] Shadow copy deletion skipped (may require admin): $($_.Exception.Message)" -ForegroundColor DarkGray
+    Send-DevOptAlert -Severity Warning -Title "Admin Cleanup: Shadow Copy Exception" -Message "vssadmin threw exception: $($_.Exception.Message)" -Tags 'cleanup', 'vss', 'admin' -EventId 1006
 }
 
 # 5. Windows.old if exists

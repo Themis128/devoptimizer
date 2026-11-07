@@ -28,10 +28,15 @@ $ErrorActionPreference = 'SilentlyContinue'
 $logFile = 'D:\DevOptimizer\logs\host-guard.log'
 $stateFile = 'D:\DevOptimizer\logs\host-guard-state.json'
 
+# Import shared modules
+. "$PSScriptRoot\lib\Notify.ps1"
+. "$PSScriptRoot\lib\State.ps1"
+
 function Log { param($m) Add-Content -Path $logFile -Value ("{0} {1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $m) }
 function Note { param($id, $msg)
     Log ("event{0}: {1}" -f $id, $msg)
-    Write-EventLog -LogName 'DevOptimizer' -Source 'DevOptimizer' -EventId $id -EntryType $(if ($id -ge 1007) { 'Error' } else { 'Warning' }) -Message "Host guard: $msg" -ErrorAction SilentlyContinue
+    $severity = if ($id -ge 1007) { 'Critical' } else { 'Warning' }
+    Send-DevOptAlert -Severity $severity -Title "Host Guard Event $id" -Message $msg -Tags 'host-guard', 'memory', 'vram' -EventId $id
 }
 
 # --- metrics (host-side, fast) --------------------------------------------------
@@ -65,6 +70,12 @@ $wslUp = [bool](Get-Process vmmemWSL -ErrorAction SilentlyContinue)
 $engineUp = $false
 docker info 2>$null | Out-Null
 $engineUp = ($LASTEXITCODE -eq 0)
+
+# Save metrics to state file for health dashboard
+$state = $null
+try { $state = Get-Content $stateFile -Raw -ErrorAction Stop | ConvertFrom-Json } catch { $state = [pscustomobject]@{} }
+$state | Add-Member -NotePropertyName 'metrics' -NotePropertyValue @{ availMB = $availMB; vramPct = $vramPct; commitPct = $commitPct } -Force
+$state | ConvertTo-Json -Depth 3 | Set-Content $stateFile -Encoding ASCII
 
 # --- T2: soft pressure -> guest drop_caches ---------------------------------------
 if ($wslUp -and $availMB -lt $SoftThresholdMB -and ((LastAction 'lastDropCaches') -lt $now.AddMinutes(-$RateLimitMinutes))) {
