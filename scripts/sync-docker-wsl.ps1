@@ -150,6 +150,35 @@ if ($candidates.Count -eq 0) {
 }
 
 # --- [4] Port-proxy healing ---------------------------------------------------
+function Probe-Port {
+    param($port, $path, $fromWindows = $true)
+    if ($fromWindows) {
+        return curl.exe -s -o NUL -w '%{http_code}' -m $ProbeTimeoutSec ("http://localhost:{0}{1}" -f $port, $path)
+    } else {
+        # Probe from inside WSL (distro IP)
+        return wsl -d $Distro -- curl -s -o /dev/null -w '%{http_code}' -m $ProbeTimeoutSec ("http://127.0.0.1:{0}{1}" -f $port, $path) 2>$null
+    }
+}
+
+function Force-Recreate-WithRetry {
+    param($proj, $svc, $wdir, $port, $path, $publisher, $maxRetries = 2)
+    for ($retry = 1; $retry -le $maxRetries; $retry++) {
+        Log "  force-recreate attempt $retry/$maxRetries for $proj/$svc"
+        wsl -d Ubuntu-24.04 -- docker compose --project-directory $wdir -p $proj up -d --no-deps --force-recreate $svc 2>$null | Out-Null
+        Start-Sleep -Seconds 45
+        $code = curl.exe -s -o NUL -w '%{http_code}' -m ($ProbeTimeoutSec * 2) ("http://localhost:{0}{1}" -f $port, $path)
+        if ("$code" -match '^2|^3') {
+            Log "  recovered: $port$path -> $code after force-recreate (attempt $retry)"
+            return $true
+        }
+        if ($retry -lt $maxRetries) {
+            Log "  attempt $retry failed - waiting 30s before retry"
+            Start-Sleep -Seconds 30
+        }
+    }
+    return $false
+}
+
 foreach ($pair in ($ProbePorts -split ',')) {
     $parts = $pair.Trim() -split '\|', 2
     if ($parts.Count -lt 2) { continue }
@@ -157,29 +186,42 @@ foreach ($pair in ($ProbePorts -split ',')) {
     $path = $parts[1].Trim()
     if (-not $path.StartsWith('/')) { $path = "/$path" }
 
-    $code = curl.exe -s -o NUL -w '%{http_code}' -m $ProbeTimeoutSec ("http://localhost:{0}{1}" -f $port, $path)
-    if ("$code" -match '^2|^3') { Log "port-proxy OK: $port$path -> $code"; continue }
+    # Dual probe: Windows (proxy) + WSL (container direct)
+    $codeWin = Probe-Port $port $path -fromWindows $true
+    $codeWsl = Probe-Port $port $path -fromWindows $false
+    if ("$codeWin" -match '^2|^3' -and "$codeWsl" -match '^2|^3') {
+        Log "port-proxy OK: $port$path -> Windows:$codeWin WSL:$codeWsl"
+        continue
+    }
+    Log "port-proxy issue: $port$path -> Windows:$codeWin WSL:$codeWsl"
 
     Start-Sleep -Seconds 20   # registration lag right after a VM/desktop restart
-    $code = curl.exe -s -o NUL -w '%{http_code}' -m $ProbeTimeoutSec ("http://localhost:{0}{1}" -f $port, $path)
-    if ("$code" -match '^2|^3') { Log "port-proxy OK after grace: $port$path -> $code"; continue }
+    $codeWin = Probe-Port $port $path -fromWindows $true
+    $codeWsl = Probe-Port $port $path -fromWindows $false
+    if ("$codeWin" -match '^2|^3' -and "$codeWsl" -match '^2|^3') {
+        Log "port-proxy OK after grace: $port$path -> Windows:$codeWin WSL:$codeWsl"
+        continue
+    }
 
     $publisher = $null
     foreach ($line in ((docker ps --format '{{.Names}}|{{.Ports}}') -replace "`r", "")) {
         if ($line -match ":$port->") { $publisher = ($line -split '\|')[0]; break }
     }
     if (-not $publisher) {
-        Log "port-proxy DEAD: $port$path -> $code, no running container publishes $port"
-        Note-Event "port $port dead (code $code) and no running publisher found"
+        Log "port-proxy DEAD: $port$path -> Windows:$codeWin WSL:$codeWsl, no running container publishes $port"
+        Note-Event "port $port dead (Windows:$codeWin WSL:$codeWsl) and no running publisher found"
+        Send-DevOptAlert -Severity Critical -Title "Docker Port Proxy Dead - No Publisher" -Message "Port $port proxy dead (Windows:$codeWin WSL:$codeWsl) and no running container publishes $port" -Tags 'docker', 'wsl', 'sync', 'port-proxy', 'critical' -Force
         continue
     }
-    Log "port-proxy DEAD for $port (code $code) - restarting publisher $publisher"
+    Log "port-proxy DEAD for $port (Windows:$codeWin WSL:$codeWsl) - restarting publisher $publisher"
+    Send-DevOptAlert -Severity Warning -Title "Docker Port Proxy Dead - Restarting Publisher" -Message "Port $port proxy dead (Windows:$codeWin WSL:$codeWsl) - restarting publisher $publisher" -Tags 'docker', 'wsl', 'sync', 'port-proxy' -EventId 1004
     docker restart $publisher 2>$null | Out-Null
     $actions++
     Start-Sleep -Seconds 30
-    $code = curl.exe -s -o NUL -w '%{http_code}' -m ($ProbeTimeoutSec * 2) ("http://localhost:{0}{1}" -f $port, $path)
-    if ("$code" -match '^2|^3') {
-        Log "  recovered: $port$path -> $code after restarting $publisher"
+    $codeWin = Probe-Port $port $path -fromWindows $true
+    $codeWsl = Probe-Port $port $path -fromWindows $false
+    if ("$codeWin" -match '^2|^3' -and "$codeWsl" -match '^2|^3') {
+        Log "  recovered: $port$path -> Windows:$codeWin WSL:$codeWsl after restarting $publisher"
         continue
     }
     # docker restart cannot heal a stale Docker Desktop bind/port registration.
@@ -195,25 +237,28 @@ foreach ($pair in ($ProbePorts -split ',')) {
     if ($proj -and $svc -and $wdir) {
         Log "  restart insufficient - force-recreating compose service $proj/$svc (workdir $wdir)"
         Send-DevOptAlert -Severity Warning -Title "Docker Port Proxy Force-Recreate" -Message "Port $port proxy dead - force-recreating compose service $proj/$svc" -Tags 'docker', 'wsl', 'sync', 'force-recreate' -EventId 1004
-        wsl -d Ubuntu-24.04 -- docker compose --project-directory $wdir -p $proj up -d --no-deps --force-recreate $svc 2>$null | Out-Null
-        $actions++
-        Start-Sleep -Seconds 45
-        $code = curl.exe -s -o NUL -w '%{http_code}' -m ($ProbeTimeoutSec * 2) ("http://localhost:{0}{1}" -f $port, $path)
-        if ("$code" -match '^2|^3') {
-            Log "  recovered: $port$path -> $code after force-recreate"
+        $recreated = Force-Recreate-WithRetry -proj $proj -svc $svc -wdir $wdir -port $port -path $path -publisher $publisher -maxRetries 2
+        if ($recreated) {
+            $actions++
         } else {
-            Log "  STILL BROKEN: $port$path -> $code after restart + force-recreate of $publisher - needs manual check"
+            Log "  STILL BROKEN: $port$path -> Windows:$codeWin WSL:$codeWsl after restart + force-recreate of $publisher - needs manual check"
             Note-Event "port $port still broken after restart and force-recreate of $publisher"
             Send-DevOptAlert -Severity Critical -Title "Docker Port Proxy STILL BROKEN After Force-Recreate" -Message "Port $port proxy still dead after restart + force-recreate of $publisher ($proj/$svc). Manual intervention required." -Tags 'docker', 'wsl', 'sync', 'force-recreate', 'critical' -Force
         }
     } else {
-        Log "  STILL BROKEN: $port$path -> $code after restarting $publisher (no compose labels - cannot force-recreate) - needs manual check"
+        Log "  STILL BROKEN: $port$path -> Windows:$codeWin WSL:$codeWsl after restarting $publisher (no compose labels - cannot force-recreate) - needs manual check"
         Note-Event "port $port still broken after restarting $publisher (no compose labels)"
         Send-DevOptAlert -Severity Critical -Title "Docker Port Proxy STILL BROKEN (No Compose Labels)" -Message "Port $port proxy still dead after restarting $publisher. Cannot force-recreate (no compose labels). Manual intervention required." -Tags 'docker', 'wsl', 'sync', 'critical' -Force
     }
 }
 
-# --- [5] Snapshot -------------------------------------------------------------
+# --- [5] Health Snapshot -------------------------------------------------------
 $up = ((docker ps -q) -replace "`r", "" | Where-Object { $_ }).Count
+$df = docker system df --format '{{.Type}} {{.TotalCount}} {{.Size}} {{.Reclaimable}}' 2>$null
+$dfLog = if ($df) { $df -join '; ' } else { 'unavailable' }
 Log ("sync complete: {0} container(s) up, {1} repair action(s) taken" -f $up, $actions)
+Log ("docker system df: {0}" -f $dfLog)
+if ($stackOpsManaged.Count -gt 0) {
+    Log ("stack-ops excluded {0} managed container(s) from recovery" -f $stackOpsManaged.Count)
+}
 exit 0

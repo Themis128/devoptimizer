@@ -56,6 +56,25 @@ foreach ($t in $targets) {
     catch { Write-Host ("[3] {0,-22} : skipped ({1})" -f $t.Name, $_.Exception.Message.Split("`n")[0]) -ForegroundColor DarkGray }
 }
 
+# 3b. Language package caches (NuGet, pip file cache, npm file cache)
+Write-VerboseStep "Cleaning language package file caches (NuGet, pip, npm)"
+$cacheTargets = @(
+    @{ Name = 'NuGet v3-cache'; Path = "$env:LOCALAPPDATA\NuGet\v3-cache" },
+    @{ Name = 'NuGet packages'; Path = "$env:USERPROFILE\.nuget\packages" },
+    @{ Name = 'pip cache dir';  Path = "$env:LOCALAPPDATA\pip\cache" },
+    @{ Name = 'pip cache alt';  Path = "$env:USERPROFILE\.cache\pip" },
+    @{ Name = 'npm cache dir';  Path = "$env:LOCALAPPDATA\npm-cache" }
+)
+foreach ($t in $cacheTargets) {
+    if (Test-Path $t.Path) {
+        $size = (Get-ChildItem $t.Path -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
+        Get-ChildItem $t.Path -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host ("[3b] {0,-22}: -{1} MB" -f $t.Name, (MB $size)) -ForegroundColor Green
+    } else {
+        Write-Host ("[3b] {0,-22}: not found" -f $t.Name) -ForegroundColor DarkGray
+    }
+}
+
 Show-Progress -Activity "Windows 11 Safe Cleanup" -Status "Cleaning PowerShell/IE cache and CrashDumps..." -PercentComplete 40
 Write-VerboseStep "Cleaning PowerShell/IE cache crumbs and error dumps"
 # 4. PowerShell module cache crumbs + error dumps
