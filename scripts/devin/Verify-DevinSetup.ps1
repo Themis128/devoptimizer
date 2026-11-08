@@ -37,10 +37,10 @@ if (Test-Path $devinExe) {
     Log "Devin Desktop: NOT FOUND" 'FAIL'
 }
 
-# 2. Devin CLI
-$devinCli = Get-Command devin -ErrorAction SilentlyContinue
+# 2. Devin CLI (devin-desktop is the actual executable)
+$devinCli = Get-Command devin-desktop -ErrorAction SilentlyContinue
 if ($devinCli) {
-    $version = & devin --version 2>&1 | Select-Object -First 1
+    $version = & devin-desktop --version 2>&1 | Select-Object -First 1
     Add-Result 'Devin CLI' 'OK' "Version: $version at $($devinCli.Source)"
     Log "Devin CLI: $version" 'OK'
 } else {
@@ -62,7 +62,7 @@ if ($ping -match 'ok') {
 }
 
 # 4. devin-server in WSL
-$procs = & wsl.exe -d $distro -- bash -c "pgrep -af 'server-mai[n]' || true" 2>$null
+$procs = & wsl.exe -d $distro -- bash -c "pgrep -af 'devin acp' || true" 2>$null
 if ($procs -match '\.devin-server/bin/([a-f0-9]{40})/') {
     $commit = $Matches[1]
     Add-Result 'devin-server' 'OK' "Running (commit $commit)"
@@ -112,7 +112,7 @@ if ($missing.Count -eq 0) {
 }
 
 # 8. DevOptimizer Integration (MCP, hooks, skills)
-$devinConfigDir = "D:\DevOptimizer\.devin"
+$devinConfigDir = Join-Path $env:APPDATA 'devin'
 $configFiles = @('mcp_config.json', 'hooks.v1.json')
 $configMissing = @()
 foreach ($f in $configFiles) {
