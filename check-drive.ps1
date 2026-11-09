@@ -1,0 +1,1 @@
+Get-ChildItem E:\ -Recurse -ErrorAction SilentlyContinue | Sort-Object Length -Descending | Select-Object -First 20 FullName, @{Name='SizeGB';Expression={[math]::Round($_.Length/1GB,2)}} | Format-Table -AutoSize

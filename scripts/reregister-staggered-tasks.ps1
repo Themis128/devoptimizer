@@ -29,7 +29,10 @@ Write-Host ("Elevated as: {0}" -f $env:USERNAME)
 Write-Host "Timestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Write-Host ""
 
-$ps = (Get-Command powershell.exe).Source
+# Prefer the portable PS7 install: pwsh.exe on PATH is the broken Store stub
+# and some scripts use PS7-only syntax (??, ternary). Fall back to PS 5.1.
+$portablePwsh = 'D:\DevOptimizer\pwsh\pwsh.exe'
+$ps = if (Test-Path $portablePwsh) { $portablePwsh } else { (Get-Command powershell.exe).Source }
 $conhost = 'C:\Windows\System32\conhost.exe'
 $scriptRoot = 'D:\DevOptimizer\scripts'
 

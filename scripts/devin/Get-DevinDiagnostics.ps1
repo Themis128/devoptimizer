@@ -109,7 +109,7 @@ Write-Host "[ OK ] host free memory: $freeGB GB" -ForegroundColor Green
 if ($freeGB -lt 2) { Add-Finding 'warn' "host memory low: ${freeGB} GB free - starvation can kill devin-server" }
 
 # --- devin-server process + commit ---
-$procs = Invoke-Wsl "pgrep -af 'server-mai[n]' || true"
+$procs = Invoke-Wsl "pgrep -af 'devin acp' || true"
 $commit = $null
 if ($procs -match '\.devin-server/bin/([a-f0-9]{40})/') {
     $commit = $Matches[1]

@@ -97,3 +97,19 @@ if ($swapLine -match '^Swap:\s+(\d+)\s+(\d+)\s+(\d+)') {
     }
 }
 
+
+# Headless rewrap piggyback: this task runs elevated every 30 min and owns
+# no console window (conhost --headless), so it is the safe carrier for
+# fixing the highest-run-level tasks that unelevated shells cannot touch.
+try {
+    $rewrapLog = 'D:\DevOptimizer\scripts\_rewrap-headless-all.log'
+    $marker = 'D:\DevOptimizer\scripts\_rewrap-last-run.stamp'
+    $last = if (Test-Path $marker) { (Get-Item $marker).LastWriteTime } else { [datetime]::MinValue }
+    if (((Get-Date) - $last).TotalHours -ge 6) {
+        & 'D:\DevOptimizer\scripts\_rewrap-headless-all.ps1'
+        New-Item -ItemType File -Path $marker -Force | Out-Null
+        Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') rewrap-headless-all piggybacked (6h throttle)"
+    }
+} catch {
+    Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') rewrap piggyback failed: $($_.Exception.Message)"
+}

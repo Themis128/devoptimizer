@@ -1,0 +1,2 @@
+$files = Get-ChildItem 'D:\DevOptimizer\backups\nas-staging\20261108-0430' -Force -ErrorAction SilentlyContinue
+$files | ForEach-Object { [pscustomobject]@{ Name = $_.Name; SizeGB = [math]::Round($_.Length / 1GB, 2); SizeMB = [math]::Round($_.Length / 1MB, 2) } } | Sort-Object SizeGB -Descending | Format-Table -AutoSize

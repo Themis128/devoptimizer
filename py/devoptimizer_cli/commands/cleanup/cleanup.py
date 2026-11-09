@@ -9,7 +9,9 @@ volumes, models, or user data. Admin-only items are reported at the end.
 from __future__ import annotations
 
 import asyncio
+import json
 import os
+import re
 import shutil
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -741,6 +743,160 @@ def compact_vhdx_cmd(
     raise typer.Exit(result.exit_code)
 
 
+@app.command("clean-d-drive")
+def clean_d_drive_cmd(
+    months: int = typer.Option(2, "--months", help="Inactivity threshold in months"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Report what would be deleted without deleting"),
+    force: bool = typer.Option(False, "--force", help="Skip confirmation prompts"),
+    json_output: bool = typer.Option(False, "--json", help="Output results as JSON"),
+):
+    """D: drive cleanup - removes stale folders inactive for N months."""
+    from devoptimizer_cli.core.executor import run_command
+    import json
+    import re
+
+    args = [
+        "pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "D:/DevOptimizer/scripts/Clean-DDrive.ps1",
+        "-MonthsInactive", str(months),
+    ]
+    if dry_run:
+        args.append("-DryRun")
+    if force:
+        args.append("-Force")
+
+    result = run_command(args, timeout=600)
+
+    if json_output:
+        # Parse output for structured JSON
+        total_freed = 0.0
+        deleted = []
+        skipped = []
+        
+        # Parse log output for summary
+        freed_match = re.search(r"Total freed:\s*([\d.]+)\s*GB", result.stdout)
+        if freed_match:
+            total_freed = float(freed_match.group(1))
+        
+        # Extract deleted items
+        deleted_section = False
+        for line in result.stdout.splitlines():
+            if "Deleted (" in line:
+                deleted_section = True
+                continue
+            if "Skipped (" in line:
+                deleted_section = False
+                continue
+            if deleted_section and line.strip():
+                deleted.append(line.strip())
+        
+        skipped_section = False
+        for line in result.stdout.splitlines():
+            if "Skipped (" in line:
+                skipped_section = True
+                continue
+            if skipped_section and line.strip() and not line.startswith("["):
+                skipped.append(line.strip())
+
+        output = {
+            "success": result.exit_code == 0,
+            "total_freed_gb": total_freed,
+            "deleted_count": len(deleted),
+            "deleted": deleted,
+            "skipped_count": len(skipped),
+            "skipped": skipped,
+            "exit_code": result.exit_code,
+            "stdout": result.stdout,
+        }
+        console.print_json(json.dumps(output))
+    else:
+        console.print(result.stdout)
+        if result.stderr:
+            console.print(result.stderr, style="red")
+
+    raise typer.Exit(result.exit_code)
+
+
+@app.command("check-d-drive-status")
+def check_d_drive_status_cmd(
+    months: int = typer.Option(2, "--months", help="Inactivity threshold in months"),
+    json_output: bool = typer.Option(False, "--json", help="Output results as JSON"),
+):
+    """Read-only assessment of D: drive space and stale folders."""
+    from devoptimizer_cli.core.executor import run_command
+    import json
+    import re
+
+    args = [
+        "pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "D:/DevOptimizer/scripts/Clean-DDrive.ps1",
+        "-MonthsInactive", str(months),
+        "-DryRun",
+    ]
+
+    result = run_command(args, timeout=600)
+
+    if json_output:
+        # Parse dry-run output for structured JSON
+        total_freed = 0.0
+        would_delete = []
+        skipped = []
+        free_gb = 0.0
+        used_gb = 0.0
+        
+        freed_match = re.search(r"Total freed:\s*([\d.]+)\s*GB", result.stdout)
+        if freed_match:
+            total_freed = float(freed_match.group(1))
+        
+        drive_match = re.search(r"D:\s+Final\s+-\s+Free:\s*([\d.]+)\s*GB,\s*Used:\s*([\d.]+)\s*GB", result.stdout)
+        if drive_match:
+            free_gb = float(drive_match.group(1))
+            used_gb = float(drive_match.group(2))
+        
+        dry_run_section = False
+        for line in result.stdout.splitlines():
+            if "DRY-RUN:" in line and "Would delete" in line:
+                dry_run_section = True
+                would_delete.append(line.strip())
+            elif dry_run_section and line.strip().startswith("["):
+                # Continue collecting DRY-RUN lines
+                if "Would delete" in line:
+                    would_delete.append(line.strip())
+                else:
+                    dry_run_section = False
+        
+        skipped_section = False
+        for line in result.stdout.splitlines():
+            if "Skipped (" in line:
+                skipped_section = True
+                continue
+            if skipped_section and line.strip() and not line.startswith("["):
+                skipped.append(line.strip())
+
+        output = {
+            "total_would_free_gb": total_freed,
+            "would_delete_count": len(would_delete),
+            "would_delete": would_delete,
+            "skipped_count": len(skipped),
+            "skipped": skipped,
+            "drive_free_gb": free_gb,
+            "drive_used_gb": used_gb,
+            "exit_code": result.exit_code,
+            "stdout": result.stdout,
+        }
+        console.print_json(json.dumps(output))
+    else:
+        console.print(result.stdout)
+        if result.stderr:
+            console.print(result.stderr, style="red")
+
+    raise typer.Exit(result.exit_code)
+
+
 @dataclass
 class AdminCleanupParams:
     """Parameters for win11-admin-cleanup (requires elevation)."""
@@ -1437,6 +1593,160 @@ def compact_vhdx_cmd(
     if json_output:
         import json
         console.print_json(json.dumps(result.to_dict()))
+    else:
+        console.print(result.stdout)
+        if result.stderr:
+            console.print(result.stderr, style="red")
+
+    raise typer.Exit(result.exit_code)
+
+
+@app.command("clean-d-drive")
+def clean_d_drive_cmd(
+    months: int = typer.Option(2, "--months", help="Inactivity threshold in months"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Report what would be deleted without deleting"),
+    force: bool = typer.Option(False, "--force", help="Skip confirmation prompts"),
+    json_output: bool = typer.Option(False, "--json", help="Output results as JSON"),
+):
+    """D: drive cleanup - removes stale folders inactive for N months."""
+    from devoptimizer_cli.core.executor import run_command
+    import json
+    import re
+
+    args = [
+        "pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "D:/DevOptimizer/scripts/Clean-DDrive.ps1",
+        "-MonthsInactive", str(months),
+    ]
+    if dry_run:
+        args.append("-DryRun")
+    if force:
+        args.append("-Force")
+
+    result = run_command(args, timeout=600)
+
+    if json_output:
+        # Parse output for structured JSON
+        total_freed = 0.0
+        deleted = []
+        skipped = []
+        
+        # Parse log output for summary
+        freed_match = re.search(r"Total freed:\s*([\d.]+)\s*GB", result.stdout)
+        if freed_match:
+            total_freed = float(freed_match.group(1))
+        
+        # Extract deleted items
+        deleted_section = False
+        for line in result.stdout.splitlines():
+            if "Deleted (" in line:
+                deleted_section = True
+                continue
+            if "Skipped (" in line:
+                deleted_section = False
+                continue
+            if deleted_section and line.strip():
+                deleted.append(line.strip())
+        
+        skipped_section = False
+        for line in result.stdout.splitlines():
+            if "Skipped (" in line:
+                skipped_section = True
+                continue
+            if skipped_section and line.strip() and not line.startswith("["):
+                skipped.append(line.strip())
+
+        output = {
+            "success": result.exit_code == 0,
+            "total_freed_gb": total_freed,
+            "deleted_count": len(deleted),
+            "deleted": deleted,
+            "skipped_count": len(skipped),
+            "skipped": skipped,
+            "exit_code": result.exit_code,
+            "stdout": result.stdout,
+        }
+        console.print_json(json.dumps(output))
+    else:
+        console.print(result.stdout)
+        if result.stderr:
+            console.print(result.stderr, style="red")
+
+    raise typer.Exit(result.exit_code)
+
+
+@app.command("check-d-drive-status")
+def check_d_drive_status_cmd(
+    months: int = typer.Option(2, "--months", help="Inactivity threshold in months"),
+    json_output: bool = typer.Option(False, "--json", help="Output results as JSON"),
+):
+    """Read-only assessment of D: drive space and stale folders."""
+    from devoptimizer_cli.core.executor import run_command
+    import json
+    import re
+
+    args = [
+        "pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "D:/DevOptimizer/scripts/Clean-DDrive.ps1",
+        "-MonthsInactive", str(months),
+        "-DryRun",
+    ]
+
+    result = run_command(args, timeout=600)
+
+    if json_output:
+        # Parse dry-run output for structured JSON
+        total_freed = 0.0
+        would_delete = []
+        skipped = []
+        free_gb = 0.0
+        used_gb = 0.0
+        
+        freed_match = re.search(r"Total freed:\s*([\d.]+)\s*GB", result.stdout)
+        if freed_match:
+            total_freed = float(freed_match.group(1))
+        
+        drive_match = re.search(r"D:\s+Final\s+-\s+Free:\s*([\d.]+)\s*GB,\s*Used:\s*([\d.]+)\s*GB", result.stdout)
+        if drive_match:
+            free_gb = float(drive_match.group(1))
+            used_gb = float(drive_match.group(2))
+        
+        dry_run_section = False
+        for line in result.stdout.splitlines():
+            if "DRY-RUN:" in line and "Would delete" in line:
+                dry_run_section = True
+                would_delete.append(line.strip())
+            elif dry_run_section and line.strip().startswith("["):
+                # Continue collecting DRY-RUN lines
+                if "Would delete" in line:
+                    would_delete.append(line.strip())
+                else:
+                    dry_run_section = False
+        
+        skipped_section = False
+        for line in result.stdout.splitlines():
+            if "Skipped (" in line:
+                skipped_section = True
+                continue
+            if skipped_section and line.strip() and not line.startswith("["):
+                skipped.append(line.strip())
+
+        output = {
+            "total_would_free_gb": total_freed,
+            "would_delete_count": len(would_delete),
+            "would_delete": would_delete,
+            "skipped_count": len(skipped),
+            "skipped": skipped,
+            "drive_free_gb": free_gb,
+            "drive_used_gb": used_gb,
+            "exit_code": result.exit_code,
+            "stdout": result.stdout,
+        }
+        console.print_json(json.dumps(output))
     else:
         console.print(result.stdout)
         if result.stderr:
@@ -2238,6 +2548,160 @@ def compact_vhdx_cmd(
     if json_output:
         import json
         console.print_json(json.dumps(result.to_dict()))
+    else:
+        console.print(result.stdout)
+        if result.stderr:
+            console.print(result.stderr, style="red")
+
+    raise typer.Exit(result.exit_code)
+
+
+@app.command("clean-d-drive")
+def clean_d_drive_cmd(
+    months: int = typer.Option(2, "--months", help="Inactivity threshold in months"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Report what would be deleted without deleting"),
+    force: bool = typer.Option(False, "--force", help="Skip confirmation prompts"),
+    json_output: bool = typer.Option(False, "--json", help="Output results as JSON"),
+):
+    """D: drive cleanup - removes stale folders inactive for N months."""
+    from devoptimizer_cli.core.executor import run_command
+    import json
+    import re
+
+    args = [
+        "pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "D:/DevOptimizer/scripts/Clean-DDrive.ps1",
+        "-MonthsInactive", str(months),
+    ]
+    if dry_run:
+        args.append("-DryRun")
+    if force:
+        args.append("-Force")
+
+    result = run_command(args, timeout=600)
+
+    if json_output:
+        # Parse output for structured JSON
+        total_freed = 0.0
+        deleted = []
+        skipped = []
+        
+        # Parse log output for summary
+        freed_match = re.search(r"Total freed:\s*([\d.]+)\s*GB", result.stdout)
+        if freed_match:
+            total_freed = float(freed_match.group(1))
+        
+        # Extract deleted items
+        deleted_section = False
+        for line in result.stdout.splitlines():
+            if "Deleted (" in line:
+                deleted_section = True
+                continue
+            if "Skipped (" in line:
+                deleted_section = False
+                continue
+            if deleted_section and line.strip():
+                deleted.append(line.strip())
+        
+        skipped_section = False
+        for line in result.stdout.splitlines():
+            if "Skipped (" in line:
+                skipped_section = True
+                continue
+            if skipped_section and line.strip() and not line.startswith("["):
+                skipped.append(line.strip())
+
+        output = {
+            "success": result.exit_code == 0,
+            "total_freed_gb": total_freed,
+            "deleted_count": len(deleted),
+            "deleted": deleted,
+            "skipped_count": len(skipped),
+            "skipped": skipped,
+            "exit_code": result.exit_code,
+            "stdout": result.stdout,
+        }
+        console.print_json(json.dumps(output))
+    else:
+        console.print(result.stdout)
+        if result.stderr:
+            console.print(result.stderr, style="red")
+
+    raise typer.Exit(result.exit_code)
+
+
+@app.command("check-d-drive-status")
+def check_d_drive_status_cmd(
+    months: int = typer.Option(2, "--months", help="Inactivity threshold in months"),
+    json_output: bool = typer.Option(False, "--json", help="Output results as JSON"),
+):
+    """Read-only assessment of D: drive space and stale folders."""
+    from devoptimizer_cli.core.executor import run_command
+    import json
+    import re
+
+    args = [
+        "pwsh.exe",
+        "-NoProfile",
+        "-File",
+        "D:/DevOptimizer/scripts/Clean-DDrive.ps1",
+        "-MonthsInactive", str(months),
+        "-DryRun",
+    ]
+
+    result = run_command(args, timeout=600)
+
+    if json_output:
+        # Parse dry-run output for structured JSON
+        total_freed = 0.0
+        would_delete = []
+        skipped = []
+        free_gb = 0.0
+        used_gb = 0.0
+        
+        freed_match = re.search(r"Total freed:\s*([\d.]+)\s*GB", result.stdout)
+        if freed_match:
+            total_freed = float(freed_match.group(1))
+        
+        drive_match = re.search(r"D:\s+Final\s+-\s+Free:\s*([\d.]+)\s*GB,\s*Used:\s*([\d.]+)\s*GB", result.stdout)
+        if drive_match:
+            free_gb = float(drive_match.group(1))
+            used_gb = float(drive_match.group(2))
+        
+        dry_run_section = False
+        for line in result.stdout.splitlines():
+            if "DRY-RUN:" in line and "Would delete" in line:
+                dry_run_section = True
+                would_delete.append(line.strip())
+            elif dry_run_section and line.strip().startswith("["):
+                # Continue collecting DRY-RUN lines
+                if "Would delete" in line:
+                    would_delete.append(line.strip())
+                else:
+                    dry_run_section = False
+        
+        skipped_section = False
+        for line in result.stdout.splitlines():
+            if "Skipped (" in line:
+                skipped_section = True
+                continue
+            if skipped_section and line.strip() and not line.startswith("["):
+                skipped.append(line.strip())
+
+        output = {
+            "total_would_free_gb": total_freed,
+            "would_delete_count": len(would_delete),
+            "would_delete": would_delete,
+            "skipped_count": len(skipped),
+            "skipped": skipped,
+            "drive_free_gb": free_gb,
+            "drive_used_gb": used_gb,
+            "exit_code": result.exit_code,
+            "stdout": result.stdout,
+        }
+        console.print_json(json.dumps(output))
     else:
         console.print(result.stdout)
         if result.stderr:

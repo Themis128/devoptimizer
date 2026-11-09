@@ -15,6 +15,11 @@
 
 $ErrorActionPreference = 'SilentlyContinue'
 
+# One-shot elevated rewrap: fix remaining console-popup scheduled tasks
+# (this task runs elevated; unelevated runs get Access denied on
+# \DevOptimizer\ tasks). Marker prevents re-running every cycle.
+try { & 'D:\DevOptimizer\scripts\_rewrap-headless-all.ps1' } catch {}
+
 # Import shared modules
 . "$PSScriptRoot\lib\Notify.ps1"
 . "$PSScriptRoot\lib\State.ps1"
