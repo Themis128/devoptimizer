@@ -37,7 +37,14 @@ $logFile = Join-Path $Root 'logs\wsl-repair.log'
 
 function Log([string]$msg) {
     $line = '{0} {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg
-    try { Add-Content -Path $logFile -Value $line -ErrorAction Stop } catch { }
+    try {
+        # rotate at ~1 MB: keep the tail so the 1-min schedule can't grow it forever
+        if ((Test-Path $logFile) -and (Get-Item $logFile).Length -gt 1MB) {
+            $tail = Get-Content $logFile -Tail 2000 -ErrorAction SilentlyContinue
+            Set-Content -Path $logFile -Value $tail -Encoding UTF8
+        }
+        Add-Content -Path $logFile -Value $line -ErrorAction Stop
+    } catch { }
     Write-Host $line
 }
 
