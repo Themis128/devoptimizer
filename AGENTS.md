@@ -18,6 +18,14 @@ any recurrence (names containing `:` are invisible to Win32).
   passes it.
 - Scheduled task `DevOptimizer-Housekeeping` (root `\`, Sat 05:30) via
   `scripts/register-housekeeping-task.ps1 [-Unregister]`.
+- Scheduled task `DevOptimizer-WSL-Repair` (every 30 min) runs
+  `scripts/repair-wsl-docker-integration.ps1` — watchdog for the
+  "WSL integration unexpectedly stopped" popup: checks distro reachability,
+  `~` ownership + `~/.docker/run` creatability (auto `chown -R` via
+  `wsl -u root` when broken), and `/var/run/docker.sock` + engine
+  reachability (restarts Docker Desktop only if it's running and the
+  engine is unreachable). Log: `logs/wsl-repair.log`.
+  Register via `scripts/register-wsl-repair-task.ps1 [-Unregister]`.
 - Scheduled task `DevOptimizer-Docker-Prune` (monthly 1st 04:30, via
   `schtasks.exe` — `New-ScheduledTaskTrigger` has no `-Monthly` and the CIM
   trigger fails `Register-ScheduledTask` type checks) runs housekeeping with
