@@ -4,12 +4,24 @@ import re
 import json
 from pathlib import Path
 
+
+def _expand_batch_vars(text, bat_dir, root):
+    """Expand the batch variables this checker understands."""
+    text = text.replace('%DEVOPT_HOME%', str(root))
+    # %~dp0 includes a trailing backslash in batch semantics
+    text = text.replace('%~dp0..' + os.sep, str(bat_dir.parent) + os.sep)
+    text = text.replace('%~dp0' + os.sep, str(bat_dir) + os.sep)
+    text = text.replace('%~dp0', str(bat_dir) + os.sep)
+    # Any remaining %VAR% falls back to the repo root
+    text = re.sub(r'%[^%]+%', lambda m: str(root), text)
+    return os.path.normpath(text)
+
+
 def main():
     root = Path(r'D:\DevOptimizer')
     problems = []
 
     # 1. Batch launchers -> referenced ps1
-    # Find .bat and .cmd files in portable and root
     bat_files = []
     portable_dir = root / 'portable'
     if portable_dir.is_dir():
@@ -24,28 +36,41 @@ def main():
         except Exception:
             continue
 
-        # Find .ps1 references: alphanumeric, underscores, hyphens, dots, backslashes, percent, dollar, tilde, space, ending with .ps1
-        # We'll use a regex to capture potential .ps1 file references
-        ps1_refs = re.findall(r'[A-Za-z0-9_\\-\\.\\%\$~ ]+\.ps1', content)
+        bat_dir = bat_path.parent
+
+        # Directories this bat cd's into - '.\file.ps1' refs resolve against these
+        cd_dirs = []
+        for m in re.finditer(r'(?im)^\s*cd\s+(?:/d\s+)?"?([^"\r\n]+?)"?\s*$', content):
+            cd_dirs.append(_expand_batch_vars(m.group(1).strip(), bat_dir, root))
+        # Inline 'cd D:\path;' inside quoted -Command strings (elevated launchers)
+        for m in re.finditer(r'\bcd\s+(?:/d\s+)?"?([A-Za-z]:[\\/][^"\'\s;]+)', content):
+            cd_dirs.append(_expand_batch_vars(m.group(1).strip(), bat_dir, root))
+
+        # .ps1 references: non-space/non-quote token ending in .ps1
+        # (the old char-class pattern silently dropped backslash, truncating
+        # every dir-containing ref to its basename -> 147 false positives)
+        ps1_refs = re.findall(r'[^\s"()]+\.ps1', content)
         for ref in ps1_refs:
             ref = ref.strip()
-            # Expand variables
-            expanded = ref.replace('%DEVOPT_HOME%', str(root))
-            # Handle %~dp0 and %~dp0.. (batch file directory)
-            bat_dir = bat_path.parent
-            expanded = expanded.replace('%~dp0\\', str(bat_dir) + os.sep)
-            expanded = expanded.replace('%~dp0..\\', str(bat_dir.parent) + os.sep)
-            # Replace any other %VAR% with root (as a fallback)
-            expanded = re.sub(r'%[^%]+%', lambda m: str(root), expanded)
-            # Normalize path
-            expanded = os.path.normpath(expanded)
+            # Skip wildcard/glob refs (e.g. %BASE_DIR%\tools\*.ps1) - not file refs
+            if '*' in ref:
+                continue
+            # Strip set "VAR=" assignment prefix if the token captured one
+            if '=' in ref:
+                ref = ref.split('=', 1)[1].strip('"')
+            is_dotref = ref.startswith('.')
 
-            # Check if the expanded path exists as a file
+            expanded = _expand_batch_vars(ref, bat_dir, root)
+
             candidates = [
                 expanded,
                 os.path.join(str(root), expanded),
-                os.path.join(str(root), os.path.basename(expanded))
+                os.path.join(str(root), os.path.basename(expanded)),
             ]
+            if is_dotref:
+                for d in cd_dirs:
+                    candidates.append(os.path.join(d, expanded))
+
             found = False
             for cand in candidates:
                 if os.path.isfile(cand):
@@ -55,7 +80,7 @@ def main():
                 problems.append({
                     'Type': 'BAT->PS1',
                     'Launcher': str(bat_path.relative_to(root)),
-                    'Target': ref
+                    'Target': ref,
                 })
 
     # 2. Hub registry -> file paths
@@ -67,7 +92,6 @@ def main():
         except Exception:
             reg_data = {}
 
-        # The registry might have a 'commands' key or be the commands directly
         cmds = reg_data.get('commands', reg_data) if isinstance(reg_data, dict) else []
         if not isinstance(cmds, list):
             cmds = []
@@ -75,30 +99,26 @@ def main():
         for cmd in cmds:
             if not isinstance(cmd, dict):
                 continue
-            # Get the path from various possible keys
             path_val = cmd.get('Path') or cmd.get('FilePath') or cmd.get('Script')
-            if path_val:
-                # Check if the path exists
-                if not os.path.exists(path_val):
-                    problems.append({
-                        'Type': 'REGISTRY',
-                        'Launcher': cmd.get('Id', 'Unknown'),
-                        'Target': path_val
-                    })
+            if path_val and not os.path.exists(path_val):
+                problems.append({
+                    'Type': 'REGISTRY',
+                    'Launcher': cmd.get('Id', 'Unknown'),
+                    'Target': path_val,
+                })
 
     # Output results
     print(f"=== Broken references: {len(problems)} ===")
-    # Group by Type
     grouped = {}
     for p in problems:
         grouped.setdefault(p['Type'], []).append(p)
     for ptype, plist in grouped.items():
         print(f"  {ptype}: {len(plist)}")
     print()
-    # Sort by Type, then Launcher
     for p in sorted(problems, key=lambda x: (x['Type'], x['Launcher'])):
         print(f"[{p['Type']}] {p['Launcher']}")
         print(f"      -> {p['Target']}")
+
 
 if __name__ == '__main__':
     main()

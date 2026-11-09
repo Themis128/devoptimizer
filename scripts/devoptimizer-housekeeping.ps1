@@ -27,7 +27,12 @@
 param(
     [int]$OlderThanDays = 14,
     [string]$Root = 'D:\DevOptimizer',
-    [switch]$DryRun
+    [switch]$DryRun,
+    # DESTRUCTIVE: also runs 'docker image prune -a' + 'docker builder prune -af'
+    # (removes ALL unused tagged images + build cache). Opt-in only - the
+    # scheduled task never passes this. Use when C: is tight and you accept
+    # re-pulling images later.
+    [switch]$PruneDocker
 )
 
 $ErrorActionPreference = 'Continue'
@@ -217,6 +222,34 @@ if (-not $DryRun -and ($stale.Count -gt 0 -or $ntMoves.Count -gt 0 -or $tinyMove
     Log '[3] DryRun - no files moved, no archive created'
 } else {
     Log '[3] Nothing to do - root already clean'
+}
+
+# --- 4. Broken-reference check (report-only, never fails the run) ---
+$refsPy = Join-Path $PSScriptRoot 'check-broken-refs.py'
+if ((Get-Command python -ErrorAction SilentlyContinue) -and (Test-Path $refsPy)) {
+    $refsOut = & python $refsPy 2>&1 | Out-String
+    $refsCount = if ($refsOut -match 'Broken references:\s*(\d+)') { [int]$Matches[1] } else { -1 }
+    if ($refsCount -gt 0) {
+        Log ("[4] WARN check-broken-refs: {0} broken references" -f $refsCount)
+        ($refsOut -split "`n" | Select-Object -Skip 1 | Select-Object -First 20) | ForEach-Object { Log "    $_" }
+    } else {
+        Log '[4] check-broken-refs: clean'
+    }
+}
+
+# --- 5. Optional Docker prune (explicit -PruneDocker only) ---
+if ($PruneDocker) {
+    if (Get-Command docker -ErrorAction SilentlyContinue) {
+        Log '[5] docker image prune -a (unused tagged images)'
+        $d1 = & docker image prune -a -f 2>&1 | Out-String
+        ($d1 -split "`n" | Select-Object -Last 3) | ForEach-Object { Log "    $_" }
+        Log '[5] docker builder prune -af (build cache)'
+        $d2 = & docker builder prune -af 2>&1 | Out-String
+        ($d2 -split "`n" | Select-Object -Last 3) | ForEach-Object { Log "    $_" }
+        Log '[5] Docker prune complete (host VHDX shrinks via WSL-Vhdx-Compact task)'
+    } else {
+        Log '[5] SKIP: docker CLI not found'
+    }
 }
 
 Log '=== Housekeeping done ==='

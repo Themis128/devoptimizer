@@ -112,12 +112,15 @@ function Register-DevOptTask {
         [switch]$Force
     )
     
-    # Build action
+    # Headless action: conhost --headless + portable pwsh (pwsh.exe on PATH is the
+    # broken Store stub). Keeps scheduled runs popup-free.
+    $pwshExe = 'D:\DevOptimizer\pwsh\pwsh.exe'
+    if (-not (Test-Path $pwshExe)) { $pwshExe = 'pwsh.exe' }
     $argString = '-NoProfile -ExecutionPolicy Bypass -File "' + $ScriptPath + '"'
     if ($Arguments.Count -gt 0) {
         $argString += ' ' + ($Arguments -join ' ')
     }
-    $action = New-ScheduledTaskAction -Execute 'pwsh.exe' -Argument $argString
+    $action = New-ScheduledTaskAction -Execute 'C:\Windows\System32\conhost.exe' -Argument ('--headless "' + $pwshExe + '" ' + $argString)
     
     # Build triggers from params
     $triggerList = @()
@@ -137,10 +140,14 @@ function Register-DevOptTask {
     $settings = Get-DevOptSettings -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -Hidden
     $principal = Get-DevOptPrincipal -Account $Account
     
-    # Ensure task path exists
-    $taskFolder = Get-ScheduledTaskFolder -Path $TaskPath -ErrorAction SilentlyContinue
-    if (-not $taskFolder) {
-        try { Register-ScheduledTask -TaskName 'DevOptimizer-Folder-Placeholder' -TaskPath $TaskPath -Action (New-ScheduledTaskAction -Execute 'cmd.exe' -Argument '/c exit 0') -Trigger (New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)) -Settings (New-ScheduledTaskSettingsSet) -Force -ErrorAction SilentlyContinue; Unregister-ScheduledTask -TaskName 'DevOptimizer-Folder-Placeholder' -TaskPath $TaskPath -Confirm:$false -ErrorAction SilentlyContinue } catch { }
+    # Ensure task path exists (folders map to C:\Windows\System32\Tasks\<path>)
+    $folderFs = 'C:\Windows\System32\Tasks' + ($TaskPath -replace '/', '\').TrimEnd('\')
+    if (-not (Test-Path $folderFs)) {
+        try {
+            New-Item -ItemType Directory -Force -Path $folderFs -ErrorAction Stop | Out-Null
+        } catch {
+            Write-Warning "Could not create task folder $folderFs`: $_"
+        }
     }
     
     Register-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath -Action $action -Trigger $triggerList -Settings $settings -Principal $principal -Force:$Force -ErrorAction Stop
@@ -168,4 +175,6 @@ function Get-DevOptTask {
     Get-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath -ErrorAction SilentlyContinue
 }
 
-Export-ModuleMember -Function Register-DevOptTask, Unregister-DevOptTask, Get-DevOptTask, Get-DevOptPrincipal, Get-DevOptSettings, Get-DevOptTrigger
+if ($MyInvocation.MyCommand.Module) {
+    Export-ModuleMember -Function Register-DevOptTask, Unregister-DevOptTask, Get-DevOptTask, Get-DevOptPrincipal, Get-DevOptSettings, Get-DevOptTrigger
+}
