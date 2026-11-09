@@ -7,6 +7,7 @@ cleanup-log.txt
 high-priority-invalid.txt
 invalid-scripts-*.txt
 invalid-scripts-detailed.txt
+*.stamp
 
 # --- caches & dependency trees ---
 node_modules/
