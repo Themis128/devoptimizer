@@ -18,6 +18,11 @@ any recurrence (names containing `:` are invisible to Win32).
   passes it.
 - Scheduled task `DevOptimizer-Housekeeping` (root `\`, Sat 05:30) via
   `scripts/register-housekeeping-task.ps1 [-Unregister]`.
+- Scheduled task `DevOptimizer-Docker-Prune` (monthly 1st 04:30, via
+  `schtasks.exe` — `New-ScheduledTaskTrigger` has no `-Monthly` and the CIM
+  trigger fails `Register-ScheduledTask` type checks) runs housekeeping with
+  `-PruneDocker`. Remove with `scripts/register-docker-prune-task.ps1
+  -Unregister`.
 
 ## VHDX compaction
 
