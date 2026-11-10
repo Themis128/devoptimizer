@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """Otter notetaker toggle - drives otter.ai Record/Stop over CDP.
 
-Connects to the chrome-debug-profile Chrome instance (remote debugging on
-port 9229), finds or opens an otter.ai tab, and clicks Record / Stop on
-otter.ai. Prints a single state word to stdout for the WPF widget:
+Prefers the Otter desktop app (system-audio capture of both sides of a
+call), launched with --remote-debugging-port=9333 and the
+ELECTRON_RUN_AS_NODE user env var stripped (that var makes every Electron
+app boot as plain node and exit). Falls back to the chrome-debug-profile
+Chrome instance on port 9229 (microphone only) when the desktop app is
+not available.
+
+Prints a single state word to stdout for the WPF widget:
 
     ON    - recording is live
     OFF   - not recording
@@ -14,15 +19,13 @@ Usage:
     python otter_notes.py on
     python otter_notes.py off
     python otter_notes.py toggle
-
-Note: otter.ai web Record captures the microphone only. For system-audio
-capture of calls, the Otter desktop app is required instead.
 """
 
 # CATEGORY: ai-ml
-# TAGS: otter, notetaker, recording, cdp, chrome
+# TAGS: otter, notetaker, recording, cdp, chrome, desktop
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -30,8 +33,10 @@ import urllib.request
 
 from playwright.sync_api import sync_playwright
 
-CDP_URL = "http://localhost:9229"
+DESKTOP_CDP_URL = "http://localhost:9333"
+CHROME_CDP_URL = "http://localhost:9229"
 OTTER_HOME = "https://otter.ai/home"
+OTTER_EXE = r"C:\Users\tbaltzakis\AppData\Local\Programs\@otter-aidesktop-app\Otter.exe"
 CHROME_EXE = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 CHROME_PROFILE = r"C:\Users\tbaltzakis\chrome-debug-profile"
 
@@ -43,27 +48,16 @@ def _emit(state):
     print(state, flush=True)
 
 
-def _browser_up():
+def _cdp_up(url):
     try:
-        with urllib.request.urlopen(CDP_URL + "/json/version", timeout=3) as r:
+        with urllib.request.urlopen(url + "/json/version", timeout=3) as r:
             return json.load(r).get("Browser") is not None
     except Exception:
         return False
 
 
-def ensure_browser():
-    """Make sure the debug Chrome is running; launch it if needed."""
-    if _browser_up():
-        return
-    subprocess.Popen(
-        [
-            CHROME_EXE,
-            "--remote-debugging-port=9229",
-            f"--user-data-dir={CHROME_PROFILE}",
-            "--no-first-run",
-            "--no-default-browser-check",
-            OTTER_HOME,
-        ],
+def _launch_detached(cmd, env=None):
+    kwargs = dict(
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         stdin=subprocess.DEVNULL,
@@ -71,12 +65,66 @@ def ensure_browser():
         | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
         close_fds=True,
     )
+    if env is not None:
+        kwargs["env"] = env
+    subprocess.Popen(cmd, **kwargs)
+
+
+def _env_without_run_as_node():
+    env = dict(os.environ)
+    env.pop("ELECTRON_RUN_AS_NODE", None)
+    return env
+
+
+def ensure_desktop_app():
+    """Make sure the Otter desktop app is up with CDP on :9333."""
+    if _cdp_up(DESKTOP_CDP_URL):
+        return True
+    if not os.path.exists(OTTER_EXE):
+        return False
+    _launch_detached(
+        [OTTER_EXE, "--remote-debugging-port=9333"],
+        env=_env_without_run_as_node(),
+    )
+    deadline = time.time() + 25
+    while time.time() < deadline:
+        if _cdp_up(DESKTOP_CDP_URL):
+            return True
+        time.sleep(0.5)
+    return False
+
+
+def ensure_browser():
+    """Make sure the debug Chrome is running; launch it if needed."""
+    if _cdp_up(CHROME_CDP_URL):
+        return
+    _launch_detached(
+        [
+            CHROME_EXE,
+            "--remote-debugging-port=9229",
+            f"--user-data-dir={CHROME_PROFILE}",
+            "--no-first-run",
+            "--no-default-browser-check",
+            OTTER_HOME,
+        ]
+    )
     deadline = time.time() + 20
     while time.time() < deadline:
-        if _browser_up():
+        if _cdp_up(CHROME_CDP_URL):
             return
         time.sleep(0.5)
     raise RuntimeError("debug Chrome did not come up on :9229")
+
+
+def connect(p):
+    """Connect to the desktop app first, then fall back to debug Chrome."""
+    if ensure_desktop_app():
+        try:
+            return p.chromium.connect_over_cdp(DESKTOP_CDP_URL, timeout=15000)
+        except Exception:
+            pass
+    ensure_browser()
+    return p.chromium.connect_over_cdp(CHROME_CDP_URL, timeout=15000)
 
 
 def get_otter_page(browser):
@@ -113,6 +161,14 @@ def wait_for(page, testid, want_visible, timeout=25):
     return False
 
 
+def click_el(locator):
+    """Click, falling back to a DOM click when an overlay intercepts."""
+    try:
+        locator.click(timeout=5000)
+    except Exception:
+        locator.evaluate("el => el.click()")
+
+
 def cmd_status(page):
     _emit("ON" if is_recording(page) else "OFF")
 
@@ -137,7 +193,7 @@ def cmd_on(page):
         if not btn.is_disabled():
             break
         time.sleep(0.5)
-    btn.click()
+    click_el(btn)
     if wait_for(page, STOP_BUTTON, True, timeout=25):
         _emit("ON")
     else:
@@ -148,7 +204,7 @@ def cmd_off(page):
     if not is_recording(page):
         _emit("OFF")
         return
-    page.get_by_test_id(STOP_BUTTON).first.click()
+    click_el(page.get_by_test_id(STOP_BUTTON).first)
     if wait_for(page, START_BUTTON, True, timeout=25):
         _emit("OFF")
     else:
@@ -157,9 +213,8 @@ def cmd_off(page):
 
 def main():
     action = sys.argv[1] if len(sys.argv) > 1 else "status"
-    ensure_browser()
     with sync_playwright() as p:
-        browser = p.chromium.connect_over_cdp(CDP_URL, timeout=15000)
+        browser = connect(p)
         page = get_otter_page(browser)
         try:
             if action == "status":

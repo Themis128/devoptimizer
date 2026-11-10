@@ -4,12 +4,10 @@
 
 .DESCRIPTION
     Floating mini-window that toggles Otter.ai recording (the "Themis notes"
-    notetaker) in the chrome-debug-profile browser via scripts\otter_notes.py.
-    The button flips between Notes: OFF and Notes: ON; closing the window
-    hides it to the system tray where it can be reopened or exited.
-
-    Recording captures the microphone only (otter.ai web limitation).
-    For system-audio capture of calls use the Otter desktop app instead.
+    notetaker) via scripts\otter_notes.py - prefers the Otter desktop app
+    (system-audio capture) and falls back to the chrome-debug-profile
+    browser. The button flips between Notes: OFF and Notes: ON; closing the
+    window hides it to the system tray where it can be reopened or exited.
 
 .PARAMETER StartHidden
     Launch directly into the system tray without showing the window.
