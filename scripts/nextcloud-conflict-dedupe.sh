@@ -11,8 +11,8 @@
 # phone to sync -> repeat until no conflicts remain or no progress.
 #
 # Nothing is deleted - everything is moved, preserving fileid/versions.
-# Skips Conflicts-Archive itself and InstantUpload/null/test_pull (active
-# upload target - moving those would fight the client).
+# Skips Conflicts-Archive itself. The 15-min storage_mtime guard protects
+# freshly re-uploaded files from being re-archived on the next round.
 #
 # Required env:
 #   NEXTCLOUD_USER            e.g. tbaltzakis@cloudless.gr
@@ -66,7 +66,7 @@ paths_for_names() {
     inlist=$(awk "{gsub(/'/,\"''\"); printf \"'%s',\", \$0}" | sed 's/,$//')
     [ -z "$inlist" ] && return 0
     ssh -o BatchMode=yes "$SSH_HOST" \
-      "docker exec nextcloud-db psql -U \$(docker exec nextcloud printenv POSTGRES_USER) -d \$(docker exec nextcloud printenv POSTGRES_DB) -t -A -c \"SELECT path FROM oc_filecache WHERE path LIKE 'files/%' AND name IN ($inlist) AND path NOT LIKE 'files/Conflicts-Archive/%' AND path NOT LIKE 'files/%/test_pull/%' AND storage_mtime < EXTRACT(EPOCH FROM NOW()) - 900\"" \
+      "docker exec nextcloud-db psql -U \$(docker exec nextcloud printenv POSTGRES_USER) -d \$(docker exec nextcloud printenv POSTGRES_DB) -t -A -c \"SELECT path FROM oc_filecache WHERE path LIKE 'files/%' AND name IN ($inlist) AND path NOT LIKE 'files/Conflicts-Archive/%' AND storage_mtime < EXTRACT(EPOCH FROM NOW()) - 900\"" \
       | sed 's|^files/||' | tr -d '\r' | /usr/bin/sort -u
 }
 
