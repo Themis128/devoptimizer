@@ -62,12 +62,34 @@ $statusJson = & tailscale.exe status --json 2>$null
 $selfKey = '_tailscale-self'
 if (-not $statusJson) {
     Write-Log 'tailscale status failed'
+    # count consecutive failures; after 3 (~15 min) the daemon is likely
+    # wedged (e.g. stuck "starting" on the Win11 25H2 DNS contention) -
+    # restart the service. Restart-Service needs elevation; if the task
+    # isn't elevated this fails and we alert once for manual restart.
+    $fails = 0
+    if ($prev.ContainsKey('_self-fails')) { $fails = [int]$prev['_self-fails'] }
+    $fails++
+    $prev['_self-fails'] = $fails
+    if ($fails -ge 3) {
+        Write-Log "tailscale status failed ${fails}x - attempting service restart"
+        try {
+            Restart-Service Tailscale -Force -ErrorAction Stop
+            Write-Log 'tailscale service restart ok'
+            Send-Telegram "tailnet watchdog: restarted Tailscale service on office-1-win-exitnode after ${fails} failed checks"
+        } catch {
+            Write-Log "service restart failed: $($_.Exception.Message)"
+            Send-Telegram "tailnet watchdog: tailscaled unresponsive on office-1-win-exitnode (${fails} failed checks) - needs manual service restart (non-elevated task cannot restart it)"
+        }
+        $prev.Remove('_self-fails')
+    }
     if (-not $prev.ContainsKey($selfKey) -or $prev[$selfKey] -ne 'down') {
         Send-Telegram "tailnet watchdog: Tailscale is DOWN on office-1-win-exitnode (tailscale status failed)"
-        $prev[$selfKey] = 'down'; Save-State $prev
+        $prev[$selfKey] = 'down'
     }
+    Save-State $prev
     exit 0
 }
+$prev.Remove('_self-fails')
 try { $status = $statusJson | ConvertFrom-Json } catch {
     Write-Log "status parse failed: $($_.Exception.Message)"
     exit 0
@@ -75,6 +97,31 @@ try { $status = $statusJson | ConvertFrom-Json } catch {
 if ($prev.ContainsKey($selfKey) -and $prev[$selfKey] -eq 'down') {
     Send-Telegram "tailnet watchdog: Tailscale recovered on office-1-win-exitnode"
     $prev.Remove($selfKey)
+}
+
+# BackendState other than Running (e.g. "NoState" while stuck "starting")
+# means the daemon is up but not connected - same remediation path as a
+# hard failure, counted separately so brief restarts don't trigger it.
+$backend = [string]$status.BackendState
+if ($backend -and $backend -ne 'Running') {
+    if (-not $prev.ContainsKey('_self-stuck')) { $prev['_self-stuck'] = (Get-Date).ToString('o') }
+    $stuckMin = ((Get-Date) - [datetime]::Parse($prev['_self-stuck'])).TotalMinutes
+    if ($stuckMin -ge 15) {
+        Write-Log "BackendState=$backend for $([int]$stuckMin)m - attempting service restart"
+        try {
+            Restart-Service Tailscale -Force -ErrorAction Stop
+            Write-Log 'tailscale service restart ok'
+            Send-Telegram "tailnet watchdog: restarted Tailscale service on office-1-win-exitnode (BackendState=$backend for $([int]$stuckMin)m)"
+        } catch {
+            Write-Log "service restart failed: $($_.Exception.Message)"
+            Send-Telegram "tailnet watchdog: tailscaled stuck (BackendState=$backend) on office-1-win-exitnode - needs manual service restart"
+        }
+        $prev.Remove('_self-stuck')
+    } else {
+        Write-Log "BackendState=$backend (stuck ${stuckMin}m, restart due at 15m)"
+    }
+} else {
+    $prev.Remove('_self-stuck')
 }
 
 # --- self health remediation ---------------------------------------------------
@@ -142,6 +189,47 @@ foreach ($prop in $status.Peer.PSObject.Properties) {
             $changed += [pscustomobject]@{ Name = $name; Online = $online; Ip = ($p.TailscaleIPs[0]) }
         }
     }
+}
+
+# --- phone connectivity (best effort, ADB) ------------------------------------
+# Detects the failure mode seen 2026-11-11: phone loses public DNS/internet
+# when the Tailscale exit node drops (MagicDNS has no upstream without it).
+# Repair = re-assert exit node office-1-win-exitnode via UI automation.
+# Skipped silently when the phone isn't reachable over ADB; 30 min cooldown.
+$phoneKey = '_phone-lastfix'
+try {
+    $adb = 'C:\Users\tbaltzakis\AppData\Local\Android\Sdk\platform-tools\adb.exe'
+    if (-not (Test-Path $adb)) { $adb = 'adb' }
+    $online = & $adb devices 2>$null | Select-String 'RFCTA0AEKZP\s+device\s*$'
+    if ($online) {
+        $ping = & $adb -s RFCTA0AEKZP shell 'ping -c 1 -W 3 cloudflare.com' 2>$null | Out-String
+        if ($ping -notmatch '1 received') {
+            $due = $true
+            if ($prev.ContainsKey($phoneKey)) {
+                $due = ((Get-Date) - [datetime]::Parse($prev[$phoneKey])).TotalMinutes -ge 30
+            }
+            if ($due) {
+                Write-Log 'phone connectivity check failed - attempting exit-node repair'
+                $fix = Join-Path $root 'scripts\phone-ensure-exitnode.py'
+                if (Test-Path $fix) {
+                    $out = & python $fix 2>&1 | Out-String
+                    Write-Log ("phone fix output: " + $out.Trim())
+                }
+                $prev[$phoneKey] = (Get-Date).ToString('o')
+                Start-Sleep -Seconds 10
+                $ping2 = & $adb -s RFCTA0AEKZP shell 'ping -c 1 -W 3 cloudflare.com' 2>$null | Out-String
+                if ($ping2 -match '1 received') {
+                    Send-Telegram "tailnet watchdog: repaired galaxy-s22 connectivity (re-set exit node office-1-win-exitnode)"
+                } else {
+                    Send-Telegram "tailnet watchdog: galaxy-s22 has no internet/DNS and auto-repair failed - check Tailscale app manually"
+                }
+            }
+        } else {
+            $prev.Remove($phoneKey)
+        }
+    }
+} catch {
+    Write-Log "phone check error: $($_.Exception.Message)"
 }
 
 # --- persist + notify --------------------------------------------------------
