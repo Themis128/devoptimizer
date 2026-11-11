@@ -98,6 +98,37 @@ if ($swapLine -match '^Swap:\s+(\d+)\s+(\d+)\s+(\d+)') {
 }
 
 
+# Orphaned WSL swap.vhdx reaper (2026-11-11): crashed/terminated VMs leave
+# their swap disk in %TEMP%\<GUID>\ behind; five orphans held ~63GB and
+# filled C: to 0.7GB free, crashing Docker Desktop and feeding the vsock
+# flap loop. The reaper only touches files older than 2h and skips locked
+# (live VM) files, so it is safe to run every pass.
+try {
+    & 'D:\DevOptimizer\scripts\cleanup-wsl-swap-orphans.ps1' | Out-Null
+} catch {
+    Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') swap-orphan reaper failed: $($_.Exception.Message)"
+}
+
+# C: free-space guard: swap.vhdx + docker_data.vhdx live on C:; when it drops
+# below 15GB the guest swap can't grow and Docker Desktop crashes. Warn at
+# 15GB, critical at 5GB (event 1004). Reclaims come from the reaper above and
+# the nightly VHDX compaction tasks.
+try {
+    $cFreeGB = [math]::Round((Get-PSDrive C).Free / 1GB, 1)
+    Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') C: free ${cFreeGB} GB"
+    if ($cFreeGB -lt 5) {
+        Write-EventLog -LogName 'DevOptimizer' -Source 'DevOptimizer' -EventId 1004 -EntryType Error `
+            -Message "C: drive critically low: ${cFreeGB} GB free. WSL swap.vhdx and docker_data.vhdx cannot grow - expect WSL stalls and Docker Desktop crashes. Run cleanup-wsl-swap-orphans.ps1 and VHDX compaction." `
+            -ErrorAction SilentlyContinue
+        Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') CRITICAL: C: free ${cFreeGB} GB - event 1004 written"
+    } elseif ($cFreeGB -lt 15) {
+        Write-EventLog -LogName 'DevOptimizer' -Source 'DevOptimizer' -EventId 1004 -EntryType Warning `
+            -Message "C: drive low: ${cFreeGB} GB free. WSL/Docker VHDX growth at risk." `
+            -ErrorAction SilentlyContinue
+        Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') WARNING: C: free ${cFreeGB} GB - event 1004 written"
+    }
+} catch {}
+
 # Headless rewrap piggyback: this task runs elevated every 30 min and owns
 # no console window (conhost --headless), so it is the safe carrier for
 # fixing the highest-run-level tasks that unelevated shells cannot touch.
