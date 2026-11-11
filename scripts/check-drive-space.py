@@ -160,6 +160,18 @@ def main():
                     f"🧹 cleanup freed {freed / 1073741824:.1f}GB on {letter} "
                     f"({'; '.join(notes)})\nnow {u2.free / 1073741824:.1f}GB free"
                 )
+                # Escalate: fire the elevated AdminCleanupTask (DISM, WU cache,
+                # shadow copy, VHDX compaction). Runs as the stored admin
+                # principal; failure is non-fatal - the warning already went out.
+                try:
+                    subprocess.run(
+                        ["schtasks", "/run", "/tn", "AdminCleanupTask"],
+                        capture_output=True,
+                        timeout=30,
+                    )
+                    log("AdminCleanupTask triggered (crit disk)")
+                except Exception as e:
+                    log(f"AdminCleanupTask trigger failed: {e}")
                 state[key] = "crit"
         elif pct >= WARN_PCT:
             if prev == "ok":

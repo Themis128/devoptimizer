@@ -67,6 +67,13 @@ total + per-category + `Search("cleanup")` count).
   nightly 23:59 `wsl --shutdown` bounce) — `timeout.exe` fails under
   `conhost --headless`, so it sleeps via `ping -n` and retries the distro
   restart 3x.
+- **VHDX compaction** lives in `scripts/admin-cleanup-elevated.ps1` [6]:
+  compacts `docker_data.vhdx` (~230GB allocated vs ~90GB used) by
+  terminating only the docker-desktop distro + `Optimize-VHD -Mode Full`;
+  `-ShutdownWsl` additionally compacts Ubuntu `ext4.vhdx` after a full
+  `wsl --shutdown`. All three disks get `wsl --manage --set-sparse true`.
+  `check-drive-space.py` fires `AdminCleanupTask` automatically at ≥95%
+  drive usage, so the whole chain is unattended.
 
 ## Broken refs
 
