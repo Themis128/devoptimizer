@@ -39,6 +39,27 @@ any recurrence (names containing `:` are invisible to Win32).
   Devin.exe/devin-server is active. Register via
   `scripts/Register-VhdxCompaction.ps1` (self-elevating, `-Remove` unregisters).
 
+## Upstream escalation notes (researched 2026-11-11)
+
+- `DevOptimizer-WSL-Repair` also runs `wsl --update --web-download` weekly
+  (stamp `logs/.wsl-update-stamp`) — most vsock `WSAETIMEDOUT` and
+  `wsl-bootstrap` failures are fixed upstream (docker/for-win#14841,
+  microsoft/WSL#42006).
+- If the distro hangs with high `vmmemWSL` CPU and vsock timeouts persist
+  after updates, try `virtioFS=false` under `[wsl2]` in `~/.wslconfig`
+  (Windows drive shares fall back to 9p — slower `/mnt/c`, diagnostic only).
+- If Docker engine stays unreachable after the repair task's DD restart,
+  the docker/for-win#13426 workaround is: stop DD → set
+  `"integratedWslDistros": []` + `"enableIntegrationWithDefaultWslDistro": false`
+  in `%APPDATA%\Docker\settings.json` → start DD → re-enable integration in
+  Settings → Resources → WSL integration ("Apply & restart", wait for it to
+  go gray). Manual GUI step — do not script blind.
+- `netsh winsock reset` fixes some vsock/port-forwarding failures but
+  requires a reboot — escalate to the user, never automate.
+- Zombie CDP tabs on :9229 (listed in `/json/list`, ws dead on recv) are
+  handled by `idika-watch/engine.py` `_close_target` — same pattern applies
+  to any CDP watcher.
+
 ## Registry pins
 
 `config/hub-registry.json` is generated — never hand-edit. After adding/removing
