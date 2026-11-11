@@ -40,7 +40,9 @@ param(
 )
 
 $distro = 'Ubuntu-24.04'
-$dockerDesktopExe = "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe"
+# Per-user install on this host; Program Files path does not exist (2026-11-11).
+$dockerDesktopExe = "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe"
+if (-not (Test-Path $dockerDesktopExe)) { $dockerDesktopExe = "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe" }
 
 function Invoke-Wsl([string]$cmd) {
     $out = & wsl.exe -d $distro -- bash -c $cmd 2>$null
