@@ -77,6 +77,42 @@ if ($prev.ContainsKey($selfKey) -and $prev[$selfKey] -eq 'down') {
     $prev.Remove($selfKey)
 }
 
+# --- self health remediation ---------------------------------------------------
+# Known Win11 25H2 issue: tailscaled reports "failed to set the DNS
+# configuration ... being used by another process" while DNS actually works
+# (tailscale/tailscale#21035). Cycling accept-dns forces a re-apply and
+# clears the health entry. Rate-limited to once per 6h; alerts only if the
+# warning survives remediation.
+$health = @($status.Health)
+$dnsWarn = $health | Where-Object { $_ -match 'DNS configuration' }
+if ($dnsWarn) {
+    $remKey = '_dns-remediation'
+    $lastRem = $null
+    if ($prev.ContainsKey($remKey)) { $lastRem = [datetime]::Parse($prev[$remKey]) }
+    $due = (-not $lastRem) -or ((Get-Date) - $lastRem).TotalHours -ge 6
+    if ($due) {
+        Write-Log "health: DNS config warning present - cycling accept-dns"
+        if (-not $DryRun) {
+            & tailscale.exe set --accept-dns=false 2>$null | Out-Null
+            Start-Sleep -Seconds 2
+            & tailscale.exe set --accept-dns=true 2>$null | Out-Null
+        }
+        Start-Sleep -Seconds 3
+        $recheck = & tailscale.exe status --json 2>$null | ConvertFrom-Json
+        $still = @($recheck.Health) | Where-Object { $_ -match 'DNS configuration' }
+        $prev[$remKey] = (Get-Date).ToString('o')
+        if ($still) {
+            Write-Log "health: DNS warning persists after remediation"
+            Send-Telegram "tailnet watchdog: Tailscale DNS health warning persists on office-1-win-exitnode after accept-dns cycle (Win11 25H2 known issue - DNS itself likely still works)"
+        } else {
+            Write-Log "health: DNS warning cleared by remediation"
+            Send-Telegram "tailnet watchdog: cleared Tailscale DNS health warning on office-1-win-exitnode (accept-dns cycle)"
+        }
+    } else {
+        Write-Log "health: DNS warning present, remediation not due yet"
+    }
+}
+
 # --- load watch config -------------------------------------------------------
 if (-not (Test-Path $config)) { Write-Log "config missing: $config"; exit 0 }
 $watch = Get-Content $config -Raw | ConvertFrom-Json
