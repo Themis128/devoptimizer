@@ -1,0 +1,16 @@
+{
+  "_comment": "Tailnet watchdog watch list. name = Tailscale HostName (case-insensitive). alert=false records state silently (no Telegram). Add/remove nodes freely; first run after adding a node is a silent baseline.",
+  "nodes": [
+    { "name": "office-1-win-exitnode", "alert": true,  "note": "exit node used by phone" },
+    { "name": "github-omv",             "alert": true,  "note": "evidence pipeline / Nextcloud host" },
+    { "name": "omv-ha",                 "alert": true,  "note": "HA pair member" },
+    { "name": "k3s-subnet-router-0",    "alert": true,  "note": "k3s cluster subnet router" },
+    { "name": "kube-0",                 "alert": true,  "note": "k8s node" },
+    { "name": "ingress-0",              "alert": true,  "note": "ingress node" },
+    { "name": "tailscale-operator",     "alert": true,  "note": "operator/controller" },
+    { "name": "wsl-ubuntu2404-1",       "alert": false, "note": "WSL instance - sleeps with host" },
+    { "name": "grokbot-box-1",          "alert": true,  "note": "AWS bot box (eu-west-1)" },
+    { "name": "grokbot-user-249203278", "alert": true,  "note": "AWS ephemeral user bot (us-east-1)" },
+    { "name": "galaxy-s22",             "alert": false, "note": "phone - offline when away is normal" }
+  ]
+}
