@@ -193,36 +193,63 @@ foreach ($prop in $status.Peer.PSObject.Properties) {
 
 # --- phone connectivity (best effort, ADB) ------------------------------------
 # Detects the failure mode seen 2026-11-11: phone loses public DNS/internet
-# when the Tailscale exit node drops (MagicDNS has no upstream without it).
-# Repair = re-assert exit node office-1-win-exitnode via UI automation.
-# Skipped silently when the phone isn't reachable over ADB; 30 min cooldown.
+# when the Tailscale exit node dies (MagicDNS has no upstream without it,
+# and the full tunnel blackholes). On failure, fails over to the current
+# network first (exit node 'none' = direct Wi-Fi/cellular internet), then
+# tries the alternate tailnet exit nodes. 30 min cooldown; skipped when
+# the phone isn't reachable over ADB (USB or tailnet wireless).
 $phoneKey = '_phone-lastfix'
+# failover chain: 'none' restores direct current-network internet first
+# (github-omv/omv-ha are not granted as exit nodes to galaxy-s22 in the
+# tailnet ACL, so they can't be used). office-1 is retried first so a
+# transient phone-side glitch restores the preferred exit node; 'none'
+# (direct current-network internet) is the last resort when the node
+# is genuinely down - an offline node can't even be selected in the app.
+$phoneKey = '_phone-lastfix'
+$exitChain = @('office-1-win-exitnode', 'none')
 try {
     $adb = 'C:\Users\tbaltzakis\AppData\Local\Android\Sdk\platform-tools\adb.exe'
     if (-not (Test-Path $adb)) { $adb = 'adb' }
-    $online = & $adb devices 2>$null | Select-String 'RFCTA0AEKZP\s+device\s*$'
-    if ($online) {
-        $ping = & $adb -s RFCTA0AEKZP shell 'ping -c 1 -W 3 cloudflare.com' 2>$null | Out-String
+    # prefer USB serial, fall back to tailnet wireless ADB (works from
+    # anywhere as long as the phone's tailscale is still up)
+    $serial = $null
+    foreach ($s in @('RFCTA0AEKZP', '100.84.31.85:5555')) {
+        if (& $adb devices 2>$null | Select-String ([regex]::Escape($s) + '\s+device\s*$')) { $serial = $s; break }
+    }
+    if (-not $serial) {
+        & $adb connect 100.84.31.85:5555 2>$null | Out-Null
+        if (& $adb devices 2>$null | Select-String '100\.84\.31\.85:5555\s+device\s*$') { $serial = '100.84.31.85:5555' }
+    }
+    if ($serial) {
+        $ping = & $adb -s $serial shell 'ping -c 1 -W 3 cloudflare.com' 2>$null | Out-String
         if ($ping -notmatch '1 received') {
             $due = $true
             if ($prev.ContainsKey($phoneKey)) {
                 $due = ((Get-Date) - [datetime]::Parse($prev[$phoneKey])).TotalMinutes -ge 30
             }
             if ($due) {
-                Write-Log 'phone connectivity check failed - attempting exit-node repair'
                 $fix = Join-Path $root 'scripts\phone-ensure-exitnode.py'
                 if (Test-Path $fix) {
-                    $out = & python $fix 2>&1 | Out-String
-                    Write-Log ("phone fix output: " + $out.Trim())
+                    $fixed = $false
+                    foreach ($node in $exitChain) {
+                        Write-Log "phone connectivity failed - trying exit node: $node"
+                        $out = & python $fix $serial $node 2>&1 | Out-String
+                        Write-Log ("phone fix ($node): " + $out.Trim())
+                        Start-Sleep -Seconds 8
+                        $t = & $adb -s $serial shell 'ping -c 1 -W 4 cloudflare.com' 2>$null | Out-String
+                        if ($t -match '1 received') {
+                            Send-Telegram "tailnet watchdog: galaxy-s22 connectivity restored via exit node '$node'"
+                            $fixed = $true
+                            break
+                        }
+                    }
+                    if (-not $fixed) {
+                        Send-Telegram "tailnet watchdog: galaxy-s22 has no internet and exit-node failover ($($exitChain -join ' -> ')) all failed - check manually"
+                    }
+                } else {
+                    Write-Log "phone fix script missing: $fix"
                 }
                 $prev[$phoneKey] = (Get-Date).ToString('o')
-                Start-Sleep -Seconds 10
-                $ping2 = & $adb -s RFCTA0AEKZP shell 'ping -c 1 -W 3 cloudflare.com' 2>$null | Out-String
-                if ($ping2 -match '1 received') {
-                    Send-Telegram "tailnet watchdog: repaired galaxy-s22 connectivity (re-set exit node office-1-win-exitnode)"
-                } else {
-                    Send-Telegram "tailnet watchdog: galaxy-s22 has no internet/DNS and auto-repair failed - check Tailscale app manually"
-                }
             }
         } else {
             $prev.Remove($phoneKey)

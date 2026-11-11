@@ -1,11 +1,15 @@
-"""Re-assert the Tailscale exit node on galaxy-s22 via UI automation.
+"""Set the Tailscale exit node on galaxy-s22 via UI automation.
 
-Called by tailnet-watchdog.ps1 when the phone loses public DNS/internet
-(the known failure mode: exit node drops -> MagicDNS has no upstream ->
-all public resolution fails). Idempotent: exits 0 quickly if the exit
-node is already office-1-win-exitnode or the app can't be driven.
+Called by tailnet-watchdog.ps1 for connectivity repair / exit-node
+failover. Idempotent: exits 0 quickly if the requested exit node is
+already selected or the app can't be driven.
 
-Requires: python + uiautomator2, phone reachable over ADB as RFCTA0AEKZP.
+Usage: phone-ensure-exitnode.py [serial] [exit-node-name|none]
+  exit-node-name: tailnet machine name, e.g. office-1-win-exitnode,
+                  github-omv, omv-ha. "none" selects no exit node
+                  (direct internet via current network).
+
+Requires: python + uiautomator2, phone reachable over ADB.
 """
 import re
 import sys
@@ -14,63 +18,96 @@ import time
 import uiautomator2 as u2
 
 PKG = "com.tailscale.ipn"
-TARGET = "office-1-win-exitnode"
+DEFAULT_TARGET = "office-1-win-exitnode"
 
 
-def texts(d):
+def screen_texts(d):
     return [t for t in re.findall(r'text="([^"]+)"', d.dump_hierarchy()) if t.strip()]
+
+
+def row_center(d, name):
+    """Return (x, y) center of the clickable row containing `name`."""
+    x = d.dump_hierarchy()
+    m = re.search(
+        r'<node[^>]*text="' + re.escape(name) + r'"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
+        x,
+    )
+    if not m:
+        return None
+    ty = (int(m.group(2)) + int(m.group(4))) // 2
+    # row spans full width; click just left of the text block area
+    return (540, ty)
+
+
+def current_exit_node(d):
+    """Name shown on the main screen's EXIT NODE row, or None."""
+    x = d.dump_hierarchy()
+    nodes = []
+    for m in re.finditer(
+        r'<node[^>]*text="([^"]*)"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', x
+    ):
+        t, x1, y1, x2, y2 = m.group(1), *map(int, m.groups()[1:])
+        if t.strip():
+            nodes.append((y1, y2, t))
+    en = [n for n in nodes if n[2] == "EXIT NODE"]
+    if not en:
+        return None
+    ey2 = en[0][1]
+    below = [n for n in nodes if n[0] >= ey2 - 5 and n[2] != "EXIT NODE"]
+    if not below:
+        return None
+    below.sort()
+    return below[0][2]
+
+
+def open_chooser(d):
+    x = d.dump_hierarchy()
+    if "Choose exit node" in x:
+        return True
+    for sel in ("description", "textContains"):
+        el = d(description="EXIT NODE") if sel == "description" else d(textContains="EXIT NODE")
+        if el.exists:
+            el.click()
+            time.sleep(3)
+            break
+    time.sleep(1)
+    return "Choose exit node" in d.dump_hierarchy()
 
 
 def main():
     serial = sys.argv[1] if len(sys.argv) > 1 else "RFCTA0AEKZP"
+    target = (sys.argv[2] if len(sys.argv) > 2 else DEFAULT_TARGET).strip()
+    want_none = target.lower() == "none"
+    row_name = "None" if want_none else target
+
     d = u2.connect(serial)
     d.app_start(PKG)
     time.sleep(5)
 
-    x = d.dump_hierarchy()
-    if TARGET in x and "EXIT NODE" in x:
-        print("exit node already set")
+    cur = current_exit_node(d)
+    want = "None" if want_none else target
+    if cur == want:
+        print(f"exit node already set to {want}")
         return 0
+    print(f"current exit node: {cur}; switching to {want}")
 
-    # If we're not on the exit-node chooser, open it from the main screen.
-    if "Choose exit node" not in x:
-        el = d(description="EXIT NODE")
-        if not el.exists:
-            el = d(textContains="EXIT NODE")
-        if el.exists:
-            el.click()
-            time.sleep(3)
-        else:
-            # try tapping the exit-node row by its current value text
-            m = re.search(r'text="(office-1-win-exitnode|None|Mullvad VPN)"', x)
-            print("no EXIT NODE row found; screen texts:", texts(d)[:15])
-            return 2
+    if not open_chooser(d):
+        print("could not open exit-node chooser; texts:", screen_texts(d)[:15])
+        return 2
 
     time.sleep(2)
-    x = d.dump_hierarchy()
-    if "Choose exit node" not in x:
-        print("chooser did not open")
+    pt = row_center(d, row_name)
+    if not pt:
+        print(f"exit node '{row_name}' not listed; texts:", screen_texts(d)[:20])
         return 2
-
-    # Click the row containing the target name. The TextView itself is not
-    # clickable; click the row center under it instead.
-    m = re.search(
-        r'<node[^>]*text="' + re.escape(TARGET) + r'"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
-        x,
-    )
-    if not m:
-        print("target exit node not listed")
-        return 2
-    cx = (int(m.group(1)) + int(m.group(3))) // 2
-    cy = (int(m.group(2)) + int(m.group(4))) // 2
-    d.click(cx, cy)
+    d.click(*pt)
     time.sleep(4)
 
-    x = d.dump_hierarchy()
-    if TARGET in x and "EXIT NODE" in x:
-        print("exit node set to", TARGET)
+    cur = current_exit_node(d)
+    if cur == want:
+        print(f"exit node set to {want}")
         return 0
-    print("verification failed; screen texts:", texts(d)[:15])
+    print(f"verification failed; exit node shows '{cur}'; texts:", screen_texts(d)[:15])
     return 1
 
 

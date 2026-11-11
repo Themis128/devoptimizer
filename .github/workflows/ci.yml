@@ -95,9 +95,9 @@ jobs:
           $registry = Get-Content config/hub-registry.json -Raw -Encoding UTF8 | ConvertFrom-Json
           $cmdCount = $registry.commands.Count
           $missingDesc = ($registry.commands | Where-Object { -not $_.description -or $_.description.Trim() -eq '' }).Count
-          Write-Host "Commands: $cmdCount (expected 502)"
+          Write-Host "Commands: $cmdCount (expected 503)"
           Write-Host "Missing descriptions: $missingDesc (expected 0)"
-          if ($cmdCount -ne 502) { throw "Command count mismatch: $cmdCount != 502" }
+          if ($cmdCount -ne 503) { throw "Command count mismatch: $cmdCount != 503" }
           if ($missingDesc -ne 0) { throw "$missingDesc commands missing descriptions" }
 
   security-scan:
