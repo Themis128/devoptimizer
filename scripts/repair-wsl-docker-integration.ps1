@@ -124,4 +124,22 @@ if ($sock.Code -ne 0 -or -not $engineOk) {
     Log "[docker] OK (engine $engVer reachable)"
 }
 
+# --- 4. Weekly WSL self-update (stamp-gated) ---
+# Many vsock-timeout / wsl-bootstrap failures are fixed upstream
+# (docker/for-win#14841, microsoft/WSL#42006). wsl --update is safe with
+# distros running - the new kernel activates on next VM start.
+$updStamp = Join-Path $Root 'logs\.wsl-update-stamp'
+$updDue = (-not (Test-Path $updStamp)) -or ((Get-Item $updStamp).LastWriteTime -lt (Get-Date).AddDays(-7))
+if ($updDue) {
+    if (-not $DryRun) {
+        Log '[wsl] weekly update check: wsl --update --web-download'
+        $upd = (& wsl.exe --update --web-download 2>&1 | Out-String).Trim() -replace '\s+', ' '
+        if ($upd.Length -gt 200) { $upd = $upd.Substring(0, 200) }
+        Log ("[wsl] update exit={0} out={1}" -f $LASTEXITCODE, $upd)
+        Set-Content -Path $updStamp -Value (Get-Date -Format o) -ErrorAction SilentlyContinue
+    } else {
+        Log '[wsl] weekly update check due (dry-run, skipped)'
+    }
+}
+
 Log '=== WSL repair check done ==='
