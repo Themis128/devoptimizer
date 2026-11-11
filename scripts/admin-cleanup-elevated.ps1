@@ -1,9 +1,15 @@
 <#
 .SYNOPSIS
-    Admin cleanup suite run elevated: DISM, update caches, shadow-copy pruning.
+    Admin cleanup suite run elevated: DISM, update caches, shadow-copy pruning, WSL VHDX compaction.
 .DESCRIPTION
     Admin cleanup suite run elevated: DISM, update caches, shadow-copy pruning.
+    Section 6 compacts docker_data.vhdx (terminates only the docker-desktop
+    distro - Ubuntu keeps running). Pass -ShutdownWsl to also compact the
+    Ubuntu ext4.vhdx, which requires a full wsl --shutdown.
 #>
+param(
+    [switch]$ShutdownWsl
+)
 
 # Windows 11 Admin Cleanup - Run Elevated
 $ErrorActionPreference = 'Continue'
@@ -133,6 +139,71 @@ if (Test-Path $winOld) {
     Write-Host ("[5] Windows.old removed: -{0} GB" -f (GB ($size))) -ForegroundColor Green
 } else {
     Write-Host "[5] Windows.old: not found" -ForegroundColor DarkGray
+}
+
+# 6. WSL VHDX compaction - docker_data.vhdx is the largest file on C: (~230GB
+# allocated vs ~90GB used after the 2026-11-11 image prune). Compaction needs
+# the disk detached, which only needs the docker-desktop distro stopped -
+# Ubuntu-24.04 keeps running. ext4.vhdx (Ubuntu) additionally needs a full
+# wsl --shutdown, so it only runs with -ShutdownWsl.
+Write-Host "`n--- [6] WSL VHDX compaction ---" -ForegroundColor Cyan
+
+function Test-VhdxLocked([string]$path) {
+    try {
+        $fs = [System.IO.File]::Open($path, 'Open', 'ReadWrite', 'None')
+        $fs.Close()
+        return $false
+    } catch { return $true }
+}
+
+function Compact-Vhdx([string]$path, [string]$label) {
+    if (-not (Test-Path $path)) { Write-Host "  $label`: not found" -ForegroundColor DarkGray; return }
+    $sizeBefore = (Get-Item $path).Length
+    if (Test-VhdxLocked $path) { Write-Host "  $label`: still in use, skipped" -ForegroundColor Yellow; return }
+    Write-Host ("  {0}: {1:N1} GB before compact" -f $label, ($sizeBefore/1GB))
+    try {
+        Optimize-VHD -Path $path -Mode Full -ErrorAction Stop
+        $sizeAfter = (Get-Item $path).Length
+        Write-Host ("  {0}: {1:N1} GB after  (-{2:N1} GB)" -f $label, ($sizeAfter/1GB), (($sizeBefore-$sizeAfter)/1GB)) -ForegroundColor Green
+    } catch {
+        Write-Host ("  {0}: compact failed - {1}" -f $label, $_.Exception.Message.Split("`n")[0]) -ForegroundColor Red
+        Send-DevOptAlert -Severity Warning -Title "VHDX Compact Failed: $label" -Message $_.Exception.Message -Tags 'cleanup','vhdx','admin' -EventId 1007
+    }
+}
+
+$dockerData = "$env:LOCALAPPDATA\Docker\wsl\disk\docker_data.vhdx"
+$wslExe = 'wsl.exe'
+try {
+    & $wslExe --manage docker-desktop --set-sparse true 2>&1 | Out-Null
+} catch {}
+& $wslExe --terminate docker-desktop 2>&1 | Out-Null
+$waited = 0
+while ((Test-Path $dockerData) -and (Test-VhdxLocked $dockerData) -and $waited -lt 60) {
+    Start-Sleep 5; $waited += 5
+}
+if ((Test-Path $dockerData) -and -not (Test-VhdxLocked $dockerData)) {
+    Compact-Vhdx $dockerData 'docker_data.vhdx'
+} else {
+    Write-Host "  docker_data.vhdx: still locked after ${waited}s, skipped" -ForegroundColor Yellow
+}
+# Docker Desktop restarts its backend on the next docker command / app launch.
+
+if ($ShutdownWsl) {
+    Write-Host "  -ShutdownWsl: running wsl --shutdown (ALL distros stop) ..." -ForegroundColor Yellow
+    & $wslExe --shutdown 2>&1 | Out-Null
+    Start-Sleep 10
+    $ubuntuVhdx = 'C:\WSL\Ubuntu-24.04\ext4.vhdx'
+    foreach ($d in 'docker-desktop', 'Ubuntu-24.04') {
+        try { & $wslExe --manage $d --set-sparse true 2>&1 | Out-Null } catch {}
+    }
+    Compact-Vhdx $dockerData 'docker_data.vhdx (post-shutdown)'
+    Compact-Vhdx $ubuntuVhdx 'Ubuntu ext4.vhdx'
+    Write-Host "  WSL distros restart on demand (wsl -d Ubuntu-24.04 / Docker Desktop)." -ForegroundColor DarkGray
+} else {
+    $ubuntuVhdx = 'C:\WSL\Ubuntu-24.04\ext4.vhdx'
+    if (Test-Path $ubuntuVhdx) {
+        Write-Host "  Ubuntu ext4.vhdx: skipped (needs -ShutdownWsl for full wsl --shutdown)" -ForegroundColor DarkGray
+    }
 }
 
 # Summary
