@@ -52,6 +52,22 @@ total + per-category + `Search("cleanup")` count).
 `scripts/git-pr-check.ps1 [-Json]` — origin/main HEAD, divergence, open PRs,
 24h merges. Run before any push to avoid duplicating another agent's PR.
 
+## WSL2 swap-orphan reaper + C: guard
+
+- `scripts/cleanup-wsl-swap-orphans.ps1 [-MinAgeHours N] [-DryRun]` deletes
+  orphaned `swap.vhdx` files in `%TEMP%\<GUID>\` left by crashed/terminated
+  WSL VMs (each boot makes a fresh one sized by `.wslconfig swap=`). Safe:
+  only files older than 2h, live VM's swap is locked so delete fails and it
+  is skipped. Runs every 30 min piggybacked on `WSL-Memory-Watchdog`
+  (check-wsl-memory-pressure.ps1), which also logs C: free GB each pass and
+  writes event 1004 (Warning <15GB, Error <5GB) — C: hosts swap.vhdx +
+  docker_data.vhdx (229GB), and a full C: crashes Docker Desktop and feeds
+  the vsock flap loop (2026-11-11: 5 orphans = ~63GB, C: hit 0.7GB free).
+- `C:\Users\tbaltzakis\wsl-restart-recover.bat` (task `WslRestartRecover`,
+  nightly 23:59 `wsl --shutdown` bounce) — `timeout.exe` fails under
+  `conhost --headless`, so it sleeps via `ping -n` and retries the distro
+  restart 3x.
+
 ## Broken refs
 
 `scripts/check-broken-refs.py` validates BAT→PS1 and registry paths; also runs
