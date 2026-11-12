@@ -112,3 +112,21 @@ as housekeeping step [4]. Dead launchers get archived to
   `grafana-cloud-pub`. Publisher token: `%APPDATA%/devin/secrets/ntfy-devoptimizer-token`
   (read by `scripts/lib/Notify.ps1` + `wsl-guardian.ps1`).
 - Read-back check: `GET /<topic>/json?poll=1&since=72h` with a user token.
+
+## Hidden console launches (2026-11-12)
+
+- `conhost.exe --headless <cmd>` is the established pattern for scheduled
+  tasks (no console flash, stays in user session).
+- `C:\Users\tbaltzakis\devin-scripts\run-hidden.vbs` is the generic helper for
+  commands that still pop a window: task action = `wscript.exe //nologo
+  "...\run-hidden.vbs" "<cmd> [args]>"` — waits for exit, propagates the real
+  exit code so Task Scheduler's Last Run Result stays truthful.
+- `devin-scripts\wsl-resume-watch.ps1` + task `WSL-Resume-Watch` (event:
+  Power-Troubleshooter ID 1) probes WSL vsock after resume and only runs
+  `wsl --shutdown` + distro recovery when actually wedged — never restarts a
+  healthy stack. Log: `D:\DevOptimizer\logs\wsl-resume-watch.log`.
+- `devin-scripts\windows-patch-check.ps1` + task `Windows-Patch-Check`
+  (monthly 1st 05:00): winget upgrade Docker.DockerDesktop + PSWindowsUpdate
+  (no auto-reboot). Registered Limited token — machine-scope installs need
+  the elevated variant: run `devin-scripts\register-windows-patch-task.ps1`
+  once (one UAC prompt) to swap in `Windows-Patch-Check-Elevated`.
