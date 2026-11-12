@@ -34,7 +34,7 @@ param(
     [string]$VerifyCmd        = 'curl -sf -m30 -o /dev/null -w "%{http_code}" http://localhost:8083/health',
     [string]$DeployLock       = '/home/tbaltzakis/cu130-slim/.deploy.lock',
     [int]$DeployLockMaxAgeSec = 3600,
-    [string]$NtfyTopic        = '',
+    [string]$NtfyTopic        = 'devoptimizer-alerts',
     [switch]$DryRun
 )
 
@@ -45,7 +45,7 @@ $StateFile = "$StateDir\state.json"
 New-Item -ItemType Directory -Force -Path $StateDir | Out-Null
 
 function Log($m,$l='INFO'){ $line="{0} [{1}] {2}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'),$l,$m; $f=Get-Item $LogFile -ErrorAction SilentlyContinue; if($f -and $f.Length -gt 1MB){Get-Content $LogFile -Tail 1000|Set-Content $LogFile -Encoding ASCII}; Add-Content $LogFile $line -Encoding ASCII; if($l -ne 'INFO'){Write-Output $line} }
-function Notify($t,$b){ Log "ALERT: $t -- $b" 'WARN'; if($NtfyTopic){try{Invoke-RestMethod -Uri "https://ntfy.cloudless.gr/$NtfyTopic" -Method Post -Body $b -Headers @{Title=$t;Priority='high'} -TimeoutSec 10|Out-Null}catch{Log "ntfy fail: $($_.Exception.Message)" 'WARN'}} }
+function Notify($t,$b){ Log "ALERT: $t -- $b" 'WARN'; if($NtfyTopic){try{$h=@{Title=$t;Priority='high'};$tf=Join-Path $env:APPDATA 'devin\secrets\ntfy-devoptimizer-token';if(Test-Path $tf){$h['Authorization']='Bearer '+(Get-Content $tf -Raw).Trim()};Invoke-RestMethod -Uri "https://ntfy.cloudless.gr/$NtfyTopic" -Method Post -Body $b -Headers $h -TimeoutSec 10|Out-Null}catch{Log "ntfy fail: $($_.Exception.Message)" 'WARN'}} }
 function Get-State {
     # Normalize: a state file written by an older schema lacks the lastT1/lastT2/
     # lastT3/t2Pending/postT2Fails properties. Assigning a missing property on a
