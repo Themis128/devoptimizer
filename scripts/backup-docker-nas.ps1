@@ -171,9 +171,12 @@ foreach ($f in ($files + $manifest)) {
 Log ("transferred {0}/{1} file(s) to omv:{2}/{3}" -f $okCount, ($files.Count + 1), $NasDir, $tier)
 
 # --- [7] Retention -----------------------------------------------------------------
-ssh -o BatchMode=yes omv ("cd {0}/nightly && ls -1t | grep -E '^(pgdumpall|vol-|wsl-|manifest-)' | tail -n +{1} | xargs -r rm -f" -f $NasDir, ($KeepNightly * 4 + 1)) 2>$null
-ssh -o BatchMode=yes omv ("cd {0}/weekly && ls -1t | grep -E '^(vol-|wsl-home|manifest-)' | tail -n +{1} | xargs -r rm -f" -f $NasDir, ($KeepWeekly * 6 + 1)) 2>$null
-ssh -o BatchMode=yes omv ("cd {0}/monthly && ls -1t | grep -E '^(vol-|wsl-monthly|manifest-)' | tail -n +{1} | xargs -r rm -f" -f $NasDir, ($KeepMonthly + 1)) 2>$null
+# Retention is date-based (mtime), not file-count: a single run ships ~35
+# files, so the old `tail -n +N` count math silently kept ~1 run instead of
+# KeepNightly nights (observed 2026-11-12: only the newest nightly survived).
+ssh -o BatchMode=yes omv ("find {0}/nightly -type f -mtime +{1} -delete" -f $NasDir, $KeepNightly) 2>$null
+ssh -o BatchMode=yes omv ("find {0}/weekly -type f -mtime +{1} -delete" -f $NasDir, ($KeepWeekly * 7)) 2>$null
+ssh -o BatchMode=yes omv ("find {0}/monthly -type f -mtime +{1} -delete" -f $NasDir, ($KeepMonthly * 30)) 2>$null
 # Local staging: on a fully successful transfer delete the current run's
 # staging too (the files live on the NAS + manifest); keep partial runs for
 # retry, and never retain more than 2 older runs regardless. Two weekly
