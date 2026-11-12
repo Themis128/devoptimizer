@@ -14,6 +14,7 @@ $ErrorActionPreference = 'Stop'
 # Configuration - uses same topic as wsl-guardian
 $script:NtfyTopic = 'devoptimizer-alerts'
 $script:NtfyBaseUrl = 'https://ntfy.cloudless.gr'
+$script:NtfyTokenFile = Join-Path $env:APPDATA 'devin\secrets\ntfy-devoptimizer-token'
 $script:RateLimitMinutes = 5
 $script:StateFile = 'D:\DevOptimizer\logs\notify-state.json'
 
@@ -57,11 +58,14 @@ function Send-Ntfy {
             'Title'    = $Title
             'Priority' = $Priority
         }
+        if (Test-Path $script:NtfyTokenFile) {
+            $headers['Authorization'] = 'Bearer ' + (Get-Content $script:NtfyTokenFile -Raw).Trim()
+        }
         if ($Tags.Count -gt 0) {
             $headers['Tags'] = $Tags -join ','
         }
         Invoke-RestMethod -Uri "$script:NtfyBaseUrl/$script:NtfyTopic" `
-            -Method Post -Body $Message -Headers $headers -TimeoutSec 10
+            -Method Post -Body $Message -Headers $headers -TimeoutSec 10 | Out-Null
         return $true
     } catch {
         return $false
