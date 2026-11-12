@@ -101,3 +101,14 @@ total + per-category + `Search("cleanup")` count).
 `scripts/check-broken-refs.py` validates BAT→PS1 and registry paths; also runs
 as housekeeping step [4]. Dead launchers get archived to
 `archive/dead-launchers-*/`, not deleted.
+
+## ntfy alerting (ntfy.cloudless.gr)
+
+- Server: k3s pod `ntfy` (ns `ntfy`) on OMV, auth-file deny-all. Manage via
+  `sudo kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n ntfy exec deploy/ntfy -- ntfy <cmd>`
+  with `NTFY_CONFIG_FILE=/etc/ntfy/server.yml`.
+- Topics/users: `devoptimizer` (write-only `devoptimizer-alerts`), `phone`
+  (rw cloudless-*, read-only devoptimizer-alerts), `cloudless-app`, `kuma`,
+  `grafana-cloud-pub`. Publisher token: `%APPDATA%/devin/secrets/ntfy-devoptimizer-token`
+  (read by `scripts/lib/Notify.ps1` + `wsl-guardian.ps1`).
+- Read-back check: `GET /<topic>/json?poll=1&since=72h` with a user token.
