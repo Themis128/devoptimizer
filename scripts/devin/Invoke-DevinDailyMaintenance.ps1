@@ -153,9 +153,13 @@ if (Test-Path -LiteralPath $hostLogsDir) {
 Add-Step 'host-log-retention' 'OK' "removed $hostRemoved session dir(s) older than $LogRetentionDays days from %APPDATA%\Devin\logs"
 
 # --- 4. Server-side session log retention (age-gated, data/logs only) -------
-$before = [int](Invoke-Wsl 'ls -1 ~/.devin-server/data/logs 2>/dev/null | wc -l')
+$before = @(Invoke-Wsl 'ls -1 ~/.devin-server/data/logs 2>/dev/null | wc -l') |
+    Where-Object { $_ -match '\d' } | Select-Object -Last 1
+if (-not $before) { $before = 0 }
 Invoke-Wsl "find ~/.devin-server/data/logs -mindepth 1 -maxdepth 1 -mtime +$LogRetentionDays -exec rm -rf {} + 2>/dev/null; true"
-$after = [int](Invoke-Wsl 'ls -1 ~/.devin-server/data/logs 2>/dev/null | wc -l')
+$after = @(Invoke-Wsl 'ls -1 ~/.devin-server/data/logs 2>/dev/null | wc -l') |
+    Where-Object { $_ -match '\d' } | Select-Object -Last 1
+if (-not $after) { $after = 0 }
 Add-Step 'server-log-retention' 'OK' ("server log entries {0} -> {1} (> {2} days removed)" -f $before, $after, $LogRetentionDays)
 
 # --- 5. Bundle orphans: superseded + corrupt commit dirs ---------------------
