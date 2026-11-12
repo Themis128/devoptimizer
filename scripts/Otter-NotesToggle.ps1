@@ -27,9 +27,9 @@ param(
 
 # WPF requires STA; relaunch under powershell.exe -STA if needed (pwsh defaults to MTA)
 if ([System.Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') {
-    $args = @('-STA', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"")
-    if ($StartHidden) { $args += '-StartHidden' }
-    Start-Process powershell -ArgumentList $args -WindowStyle Hidden
+    $staArgs = @('-STA', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"")
+    if ($StartHidden) { $staArgs += '-StartHidden' }
+    Start-Process powershell -ArgumentList $staArgs -WindowStyle Hidden
     exit
 }
 
@@ -108,7 +108,7 @@ function Start-OtterAction([string]$action, [scriptblock]$onResult) {
     [void]$ps.AddScript({
         param($driver, $act, $dir)
         Set-Location $dir
-        $out = & python "`"$driver`"" $act 2>$null
+        $out = & python $driver $act 2>$null
         if ($out) { ($out | Select-Object -Last 1).ToString().Trim() } else { 'ERR:no output' }
     }).AddArgument($script:Driver).AddArgument($action).AddArgument($script:ScriptDir)
 
