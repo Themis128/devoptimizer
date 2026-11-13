@@ -71,6 +71,25 @@ if (Test-Path $repairLog) {
 $healedToday  = (Test-Path $wedgeFlag) -and ((Get-Content $wedgeFlag -Raw).Trim() -eq $today)
 $healPending  = $wedged -and -not $healedToday
 
+# Heal-resistant wedge: the shutdown heal already ran today but NEWER wedge
+# evidence exists in the repair log - escalate to the elevated network soft
+# reset (no reboot needed, ~10s blip). Next tier above that is a reboot.
+$resistant = $false
+if ($wedged -and $healedToday) {
+    $lastWedgeLine = $recent | Select-String 'unreachable|WSAETIMEDOUT|Wsl/Service|BROKEN|DISTRO PROXY DEAD' | Select-Object -Last 1
+    if ($lastWedgeLine -and $lastWedgeLine.Line -match '^(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2})' `
+            -and (Get-Item $wedgeFlag).LastWriteTime -lt [datetime]$matches[1]) {
+        $resistant = $true
+    }
+}
+
+function Invoke-NetSoftReset([string]$why) {
+    Log "heal-resistant wedge ($why) - firing elevated \DevOptimizer\Net-Soft-Reset"
+    $out = & schtasks.exe /run /tn '\DevOptimizer\Net-Soft-Reset' 2>&1
+    $out | ForEach-Object { Log "schtasks: $_" }
+    if ($LASTEXITCODE -ne 0) { Log "net-soft-reset launch failed rc=$LASTEXITCODE" }
+}
+
 function Invoke-WedgeHeal([string]$why) {
     Log "vsock wedge evidence in wsl-repair.log - recycling WSL to heal it ($why)"
     & wsl.exe --shutdown 2>&1 | Out-Null
@@ -86,7 +105,7 @@ function Invoke-WedgeHeal([string]$why) {
 if (Get-Process -Name 'Devin' -ErrorAction SilentlyContinue) {
     # The app being open is not itself a blocker - a live agent session is.
     # A pending wedge heal may proceed once the user has been away >= 30 min.
-    if (-not $healPending) { exit 0 }
+    if (-not ($healPending -or $resistant)) { exit 0 }
     $idle = try { [DevOptIdle]::MinutesIdle() } catch { -1 }
     if ($idle -ge 0 -and $idle -lt 30) {
         # Tell the user once per day that a heal is queued behind their session.
@@ -99,7 +118,8 @@ if (Get-Process -Name 'Devin' -ErrorAction SilentlyContinue) {
         exit 0
     }
     if (Test-DevinServerAlive) { Log 'wedge heal deferred - devin-server still alive (active agent session)'; exit 0 }
-    Invoke-WedgeHeal 'idle-escalation'
+    if ($healPending) { Invoke-WedgeHeal 'idle-escalation' }
+    elseif ($resistant) { Invoke-NetSoftReset 'idle-escalation' }
     exit 0
 }
 
@@ -111,6 +131,7 @@ if (Test-DevinServerAlive) { exit 0 }
 # recycles WSL anyway and a separate bounce would just be a redundant stop.
 if ($compactedToday) {
     if ($healPending) { Invoke-WedgeHeal 'devin-exit' }
+    elseif ($resistant) { Invoke-NetSoftReset 'devin-exit' }
     exit 0
 }
 

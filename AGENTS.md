@@ -116,13 +116,20 @@ any recurrence (names containing `:` are invisible to Win32).
   after updates, try `virtioFS=false` under `[wsl2]` in `~/.wslconfig`
   (Windows drive shares fall back to 9p — slower `/mnt/c`, diagnostic only).
 - If Docker engine stays unreachable after the repair task's DD restart,
-  the docker/for-win#13426 workaround is: stop DD → set
-  `"integratedWslDistros": []` + `"enableIntegrationWithDefaultWslDistro": false`
-  in `%APPDATA%\Docker\settings.json` → start DD → re-enable integration in
-  Settings → Resources → WSL integration ("Apply & restart", wait for it to
-  go gray). Manual GUI step — do not script blind.
-- `netsh winsock reset` fixes some vsock/port-forwarding failures but
-  requires a reboot — escalate to the user, never automate.
+  `repair-wsl-docker-integration.ps1` now runs the docker/for-win#13426
+  reset itself (once/day, only when the wsl exec channel still answers —
+  a dead channel means the wedge class, which the exit-gate heal owns):
+  stop DD → clear `IntegratedWslDistros` + `EnableIntegrationWithDefaultWslDistro`
+  in `settings-store.json` → start DD → verify engine → re-add the distro.
+  The old "Apply & restart" GUI step is obsolete — settings edits while DD
+  is stopped are honored on next start (verified live 2026-11-13/14).
+- `netsh winsock reset` is near no-op on Win11 (LSPs deprecated since
+  Win8) AND wants a reboot — superseded by `scripts/network-soft-reset.ps1`
+  (flushdns + ARP clear + physical adapter restart, no reboot). Fires
+  automatically via the on-demand `\DevOptimizer\Net-Soft-Reset` task when
+  wedge evidence survives today's `wsl --shutdown` heal (heal-resistant
+  tier, once/day). If the wedge still persists after that, the remaining
+  fix is a real reboot — still manual.
 - Zombie CDP tabs on :9229 (listed in `/json/list`, ws dead on recv) are
   handled by `idika-watch/engine.py` `_close_target` — same pattern applies
   to any CDP watcher.

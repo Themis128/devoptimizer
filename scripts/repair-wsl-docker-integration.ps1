@@ -165,6 +165,54 @@ if ($sock.Code -ne 0 -or -not $engineOk) {
                 $eng = WslArgs @('timeout', '8', 'docker', 'info', '--format', '{{.ServerVersion}}')
             } while (-not ($eng.Code -eq 0 -and $eng.Out -match '^\d+\.\d+') -and (Get-Date) -lt $deadline)
             Log ("[docker] post-restart engineOk={0} ver={1}" -f ($eng.Code -eq 0 -and $eng.Out -match '^\d+\.\d+'), $eng.Out)
+
+            # --- 3a-i. Engine still dead after DD restart: scripted
+            # docker/for-win#13426 integration reset. Replaces the manual
+            # "clear integratedWslDistros -> restart -> re-enable via Apply &
+            # restart" GUI dance - settings-store.json edits while DD is
+            # stopped are picked up on next start (verified 2026-11-13).
+            # Gate: only when the wsl exec channel itself answers - if it is
+            # wedged the fix is wsl --shutdown (exit-gate heal), not this.
+            # Once/day stamp: repeated DD stop/start churns every container.
+            if (-not ($eng.Code -eq 0 -and $eng.Out -match '^\d+\.\d+')) {
+                $chan = WslArgs @('echo', '__WSL_OK__')
+                if (-not $settingsPath) { $settingsPath = "$env:APPDATA\Docker\settings-store.json" }
+                $rstStamp = Join-Path $Root 'logs\.dd-integration-reset'
+                $rstToday = (Test-Path $rstStamp) -and ((Get-Content $rstStamp -Raw).Trim() -eq (Get-Date -Format 'yyyy-MM-dd'))
+                if (-not $rstToday) {
+                    if ($chan.Out -match '__WSL_OK__') {
+                        Log '[docker] engine dead after DD restart - running scripted #13426 integration reset'
+                        Get-Process -Name 'Docker Desktop' -ErrorAction SilentlyContinue | Stop-Process -Force
+                        Start-Sleep -Seconds 5
+                        try {
+                            $st = Get-Content $settingsPath -Raw -ErrorAction Stop | ConvertFrom-Json
+                            $st.IntegratedWslDistros = @()
+                            if ($st.PSObject.Properties['EnableIntegrationWithDefaultWslDistro']) { $st.EnableIntegrationWithDefaultWslDistro = $false }
+                            $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
+                        } catch { Log "[integration] settings reset failed: $($_.Exception.Message)" }
+                        Start-Process "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe"
+                        $deadline = (Get-Date).AddMinutes(4)
+                        do {
+                            Start-Sleep -Seconds 10
+                            $eng = WslArgs @('timeout', '8', 'docker', 'info', '--format', '{{.ServerVersion}}')
+                        } while (-not ($eng.Code -eq 0 -and $eng.Out -match '^\d+\.\d+') -and (Get-Date) -lt $deadline)
+                        Log ("[docker] post-reset engineOk={0} ver={1}" -f ($eng.Code -eq 0 -and $eng.Out -match '^\d+\.\d+'), $eng.Out)
+                        if ($eng.Code -eq 0 -and $eng.Out -match '^\d+\.\d+') {
+                            try {
+                                $st = Get-Content $settingsPath -Raw -ErrorAction Stop | ConvertFrom-Json
+                                if (@($st.IntegratedWslDistros) -notcontains $Distro) {
+                                    $st.IntegratedWslDistros = @($st.IntegratedWslDistros) + @($Distro)
+                                    $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
+                                    Log "[integration] re-added $Distro post-reset (DD re-pushes proxy)"
+                                }
+                            } catch { Log "[integration] re-add failed: $($_.Exception.Message)" }
+                        }
+                        Set-Content -Path $rstStamp -Value (Get-Date -Format 'yyyy-MM-dd')
+                    } else {
+                        Log '[docker] integration reset skipped - wsl exec channel dead (vsock wedge class; exit-gate heal owns it)'
+                    }
+                }
+            }
         } else {
             Log '[docker] Docker Desktop not running - leaving stopped (socket absence is expected)'
         }
