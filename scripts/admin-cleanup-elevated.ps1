@@ -31,6 +31,27 @@ $before = (Get-PSDrive C).Free
 Write-Host "=== Windows 11 Admin Cleanup ===" -ForegroundColor Magenta
 Write-Host ("C: free before: {0:N2} GB`n" -f ($before/1GB))
 
+# 0. Docker Desktop firewall repair: published container ports are served by
+# com.docker.backend.exe, but the built-in "Docker Desktop Backend" allow rules
+# point at the old Program Files path. After Docker Desktop moved to
+# %LOCALAPPDATA%\Programs\DockerDesktop, inbound LAN traffic to published ports
+# (e.g. social-metrics :9390 scraped by Prometheus) is dropped on the Public
+# profile. Re-create an allow rule for the real binary path when missing.
+$dockerBackend = "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\com.docker.backend.exe"
+if (Test-Path $dockerBackend) {
+    $existing = Get-NetFirewallRule -DisplayName 'Docker Desktop Backend (user path)' -ErrorAction SilentlyContinue
+    if (-not $existing) {
+        try {
+            New-NetFirewallRule -DisplayName 'Docker Desktop Backend (user path)' `
+                -Direction Inbound -Action Allow -Program $dockerBackend `
+                -Profile Any -Enabled True -ErrorAction Stop | Out-Null
+            Write-Host "[0] Created inbound allow rule for $dockerBackend" -ForegroundColor Green
+        } catch {
+            Write-Host "[0] Firewall rule creation failed: $_" -ForegroundColor Yellow
+        }
+    }
+}
+
 # 1. DISM Component Store Cleanup
 Write-Host "--- [1] DISM Component Store Cleanup ---" -ForegroundColor Cyan
 Write-Host "Running: Dism /Online /Cleanup-Image /StartComponentCleanup"
