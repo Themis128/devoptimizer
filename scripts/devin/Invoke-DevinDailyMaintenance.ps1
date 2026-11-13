@@ -171,6 +171,16 @@ if (Test-Path -LiteralPath $cliPath) {
     $version = & $cliPath --version 2>$null
     if (@($version).Count -ge 2 -and @($version)[1] -match '^([a-f0-9]{40})$') { $liveCommit = $Matches[1] }
 }
+# Guard against OTA skew: the client version file can lag the server. Also treat
+# the RUNNING server's commit and freshly-downloaded dirs (< 48 h) as live, so an
+# intact dir can never be deleted as "superseded" while it (or a newer download)
+# is actually in use. Corrupt dirs are still always removed (self-heal path).
+$serverCommit = $null
+$serverProcs = @(Invoke-Wsl "pgrep -af 'server-mai[n]' 2>/dev/null; true") |
+    Where-Object { $_ -match '\.devin-server/bin/([a-f0-9]{40})/' }
+if ($serverProcs.Count -gt 0 -and $serverProcs[0] -match '\.devin-server/bin/([a-f0-9]{40})/') {
+    $serverCommit = $Matches[1]
+}
 $binDirs = @(Invoke-Wsl 'ls -1d ~/.devin-server/bin/*/ 2>/dev/null' | ForEach-Object { $_ -replace '/+$', '' })
 $deleted = @(); $deferred = @(); $corruptRemoved = $false
 
@@ -181,7 +191,8 @@ if (-not $liveCommit -and $binDirs.Count -gt 0) {
         $commit = ($dir -split '/')[-1]
         $integrity = Invoke-Wsl "test -d '$dir/node_modules/minimist' -a -d '$dir/node_modules/@vscode' && echo intact || echo broken"
         $isCorrupt = ($integrity -match 'broken')
-        $isLive = ($commit -eq $liveCommit)
+        $isLive = ($commit -eq $liveCommit) -or ($commit -eq $serverCommit) -or
+            ((Invoke-Wsl "stat -c %Y '$dir' 2>/dev/null") -gt (Get-Date).AddHours(-48).ToUnixTimeSeconds())
         if (-not $isCorrupt -and $isLive) { continue }
         $why = if ($isCorrupt) { 'CORRUPT bundle' } else { 'superseded commit dir' }
         if ($script:appRunning) {
@@ -201,7 +212,8 @@ if (-not $liveCommit -and $binDirs.Count -gt 0) {
     } elseif ($deferred.Count -gt 0) {
         Add-Step 'bundle-orphans' 'DEFER' ("app is running; deferred: {0}" -f ($deferred -join ', '))
     } else {
-        Add-Step 'bundle-orphans' 'OK' "all commit dirs intact and current (live: $($liveCommit.Substring(0,7)))"
+        $liveShort = if ($liveCommit) { $liveCommit.Substring(0, 7) } elseif ($serverCommit) { $serverCommit.Substring(0, 7) } else { 'unknown' }
+        Add-Step 'bundle-orphans' 'OK' "all commit dirs intact and current (live: $liveShort)"
     }
 }
 
