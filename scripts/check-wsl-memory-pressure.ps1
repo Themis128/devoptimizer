@@ -14,14 +14,28 @@
 # Host-side guard: if the WSL VM is not running, log and exit WITHOUT invoking
 # wsl.exe (invoking it would wake the VM every run).
 # --- sshd ensure (2026-11-07): omv watchdog remediation ssh-hop needs Windows sshd ---
+# 2026-11-14: upgraded to delegate repair to sshd-repair.ps1 (this task runs
+# elevated every 30 min, so it is the bootstrap lane for ACL repair, SCM
+# recovery actions, and one-time registration of \DevOptimizer\Sshd-Watch).
 try {
-    $sshd = Get-Service sshd -ErrorAction SilentlyContinue
-    if ($sshd -and $sshd.StartType -ne 'Automatic') { Set-Service sshd -StartupType Automatic }
-    if ($sshd -and $sshd.Status -ne 'Running') {
-        try { Start-Service sshd -ErrorAction Stop }
-        catch {
-            "$(Get-Date -Format o) $($_.Exception.Message)" | Out-File -Append C:\Users\tbaltzakis\devin-scripts\sshd_err.txt
-            & 'C:\Program Files\OpenSSH\sshd.exe' -t 2>&1 | Out-File -Append C:\Users\tbaltzakis\devin-scripts\sshd_err.txt
+    $sshdRepair = 'D:\DevOptimizer\scripts\sshd-repair.ps1'
+    if (Test-Path $sshdRepair) {
+        # In-process call - nested `powershell -File` produced no output when
+        # spawned inside the conhost --headless task context (2026-11-14).
+        $watchExists = $null -ne (Get-ScheduledTask -TaskName 'Sshd-Watch' -ErrorAction SilentlyContinue)
+        if ($watchExists) { & $sshdRepair } else { & $sshdRepair -RegisterTask }
+        if (Get-ScheduledTask -TaskName 'Sshd-Watch' -ErrorAction SilentlyContinue) {
+            New-Item -ItemType File -Path 'D:\DevOptimizer\logs\.sshd-watch-registered' -Force | Out-Null
+        }
+    } else {
+        $sshd = Get-Service sshd -ErrorAction SilentlyContinue
+        if ($sshd -and $sshd.StartType -ne 'Automatic') { Set-Service sshd -StartupType Automatic }
+        if ($sshd -and $sshd.Status -ne 'Running') {
+            try { Start-Service sshd -ErrorAction Stop }
+            catch {
+                "$(Get-Date -Format o) $($_.Exception.Message)" | Out-File -Append C:\Users\tbaltzakis\devin-scripts\sshd_err.txt
+                & 'C:\Program Files\OpenSSH\sshd.exe' -t 2>&1 | Out-File -Append C:\Users\tbaltzakis\devin-scripts\sshd_err.txt
+            }
         }
     }
 } catch {}

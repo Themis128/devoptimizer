@@ -227,6 +227,20 @@ if ($ShutdownWsl) {
     }
 }
 
+# --- [7] OpenSSH server (sshd) repair + watch task ---
+# Dies silently on WSL/Docker bounces and on the >=9.4 host-key/logs ACL bug.
+# sshd-repair.ps1 repairs config/ACLs/recovery actions and, with -RegisterTask,
+# installs the elevated \DevOptimizer\Sshd-Watch 15-min task on first pass.
+$sshdRepair = "$PSScriptRoot\sshd-repair.ps1"
+if (Test-Path $sshdRepair) {
+    try {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $sshdRepair -RegisterTask
+        Write-Host "[7] sshd-repair ran (see logs\sshd-repair.log)" -ForegroundColor Green
+    } catch {
+        Write-Host "[7] sshd-repair failed: $($_.Exception.Message.Split("`n")[0])" -ForegroundColor Yellow
+    }
+}
+
 # Summary
 $after = (Get-PSDrive C).Free
 Write-Host "`n=== Summary ===" -ForegroundColor Magenta
