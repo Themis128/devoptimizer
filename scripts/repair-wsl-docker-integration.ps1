@@ -101,6 +101,29 @@ if ($mkdirTest.Code -ne 0 -or $foreignN -gt 0) {
     }
 } else {
     Log "[home] OK ($user)"
+
+    # --- 2b. Re-enable DD WSL integration if it was turned off ---
+    # 2026-11-13: when the vsock exec channel wedges, Docker Desktop's distro-
+    # proxy push fails on every retry and re-pops the "integration stopped"
+    # dialog each time. To stop the retry storm the integration was disabled
+    # in settings-store.json. Only safe to restore when the distro answers
+    # wsl.exe (proven above) - otherwise the popups resume.
+    $settingsPath = "$env:APPDATA\Docker\settings-store.json"
+    try {
+        $st = Get-Content $settingsPath -Raw -ErrorAction Stop | ConvertFrom-Json
+        $listed = @($st.IntegratedWslDistros) -contains $Distro
+        if (-not $listed) {
+            if (-not $DryRun) {
+                $st.IntegratedWslDistros = @($st.IntegratedWslDistros) + @($Distro)
+                $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
+                Log "[integration] re-enabled $Distro in settings-store.json (distro reachable; DD will re-push the proxy)"
+            } else {
+                Log "[integration] would re-enable $Distro (dry-run)"
+            }
+        }
+    } catch {
+        Log "[integration] settings check failed: $($_.Exception.Message)"
+    }
 }
 
 # --- 3. docker.sock + engine reachability ---
@@ -148,6 +171,24 @@ if ($sock.Code -ne 0 -or -not $engineOk) {
     }
 } else {
     Log "[docker] OK (engine $engVer reachable)"
+
+    # --- 3a. dd-user-distro-proxy (fs bridge for \\wsl.localhost bind-mounts) ---
+    # When the distro proxy exits, docker.sock + shared-sockets can still be
+    # re-published by Docker Desktop, but hashed bind-mounts under
+    # /mnt/wsl/docker-desktop-bind-mounts/<distro>/<hash> go dead: fresh mounts
+    # of \\wsl.localhost\<distro>\... sources materialize as EMPTY DIRECTORIES
+    # inside containers (incident 2026-11-13: promtail config + cloudflared
+    # entrypoint crash-loops). The proxy cannot be reliably respawned while the
+    # vsock plane is wedged - only a full wsl --shutdown heals it (nightly
+    # compaction / Devin-exit gate). Detection here is log-only: containers
+    # created while the bridge is dead need force-recreate after the heal.
+    $proxyAlive = WslArgs @('pgrep', '-f', 'user-distro-proxy')
+    if ($proxyAlive.Code -eq 0) {
+        Log '[fsbridge] distro proxy alive'
+    } else {
+        $deadMounts = WslArgs @('bash', '-lc', 'find /mnt/wsl/docker-desktop-bind-mounts -maxdepth 3 -type d -empty 2>/dev/null | wc -l')
+        Log ("[fsbridge] DISTRO PROXY DEAD - UNC-sourced bind-mounts will be empty dirs (empty mount dirs: {0}). Heals on wsl --shutdown + DD restart; affected containers need force-recreate after." -f $deadMounts.Out.Trim())
+    }
 
     # --- 3b. stack-watchers docker-cli bind-mount (cli-tools iso race) ---
     # The compose stack bind-mounts /mnt/wsl/docker-desktop/cli-tools/usr/bin/docker
