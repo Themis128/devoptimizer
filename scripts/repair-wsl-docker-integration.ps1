@@ -122,6 +122,37 @@ if ($sock.Code -ne 0 -or -not $engineOk) {
     }
 } else {
     Log "[docker] OK (engine $engVer reachable)"
+
+    # --- 3b. stack-watchers docker-cli bind-mount (cli-tools iso race) ---
+    # The compose stack bind-mounts /mnt/wsl/docker-desktop/cli-tools/usr/bin/docker
+    # into stack-watchers. After every docker-desktop distro restart the VM-side
+    # path is an empty dir until Ubuntu re-mounts the docker-wsl-cli iso - if the
+    # container is (re)created in that window the mount materializes as an empty
+    # dir and heal_supervisor dies on "exec: is a directory: permission denied"
+    # (incidents 2026-11-13 x2 incl. after DD 4.99.0 update). Detection: exec a
+    # `test -f` - empty dir is not a regular file. Repair: recreate once the
+    # Ubuntu-side iso is back; otherwise log and let the next pass retry.
+    $swName = 'stack-watchers'
+    $swRunning = WslArgs @('docker','inspect','-f','{{.State.Running}}',$swName)
+    if ($swRunning.Out.Trim() -eq 'true') {
+        $mountOk = WslArgs @('docker','exec',$swName,'test','-f','/usr/bin/docker')
+        if ($mountOk.Code -ne 0) {
+            $iso = WslArgs @('grep','-qs','cli-tools.*iso9660','/proc/mounts')
+            if ($iso.Code -eq 0) {
+                Log "[$swName] docker-cli mount is an empty dir - recreating (iso remounted)"
+                if (-not $DryRun) {
+                    $proj = '/home/' + $user + '/cu130-slim'
+                    [void](WslArgs @('bash','-lc',"echo `"\$(date -u +%FT%TZ) devoptimizer-wsl-repair refix $swName mount`" > $proj/.deploy.lock"))
+                    $rec = WslArgs @('bash','-lc',"cd $proj && docker compose up -d --force-recreate $swName 2>&1 | tail -3; rm -f $proj/.deploy.lock")
+                    $recOut = ($rec.Out -split "`n" | Select-Object -Last 3) -join ' | '
+                    $mountOk2 = WslArgs @('docker','exec',$swName,'test','-f','/usr/bin/docker')
+                    Log ("[$swName] recreate exit={0} mountOk={1} out={2}" -f $rec.Code, ($mountOk2.Code -eq 0), $recOut)
+                }
+            } else {
+                Log "[$swName] docker-cli mount broken but cli-tools iso not remounted yet - will retry next pass"
+            }
+        }
+    }
 }
 
 # --- 4. Weekly WSL self-update (stamp-gated) ---
