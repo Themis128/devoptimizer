@@ -12,7 +12,7 @@ function Log([string]$m) { Add-Content -Path $log -Value "$(Get-Date -Format 'yy
 
 # Once per calendar day max
 $today = Get-Date -Format 'yyyy-MM-dd'
-if ((Test-Path $stamp) -and ((Get-Content $stamp -Raw).Trim() -eq $today)) { exit 0 }
+$compactedToday = (Test-Path $stamp) -and ((Get-Content $stamp -Raw).Trim() -eq $today)
 
 # Gate 1: Devin Desktop app
 if (Get-Process -Name 'Devin' -ErrorAction SilentlyContinue) { exit 0 }
@@ -25,6 +25,32 @@ foreach ($i in 1..3) {
     Start-Sleep -Seconds 5
 }
 if ($alive) { exit 0 }
+
+if ($compactedToday) {
+    # Compaction already ran - but a wsl --shutdown is also the only
+    # documented cure for the vsock-wedge class (WSL#41901/14005: hvs
+    # ring-buffer alloc fails under memory fragmentation, vsock relay never
+    # recovers, every wsl.exe call WSAETIMEDOUTs). If the repair log shows
+    # wedge evidence in the last 2h, recycle WSL now that Devin is out.
+    $repairLog = 'D:\DevOptimizer\logs\wsl-repair.log'
+    $wedgeFlag = 'D:\DevOptimizer\logs\.vsock-wedge-healed'
+    $wedged = $false
+    if (Test-Path $repairLog) {
+        $recent = Get-Content $repairLog -Tail 80 -ErrorAction SilentlyContinue
+        $wedged = [bool]($recent | Select-String 'unreachable|WSAETIMEDOUT|Wsl/Service|BROKEN' | Select-Object -First 1)
+    }
+    $healedToday = (Test-Path $wedgeFlag) -and ((Get-Content $wedgeFlag -Raw).Trim() -eq $today)
+    if ($wedged -and -not $healedToday) {
+        Log 'vsock wedge evidence in wsl-repair.log - recycling WSL to heal it'
+        & wsl.exe --shutdown 2>&1 | Out-Null
+        & wsl.exe -d Ubuntu-24.04 -e true 2>&1 | Out-Null   # warm the distro back up
+        $ddExe = "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe"
+        if (Test-Path $ddExe) { Start-Process $ddExe }
+        Set-Content -Path $wedgeFlag -Value $today
+        Log 'wsl recycled + Docker Desktop relaunched'
+    }
+    exit 0
+}
 
 # Both clear - fire the elevated compaction task and stamp today.
 # Stamp only after schtasks succeeds - a failed fire must retry next pass.

@@ -161,11 +161,23 @@ function Invoke-VhdxCompactionMain {
     }
     & $log '[ OK ] WSL fully stopped, vhdx files unlocked'
 
+    # --- Convert distro disks to sparse VHD while stopped (idempotent; sparse
+    #     auto-releases freed blocks so manual compaction stops being needed) ---
+    foreach ($d in 'docker-desktop','Ubuntu-24.04') {
+        & $log ("[ .. ] set-sparse {0}" -f $d)
+        wsl --manage $d --set-sparse true 2>&1 | Out-Null
+    }
+
     # --- Compact + record state ---
     $state = if ($state) { $state } else { [pscustomobject]@{} }
     $compacted = 0; $freedTotal = 0
     foreach ($t in $toCompact) {
         if (-not (Test-VhdxUnlocked $t)) { & $log "[FAIL] $t re-locked - skipping"; continue }
+        # Sparse VHDs reject Optimize-VHD ("must not be sparse") and self-reclaim.
+        if ((& fsutil sparse queryflag $t 2>&1) -match 'set as sparse') {
+            & $log "[SKIP] $t is sparse - auto-reclaims, no Optimize-VHD needed"
+            continue
+        }
         $before = (Get-Item $t).Length
         & $log ("[ .. ] Optimize-VHD: {0} ({1} GB)..." -f $t, [math]::Round($before / 1GB, 2))
         try {
