@@ -89,6 +89,21 @@ if (-not $elevated) {
     }
 }
 
+# --- 2b. host-key ownership + ACL hardening ---
+# 2026-11-14 root cause (verified via SYSTEM-context diag): sshd 9.5p2
+# ignores every host key as "Bad owner"/"too open" when the private keys'
+# OWNER isn't SYSTEM/Administrators (happens after manual sshd/keygen
+# runs) -> service exits "no hostkeys available" while elevated-admin
+# sshd -d still works. Fix: owner=SYSTEM, ACL=SYSTEM+Admins only.
+if ($elevated -and -not $DryRun) {
+    Get-ChildItem 'C:\ProgramData\ssh\ssh_host_*_key' -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -notmatch '\.pub$' } | ForEach-Object {
+            icacls $_.FullName /setowner 'NT AUTHORITY\SYSTEM' 2>&1 | Out-Null
+            icacls $_.FullName /inheritance:r /grant 'NT AUTHORITY\SYSTEM:(F)' 'BUILTIN\Administrators:(F)' 2>&1 | Out-Null
+            Log "[acl] hardened host key $($_.Name) (owner=SYSTEM, SYSTEM+Admins only)"
+        }
+}
+
 # --- 3. SCM recovery hardening ---
 $actions = & sc.exe qfailure sshd 2>&1 | Out-String
 if ($actions -notmatch 'RESTART') {
@@ -161,6 +176,35 @@ if ($svc2.Status -eq 'Running') {
         $dbgOut = Receive-Job $dbg -ErrorAction SilentlyContinue | Out-String
         Remove-Job $dbg -Force -ErrorAction SilentlyContinue
         ($dbgOut -split "`r?`n" | Select-Object -Last 12) | ForEach-Object { Log "[diag] $_" }
+
+        # SYSTEM-context diag: service runs as LocalSystem; elevated-admin
+        # -d masks SYSTEM-only failures (ACLs, profile, token). Temp task.
+        $diagScript = 'D:\DevOptimizer\scripts\sshd-system-diag.ps1'
+        $diagOut    = 'D:\DevOptimizer\logs\sshd-system-diag.log'
+        if (Test-Path $diagScript) {
+            $tn = '\DevOptimizer\Sshd-SystemDiag-Temp'
+            try {
+                $dact = New-ScheduledTaskAction -Execute 'C:\Windows\System32\conhost.exe' `
+                    -Argument ('--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $diagScript + '"')
+                $dpri = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+                Register-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Sshd-SystemDiag-Temp' `
+                    -Action $dact -Principal $dpri -Force | Out-Null
+                Remove-Item $diagOut -Force -ErrorAction SilentlyContinue
+                Start-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Sshd-SystemDiag-Temp'
+                $waited = 0
+                while (-not (Test-Path $diagOut) -and $waited -lt 30) { Start-Sleep 2; $waited += 2 }
+                Start-Sleep -Seconds 15
+                if (Test-Path $diagOut) {
+                    Get-Content $diagOut | Select-Object -Last 40 | ForEach-Object { Log "[sysdiag] $_" }
+                } else {
+                    Log "[sysdiag] no output produced (task may have failed to launch)"
+                }
+            } catch {
+                Log "[sysdiag] failed: $($_.Exception.Message)"
+            } finally {
+                Unregister-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Sshd-SystemDiag-Temp' -Confirm:$false -ErrorAction SilentlyContinue
+            }
+        }
     }
 }
 
