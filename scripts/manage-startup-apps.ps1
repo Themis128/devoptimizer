@@ -2,8 +2,10 @@
 .SYNOPSIS
     Manage startup applications - disable non-mandatory, keep essentials.
 .DESCRIPTION
-    Disables optional startup entries in HKCU/HKLM Run keys and Startup folders.
-    Keeps: Docker Desktop, Windows SecurityHealth, Tailscale.
+    Disables optional startup entries in HKCU/HKLM Run keys, Startup folders,
+    and packaged-app StartupTasks (SystemAppData State=1).
+    Keeps: Docker Desktop, Windows SecurityHealth, Tailscale, Nextcloud,
+    Telegram, ntfy, and the hidden .vbs automation helpers.
     Run elevated for HKLM changes.
 #>
 $ErrorActionPreference = 'Continue'
@@ -14,7 +16,14 @@ function Write-Warn($msg) { Write-Host "WARN: $msg" -ForegroundColor Yellow }
 $MandatoryApps = @(
     'Docker Desktop',       # Container runtime
     'SecurityHealth',       # Windows Security Center (HKLM)
-    'Tailscale'             # VPN (StartUp folder)
+    'Tailscale',            # VPN (StartUp folder)
+    'Nextcloud',            # Files sync client (user request 2026-11-13)
+    'Telegram',             # Store app .lnk in Startup folder
+    'ntfy',                 # ntfy.cloudless.gr app-window .lnk
+    'cdp-launch',           # hidden automation helpers
+    'dmr-tunnel',
+    'galaxy_s22_dashboard',
+    'win_agent'
 )
 
 # --- Apps to explicitly DISABLE (optional/noisy) ---
@@ -26,7 +35,7 @@ $DisableApps = @(
     'Adobe Acrobat',
     'EPSDNMON',
     'EPLTarget',
-    'Nextcloud',
+    'WhatsApp',             # user request 2026-11-13 (incl. packaged StartupTask)
     'MicrosoftEdgeAutoLaunch',
     'RtkAudUService',
     'EPPCCMON',
@@ -104,5 +113,29 @@ Disable-StartupFolder 'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Star
 
 Write-Host "`n--- User StartUp ---"
 Disable-StartupFolder "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
+
+# Packaged-app StartupTasks (Store apps like WhatsApp register here, not in
+# Run keys). State: 2=Enabled, 1=DisabledByUser — same as Task Manager.
+function Disable-StartupTasks {
+    $sysAppData = 'HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData'
+    Get-ChildItem $sysAppData -ErrorAction SilentlyContinue | ForEach-Object {
+        $pkg = $_.PSChildName
+        $match = $false
+        foreach ($d in $DisableApps) {
+            if ($pkg -like "*$d*") { $match = $true; break }
+        }
+        if (-not $match) { return }
+        Get-ChildItem $_.PSPath -ErrorAction SilentlyContinue | ForEach-Object {
+            $props = Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue
+            if ($null -ne $props.State -and $props.State -eq 2) {
+                Set-ItemProperty -Path $_.PSPath -Name State -Value 1 -Type DWord
+                Write-Host "  DISABLE (StartupTask): $pkg $($_.PSChildName)" -ForegroundColor Yellow
+            }
+        }
+    }
+}
+
+Write-Host "`n--- Packaged StartupTasks ---"
+Disable-StartupTasks
 
 Write-Host "`n=== Done. Reboot to apply. ===" -ForegroundColor Cyan
