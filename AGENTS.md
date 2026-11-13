@@ -40,9 +40,14 @@ any recurrence (names containing `:` are invisible to Win32).
 
 ## VHDX compaction
 
-- `WSL-Vhdx-Compact` task (`\DevOptimizer\`, daily 03:45) runs
-  `scripts/Invoke-VhdxCompaction.ps1` — Devin-gated, defers with exit 2 when
-  Devin.exe/devin-server is active. Register via
+- Canonical daily compactor: `\DevOptimizer\Nightly-Vhdx-Compact` (05:00,
+  elevated) runs `logs\nightly-wsl-vhdx-compact.ps1` — forced window, NOT
+  Devin-gated by design (devin-server respawns). Takes `Global\vhdx-compact`
+  mutex shared with `devin-scripts\vhdx-compact.ps1` (the C-drive emergency
+  compactor, task `\Vhdx-Compact` 04:00, space-gated MinFreeGB=20).
+- `WSL-Vhdx-Compact` (Devin-gated daily 03:45 via
+  `scripts/Invoke-VhdxCompaction.ps1`) is currently NOT registered — redundant
+  with Nightly. Re-register only if needed via
   `scripts/Register-VhdxCompaction.ps1` (self-elevating, `-Remove` unregisters).
 - `Get-VhdxTargets` covers `%LOCALAPPDATA%\wsl`, `C:\WSL` (Ubuntu-24.04's
   custom install location — ext4.vhdx lives there, ~103GB) and

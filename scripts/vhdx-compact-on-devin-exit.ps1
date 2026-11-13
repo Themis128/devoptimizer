@@ -26,7 +26,9 @@ foreach ($i in 1..3) {
 }
 if ($alive) { exit 0 }
 
-# Both clear - fire the elevated compaction task and stamp today
-Set-Content -Path $stamp -Value $today
+# Both clear - fire the elevated compaction task and stamp today.
+# Stamp only after schtasks succeeds - a failed fire must retry next pass.
 Log 'Devin closed - launching Nightly-Vhdx-Compact'
-& schtasks.exe /run /tn 'Nightly-Vhdx-Compact' 2>&1 | ForEach-Object { Log "schtasks: $_" }
+$out = & schtasks.exe /run /tn '\DevOptimizer\Nightly-Vhdx-Compact' 2>&1
+$out | ForEach-Object { Log "schtasks: $_" }
+if ($LASTEXITCODE -eq 0) { Set-Content -Path $stamp -Value $today } else { Log "schtasks failed rc=$LASTEXITCODE - will retry" }
