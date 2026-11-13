@@ -101,6 +101,29 @@ if ($mkdirTest.Code -ne 0 -or $foreignN -gt 0) {
     }
 } else {
     Log "[home] OK ($user)"
+
+    # --- 2b. Re-enable DD WSL integration if it was turned off ---
+    # 2026-11-13: when the vsock exec channel wedges, Docker Desktop's distro-
+    # proxy push fails on every retry and re-pops the "integration stopped"
+    # dialog each time. To stop the retry storm the integration was disabled
+    # in settings-store.json. Only safe to restore when the distro answers
+    # wsl.exe (proven above) - otherwise the popups resume.
+    $settingsPath = "$env:APPDATA\Docker\settings-store.json"
+    try {
+        $st = Get-Content $settingsPath -Raw -ErrorAction Stop | ConvertFrom-Json
+        $listed = @($st.IntegratedWslDistros) -contains $Distro
+        if (-not $listed) {
+            if (-not $DryRun) {
+                $st.IntegratedWslDistros = @($st.IntegratedWslDistros) + @($Distro)
+                $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
+                Log "[integration] re-enabled $Distro in settings-store.json (distro reachable; DD will re-push the proxy)"
+            } else {
+                Log "[integration] would re-enable $Distro (dry-run)"
+            }
+        }
+    } catch {
+        Log "[integration] settings check failed: $($_.Exception.Message)"
+    }
 }
 
 # --- 3. docker.sock + engine reachability ---
