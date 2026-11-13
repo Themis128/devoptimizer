@@ -112,6 +112,19 @@ as housekeeping step [4]. Dead launchers get archived to
   `grafana-cloud-pub`. Publisher token: `%APPDATA%/devin/secrets/ntfy-devoptimizer-token`
   (read by `scripts/lib/Notify.ps1` + `wsl-guardian.ps1`).
 - Read-back check: `GET /<topic>/json?poll=1&since=72h` with a user token.
+- Server upgraded to `binwiederhier/ntfy:v2.37.2` (2026-11-13) with
+  `--enable-metrics` (`/metrics` public: `ntfy_subscribers_total` gauge etc.).
+  Go 1.26 ServeMux returns 307 (was 301) for `//topic` path-clean redirects —
+  this FIXED ntfy-android app-side publishing on subscriptions whose stored
+  base URL ends with `/` (upstream bug binwiederhier/ntfy-android#106). Old
+  image rollback: `kubectl set image deploy/ntfy ntfy=binwiederhier/ntfy:v2.13.0`.
+- Watchdog: `omv:~/ntfy-watchdog/ntfy-watchdog.sh` via cron `*/5` — probes
+  internal NodePort `:30080` + external `ntfy.cloudless.gr` (health, `//`
+  redirect regression, per-topic publish+read-back canary, devoptimizer token
+  validity, subscriber gauge). Auto-remediation: rollout restart after 2
+  consecutive external-health fails; all other failures → Telegram alert.
+  Secrets in `~/ntfy-watchdog/secrets.env` (PHONE_TOKEN + DEVOPT_TOKEN).
+  Log: `~/ntfy-watchdog/watchdog.log`.
 
 ## Hidden console launches (2026-11-12)
 
