@@ -131,6 +131,28 @@ as housekeeping step [4]. Dead launchers get archived to
   alertmanager.yaml secret — re-apply patch if Helm overwrites).
   PVC backup: CronJob `ntfy/pvc-backup-ntfy` → R2 `pvc-backups/ntfy/daily/`.
 
+## R2 credentials (rotated 2026-11-13)
+
+- All R2 S3 access died ~15:30 UTC (every stored keypair → 401; the old
+  R2 API token was revoked/rolled on the CF side). Replaced with account
+  token `r2-s3-backups-2026-11` (id `7f1a21492bbbc15f594acd983d399065`,
+  Workers R2 Storage Read+Write, all buckets) created via
+  `POST /accounts/{id}/tokens`; S3 pair = token id + sha256(token value).
+- Propagated to: omv `/root/.config/rclone/rclone.conf` (`r2`) +
+  `~/.config/rclone/rclone.conf` (`r2ev`, needs `region = auto`, no `acl`)
+  + `~/r2-s3-creds`; k8s secrets `pvc-backup-r2` (appflowy, espocrm, n8n,
+  ntfy, postiz, uptime-kuma), `appflowy/appflowy-walg-r2`,
+  `cloudless/cloudless-secrets` (CF_R2_*); `.env` keys `R2_*`, `CF_R2_*`,
+  `AWS_*` (Windows + WSL copies); Infisical prod (same 6 keys).
+- Containers carrying R2 env (social-api, social-api-green, 4 workers,
+  celery-beat) were recreated via `docker compose up -d` under deploy
+  lock — `docker restart` does NOT reload env.
+- Recreate-name race: orphaned `<hash>_` `Created` containers block
+  `compose up` — `docker rm -f` them and retry (wsl-docker-doctor skill).
+- CF API can manage R2 objects directly:
+  `GET/DELETE /accounts/{id}/r2/buckets/{bucket}/objects[/{key}]` —
+  useful when S3 creds are dead (e.g. stray object cleanup).
+
 ## Hidden console launches (2026-11-12)
 
 - `conhost.exe --headless <cmd>` is the established pattern for scheduled
