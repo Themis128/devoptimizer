@@ -62,6 +62,9 @@ function Get-VhdxTargets {
     $targets = @()
     Get-ChildItem "$env:LOCALAPPDATA\wsl" -Recurse -Filter *.vhdx -Force -ErrorAction SilentlyContinue |
         ForEach-Object { $targets += $_.FullName }
+    # Ubuntu-24.04 lives at C:\WSL (custom install location) - outside LOCALAPPDATA\wsl
+    Get-ChildItem 'C:\WSL' -Recurse -Filter *.vhdx -Force -ErrorAction SilentlyContinue |
+        ForEach-Object { $targets += $_.FullName }
     $dockerDisk = "$env:LOCALAPPDATA\Docker\wsl\disk\docker_data.vhdx"
     if (Test-Path $dockerDisk) { $targets += $dockerDisk }
     return $targets | Select-Object -Unique

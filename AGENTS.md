@@ -31,13 +31,74 @@ any recurrence (names containing `:` are invisible to Win32).
   trigger fails `Register-ScheduledTask` type checks) runs housekeeping with
   `-PruneDocker`. Remove with `scripts/register-docker-prune-task.ps1
   -Unregister`.
+- Scheduled task `Daily-Full-Cleanup` (`\DevOptimizer\`, daily 06:30 —
+  after the 05:00 VHDX compaction window so Docker is back) runs
+  `scripts/daily-full-cleanup.ps1`: swap-orphan reaper, safe cleanup,
+  recycle bin, docker builder/container/image prune (volumes kept),
+  E: shader cache. Register via `scripts/register-daily-cleanup-task.ps1
+  [-Unregister]`. Log: `logs/daily-full-cleanup.log`.
 
 ## VHDX compaction
 
-- `WSL-Vhdx-Compact` task (`\DevOptimizer\`, daily 03:45) runs
-  `scripts/Invoke-VhdxCompaction.ps1` — Devin-gated, defers with exit 2 when
-  Devin.exe/devin-server is active. Register via
+- Canonical daily compactor: `\DevOptimizer\Nightly-Vhdx-Compact` (05:00,
+  elevated) runs `logs\nightly-wsl-vhdx-compact.ps1` — forced window, NOT
+  Devin-gated by design (devin-server respawns). Takes `Global\vhdx-compact`
+  mutex shared with `devin-scripts\vhdx-compact.ps1` (the C-drive emergency
+  compactor, task `\Vhdx-Compact` 04:00, space-gated MinFreeGB=20).
+- `WSL-Vhdx-Compact` (Devin-gated daily 03:45 via
+  `scripts/Invoke-VhdxCompaction.ps1`) is currently NOT registered — redundant
+  with Nightly. Re-register only if needed via
   `scripts/Register-VhdxCompaction.ps1` (self-elevating, `-Remove` unregisters).
+- `Get-VhdxTargets` covers `%LOCALAPPDATA%\wsl`, `C:\WSL` (Ubuntu-24.04's
+  custom install location — ext4.vhdx lives there, ~103GB) and
+  `docker_data.vhdx`. `logs\nightly-wsl-vhdx-compact.ps1` (the forced 05:00
+  task script) was patched the same way 2026-11-13.
+- `Vhdx-Compact-DevinExit` task (root `\`, every 5 min, limited rights) runs
+  `scripts/vhdx-compact-on-devin-exit.ps1` — fires `\DevOptimizer\Nightly-Vhdx-Compact`
+  once per day when Devin.exe AND devin-server are both gone (compaction
+  needs `wsl --shutdown`, which kills this agent's session mid-work).
+  Register via `scripts/register-vhdx-devin-exit-task.ps1 [-Unregister]`.
+
+## Console-popup prevention (2026-11-13)
+
+- All scheduled tasks must run headless: `conhost.exe --headless <cmd>` for
+  ps1/bat/wsl, `pythonw.exe` for python scripts. `python.exe`/`py.exe`/`cmd.exe`
+  actions flash a cmd window on every run.
+- `scripts/_rewrap-headless-all.ps1` rewrites offending task actions
+  automatically (piggybacked on `WSL-Memory-Watchdog` every 6h, throttled by
+  `scripts/_rewrap-last-run.stamp`). Now also maps `python.exe`→`pythonw.exe`.
+- Startup-folder launchers: `.bat` files flash a window at logon. Canonical
+  copies in `scripts/startup/` are synced to `%USERPROFILE%\startup-hidden\`
+  and exposed via hidden wscript `.vbs` launchers in the Startup folder by
+  `scripts/install-startup-launchers.ps1` (idempotent).
+  `start-chrome-debug.bat` is deliberately NOT installed — it binds :9222,
+  which Lenovo Vantage WebView2 owns; debug lane is :9229 via cdp-launch.
+- Disabled autostart entries (2026-11-13): Teams (`Run` value removed +
+  `TeamsTfwStartupTask` State=1), LinkedIn UWP (`LinkedInAppStartUpId`
+  State=1), stale EPSDNMON/Chrome/Edge auto-launch values removed. UWP
+  StartupTask state lives under
+  `HKCU:\...\AppModel\SystemAppData\<PackageFamilyName>\<TaskId>` State
+  (2=Enabled, 1=DisabledByUser). Teams + LinkedIn UWP packages were fully
+  uninstalled 2026-11-13 evening (`Remove-AppxPackage` works even though
+  `Get-AppxPackage` is ACL-blocked on this host; package full names can be
+  read from `HKCU:\...\AppModel\Repository\Packages`).
+
+## Docker Desktop bounce fallout (2026-11-13)
+
+- Every docker-desktop distro restart empties
+  `/mnt/wsl/docker-desktop/cli-tools/*` in the VM namespace while the same
+  path inside Ubuntu-24.04 is a per-distro iso9660 mount that repopulates
+  lazily. Compose services bind-mounting
+  `/mnt/wsl/docker-desktop/cli-tools/usr/bin/docker` (e.g. `stack-watchers`)
+  then materialize the source as an EMPTY DIRECTORY -> `exec: is a
+  directory: permission denied` spam in `heal_supervisor` logs.
+  Fix: `docker compose up -d --force-recreate <svc>` INSIDE Ubuntu-24.04,
+  but only AFTER Ubuntu has re-mounted the cli-tools iso (check
+  `mount | grep cli-tools` — recreating too early re-caches the empty dir).
+  Windows-side `docker compose` fails on these mounts
+  (`invalid cross distro token`) - must run inside WSL.
+- `Exited` on sidecar containers is often idle-sleep via stack-ops, not a
+  crash — verify with `scripts/stackctl.py status` before restarting.
 
 ## Upstream escalation notes (researched 2026-11-11)
 
