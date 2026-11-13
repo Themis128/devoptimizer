@@ -57,6 +57,12 @@ any recurrence (names containing `:` are invisible to Win32).
   `scripts/vhdx-compact-on-devin-exit.ps1` — fires `\DevOptimizer\Nightly-Vhdx-Compact`
   once per day when Devin.exe AND devin-server are both gone (compaction
   needs `wsl --shutdown`, which kills this agent's session mid-work).
+  Same gates guard the vsock-wedge heal, plus **idle escalation** (2026-11-14):
+  if wedge evidence is pending, the user has been away ≥30 min
+  (GetLastInputInfo), and devin-server is not alive, it heals (`wsl --shutdown`
+  + DD relaunch) even while the Devin app stays open — the user never has to
+  close Devin for the heal to land. When deferral happens it sends one ntfy
+  notice/day (`logs\.vsock-heal-notified`) so the queued heal is visible.
   Register via `scripts/register-vhdx-devin-exit-task.ps1 [-Unregister]`.
 
 ## Console-popup prevention (2026-11-13)
@@ -226,8 +232,9 @@ as housekeeping step [4]. Dead launchers get archived to
   Power-Troubleshooter ID 1) probes WSL vsock after resume and only runs
   `wsl --shutdown` + distro recovery when actually wedged — never restarts a
   healthy stack. Log: `D:\DevOptimizer\logs\wsl-resume-watch.log`.
-- `devin-scripts\windows-patch-check.ps1` + task `Windows-Patch-Check`
+- `devin-scripts\windows-patch-check.ps1` + task `Windows-Patch-Check-Elevated`
   (monthly 1st 05:00): winget upgrade Docker.DockerDesktop + PSWindowsUpdate
-  (no auto-reboot). Registered Limited token — machine-scope installs need
-  the elevated variant: run `devin-scripts\register-windows-patch-task.ps1`
-  once (one UAC prompt) to swap in `Windows-Patch-Check-Elevated`.
+  (no auto-reboot). The elevated variant is now registered automatically:
+  the elevated `WSL-Memory-Watchdog` piggyback registers it in-process on
+  first pass and removes the limited `Windows-Patch-Check` duplicate —
+  no UAC prompt needed (done 2026-11-14).

@@ -179,14 +179,14 @@ public class RegistryServiceTests
             ["development"] = 12,
             ["docker"] = 3,
             ["gaming"] = 26,
-            ["maintenance"] = 38,
+            ["maintenance"] = 39,
             ["monitoring"] = 7,
             ["network"] = 5,
             ["security"] = 4,
             ["storage"] = 1,
             ["system"] = 2,
             ["system-optimization"] = 3,
-            ["utilities"] = 273,
+            ["utilities"] = 274,
             ["verification"] = 2,
         };
         var actualCounts = snapshot.Commands
