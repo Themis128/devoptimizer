@@ -78,6 +78,18 @@ $mkdirTest = WslArgs @('mkdir', '-p', "$hd/.docker/run")
 $foreign   = WslArgs @('find', $hd, '-maxdepth', '1', '!', '-user', $user)
 $foreignN  = @($foreign.Out -split "`n" | Where-Object { $_.Trim() }).Count
 
+# A wsl.exe invocation failure (Code -1 / empty output) is a transient vsock
+# flake, NOT a permissions problem - re-probe before triggering chown -R.
+if ($mkdirTest.Code -ne 0 -and $mkdirTest.Out -eq '') {
+    $reprobe = WslArgs @('echo', '__WSL_OK__')
+    if ($reprobe.Out -notmatch '__WSL_OK__') {
+        Log "[home] SKIP: wsl call failed (mkdirExit=$($mkdirTest.Code)) and distro unreachable - transient, not an ownership fault"
+        $foreignN = 0
+    } else {
+        $mkdirTest = WslArgs @('mkdir', '-p', "$hd/.docker/run")
+    }
+}
+
 if ($mkdirTest.Code -ne 0 -or $foreignN -gt 0) {
     Log ("[home] BROKEN user={0} mkdirExit={1} foreignTopLevel={2}" -f $user, $mkdirTest.Code, $foreignN)
     if (-not $DryRun) {
@@ -102,6 +114,20 @@ if ($sock.Code -eq 0) {
 }
 $ddRunning = [bool](Get-Process -Name 'Docker Desktop' -ErrorAction SilentlyContinue)
 
+if ($sock.Code -ne 0 -or -not $engineOk) {
+    # Confirm once before restarting: a single 8s timeout under VM memory
+    # pressure (vmmemWSL at cap) is transient - restarting DD on it bounces
+    # 50+ containers and re-triggers the cli-tools mount race.
+    if ($sock.Code -eq 0) {
+        Start-Sleep -Seconds 15
+        $eng = WslArgs @('timeout', '15', 'docker', 'info', '--format', '{{.ServerVersion}}')
+        if ($eng.Code -eq 0 -and $eng.Out -match '^\d+\.\d+') {
+            $engineOk = $true
+            $engVer = $eng.Out
+            Log "[docker] first probe failed, second probe OK (ver=$engVer) - transient, no restart"
+        }
+    }
+}
 if ($sock.Code -ne 0 -or -not $engineOk) {
     Log ("[docker] BROKEN sock={0} engine={1}({2}) dockerDesktopRunning={3}" -f ($sock.Code -eq 0), $engineOk, $engVer, $ddRunning)
     if (-not $DryRun) {
