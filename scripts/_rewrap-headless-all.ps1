@@ -3,7 +3,7 @@ $log = 'D:\DevOptimizer\scripts\_rewrap-headless-all.log'
 $conhost = 'C:\Windows\System32\conhost.exe'
 $portablePwsh = 'D:\DevOptimizer\pwsh\pwsh.exe'
 # Executables that allocate a visible console when run from Task Scheduler.
-$badExe = @('powershell.exe','pwsh.exe','pwsh','powershell','cmd.exe','cmd','wsl.exe','cscript.exe','wscript.exe','cscript','wscript')
+$badExe = @('powershell.exe','pwsh.exe','pwsh','powershell','cmd.exe','cmd','wsl.exe','cscript.exe','wscript.exe','cscript','wscript','python.exe','python')
 $targets = Get-ScheduledTask | Where-Object { $_.TaskPath -notlike '\Microsoft*' }
 foreach ($t in $targets) {
     try {
@@ -20,6 +20,17 @@ foreach ($t in $targets) {
                 $alreadyHeadless = ($exeRaw -match 'conhost') -or ($exeLow -eq 'pythonw.exe') -or ([string]$action.Arguments -match 'conhost')
                 if ($alreadyHeadless -or (-not ($badExe -contains $exeLow) -and -not $isBat)) {
                     $newActions.Add($action) | Out-Null; continue
+                }
+                # python.exe -> pythonw.exe: no console at all (2026-11-13:
+                # Idika*/DLinkCloudArchive/EvidenceVideoIndexDaily flashed a
+                # cmd window on every run; pythonw is the cleaner fix than
+                # conhost --headless wrapping).
+                if ($exeLow -eq 'python.exe' -or $exeLow -eq 'python') {
+                    $wexe = Join-Path (Split-Path $exeRaw) 'pythonw.exe'
+                    if (-not (Test-Path $wexe)) { $wexe = 'pythonw.exe' }
+                    $newActions.Add((New-ScheduledTaskAction -Execute $wexe -Argument ([string]$action.Arguments))) | Out-Null
+                    $changed = $true
+                    continue
                 }
                 # pwsh.exe resolves to the broken Store stub - use the portable install.
                 $runExe = $exeRaw

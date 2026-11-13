@@ -31,6 +31,12 @@ any recurrence (names containing `:` are invisible to Win32).
   trigger fails `Register-ScheduledTask` type checks) runs housekeeping with
   `-PruneDocker`. Remove with `scripts/register-docker-prune-task.ps1
   -Unregister`.
+- Scheduled task `Daily-Full-Cleanup` (`\DevOptimizer\`, daily 06:30 —
+  after the 05:00 VHDX compaction window so Docker is back) runs
+  `scripts/daily-full-cleanup.ps1`: swap-orphan reaper, safe cleanup,
+  recycle bin, docker builder/container/image prune (volumes kept),
+  E: shader cache. Register via `scripts/register-daily-cleanup-task.ps1
+  [-Unregister]`. Log: `logs/daily-full-cleanup.log`.
 
 ## VHDX compaction
 
@@ -38,6 +44,36 @@ any recurrence (names containing `:` are invisible to Win32).
   `scripts/Invoke-VhdxCompaction.ps1` — Devin-gated, defers with exit 2 when
   Devin.exe/devin-server is active. Register via
   `scripts/Register-VhdxCompaction.ps1` (self-elevating, `-Remove` unregisters).
+- `Get-VhdxTargets` covers `%LOCALAPPDATA%\wsl`, `C:\WSL` (Ubuntu-24.04's
+  custom install location — ext4.vhdx lives there, ~103GB) and
+  `docker_data.vhdx`. `logs\nightly-wsl-vhdx-compact.ps1` (the forced 05:00
+  task script) was patched the same way 2026-11-13.
+- `Vhdx-Compact-DevinExit` task (root `\`, every 5 min, limited rights) runs
+  `scripts/vhdx-compact-on-devin-exit.ps1` — fires `\DevOptimizer\Nightly-Vhdx-Compact`
+  once per day when Devin.exe AND devin-server are both gone (compaction
+  needs `wsl --shutdown`, which kills this agent's session mid-work).
+  Register via `scripts/register-vhdx-devin-exit-task.ps1 [-Unregister]`.
+
+## Console-popup prevention (2026-11-13)
+
+- All scheduled tasks must run headless: `conhost.exe --headless <cmd>` for
+  ps1/bat/wsl, `pythonw.exe` for python scripts. `python.exe`/`py.exe`/`cmd.exe`
+  actions flash a cmd window on every run.
+- `scripts/_rewrap-headless-all.ps1` rewrites offending task actions
+  automatically (piggybacked on `WSL-Memory-Watchdog` every 6h, throttled by
+  `scripts/_rewrap-last-run.stamp`). Now also maps `python.exe`→`pythonw.exe`.
+- Startup-folder launchers: `.bat` files flash a window at logon. Canonical
+  copies in `scripts/startup/` are synced to `%USERPROFILE%\startup-hidden\`
+  and exposed via hidden wscript `.vbs` launchers in the Startup folder by
+  `scripts/install-startup-launchers.ps1` (idempotent).
+  `start-chrome-debug.bat` is deliberately NOT installed — it binds :9222,
+  which Lenovo Vantage WebView2 owns; debug lane is :9229 via cdp-launch.
+- Disabled autostart entries (2026-11-13): Teams (`Run` value removed +
+  `TeamsTfwStartupTask` State=1), LinkedIn UWP (`LinkedInAppStartUpId`
+  State=1), stale EPSDNMON/Chrome/Edge auto-launch values removed. UWP
+  StartupTask state lives under
+  `HKCU:\...\AppModel\SystemAppData\<PackageFamilyName>\<TaskId>` State
+  (2=Enabled, 1=DisabledByUser).
 
 ## Upstream escalation notes (researched 2026-11-11)
 

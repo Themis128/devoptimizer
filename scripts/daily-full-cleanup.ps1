@@ -4,6 +4,7 @@
 # cache. Runs as scheduled task \DevOptimizer\Daily-Full-Cleanup (06:30,
 # after the 05:00 VHDX compaction window so Docker is back up).
 # Safe to re-run; everything inside is idempotent. Log: logs\daily-full-cleanup.log
+# CATEGORY: cleanup
 $ErrorActionPreference = 'Continue'
 $log = 'D:\DevOptimizer\logs\daily-full-cleanup.log'
 function Log($m) { $l = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $m"; Add-Content $log $l; Write-Host $l }
