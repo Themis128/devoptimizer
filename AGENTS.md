@@ -78,7 +78,27 @@ any recurrence (names containing `:` are invisible to Win32).
   State=1), stale EPSDNMON/Chrome/Edge auto-launch values removed. UWP
   StartupTask state lives under
   `HKCU:\...\AppModel\SystemAppData\<PackageFamilyName>\<TaskId>` State
-  (2=Enabled, 1=DisabledByUser).
+  (2=Enabled, 1=DisabledByUser). Teams + LinkedIn UWP packages were fully
+  uninstalled 2026-11-13 evening (`Remove-AppxPackage` works even though
+  `Get-AppxPackage` is ACL-blocked on this host; package full names can be
+  read from `HKCU:\...\AppModel\Repository\Packages`).
+
+## Docker Desktop bounce fallout (2026-11-13)
+
+- Every docker-desktop distro restart empties
+  `/mnt/wsl/docker-desktop/cli-tools/*` in the VM namespace while the same
+  path inside Ubuntu-24.04 is a per-distro iso9660 mount that repopulates
+  lazily. Compose services bind-mounting
+  `/mnt/wsl/docker-desktop/cli-tools/usr/bin/docker` (e.g. `stack-watchers`)
+  then materialize the source as an EMPTY DIRECTORY -> `exec: is a
+  directory: permission denied` spam in `heal_supervisor` logs.
+  Fix: `docker compose up -d --force-recreate <svc>` INSIDE Ubuntu-24.04,
+  but only AFTER Ubuntu has re-mounted the cli-tools iso (check
+  `mount | grep cli-tools` — recreating too early re-caches the empty dir).
+  Windows-side `docker compose` fails on these mounts
+  (`invalid cross distro token`) - must run inside WSL.
+- `Exited` on sidecar containers is often idle-sleep via stack-ops, not a
+  crash — verify with `scripts/stackctl.py status` before restarting.
 
 ## Upstream escalation notes (researched 2026-11-11)
 
