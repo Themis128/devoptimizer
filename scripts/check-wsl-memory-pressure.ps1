@@ -60,6 +60,16 @@ try {
     }
 } catch {}
 
+# --- Elevated lane: register \DevOptimizer\Net-Soft-Reset (on-demand) ---
+# The heal-resistant wedge escalation target for vhdx-compact-on-devin-exit
+# (adapter restarts need elevation; the firing task is limited-rights).
+try {
+    if (-not (Get-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Net-Soft-Reset' -ErrorAction SilentlyContinue)) {
+        & 'D:\DevOptimizer\scripts\network-soft-reset.ps1' -RegisterTask
+        Add-Content -Path 'D:\DevOptimizer\logs\wsl-memory-pressure.log' -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') registered Net-Soft-Reset via elevated piggyback"
+    }
+} catch {}
+
 
 # --- CDP relay firewall pin (2026-11-07): WSL->host 9229 blocked inbound ---
 try {
