@@ -125,6 +125,11 @@ as housekeeping step [4]. Dead launchers get archived to
   consecutive external-health fails; all other failures → Telegram alert.
   Secrets in `~/ntfy-watchdog/secrets.env` (PHONE_TOKEN + DEVOPT_TOKEN).
   Log: `~/ntfy-watchdog/watchdog.log`.
+- Monitoring: ServiceMonitor `monitoring/ntfy` + PrometheusRule
+  `ntfy-health` (NtfyTargetDown/NtfyNoSubscribers/NtfyPublishFailures);
+  Alertmanager routes `namespace="ntfy"` alerts to Telegram (patched
+  alertmanager.yaml secret — re-apply patch if Helm overwrites).
+  PVC backup: CronJob `ntfy/pvc-backup-ntfy` → R2 `pvc-backups/ntfy/daily/`.
 
 ## Hidden console launches (2026-11-12)
 
