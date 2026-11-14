@@ -38,6 +38,13 @@ if (Test-Path 'C:\tmp\dd-downgrade.flag') {
     }
     Start-Transcript -Path $flagLog -Force | Out-Null
     Write-Host "=== DD downgrade installer start $(Get-Date -Format o) ==="
+    # Stop DD fully first — installer fails while DD binaries/WSL distros are live
+    & "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\bin\docker.exe" desktop stop 2>&1 | Out-Null
+    Get-Process -ErrorAction SilentlyContinue | Where-Object {
+        $_.ProcessName -match 'Docker Desktop|com\.docker\.'
+    } | Stop-Process -Force -ErrorAction SilentlyContinue
+    wsl --shutdown 2>&1 | Out-Null
+    Start-Sleep -Seconds 15
     # DD bootstrapper args (NOT Inno /VERYSILENT - that would launch a hidden GUI)
     $p = Start-Process -FilePath $inst -ArgumentList 'install','--quiet','--accept-license' -Wait -PassThru
     Write-Host "installer exit code: $($p.ExitCode)"
