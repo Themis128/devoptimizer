@@ -142,6 +142,31 @@ then sync the count pins in `.github/workflows/ci.yml` and
 `app/DevOptimizer.App.Tests/RegistryServiceTests.cs` (Live_Registry test pins
 total + per-category + `Search("cleanup")` count).
 
+## Phone tailnet watch (2026-11-14)
+
+- Two layers keep `galaxy-s22` (100.84.31.85) on the tailnet:
+  - **Layer 1, omv**: `~/tailnet-watch/tailnet-phone-watch.py` via cron `*/2` —
+    pings phone internet over adb, exit-node failover, relaunches
+    `com.tailscale.ipn` when its process dies, mDNS/stale-endpoint recovery.
+    Source repo: `D:\tailnet-watch` (github.com/Themis128/tailnet-watch).
+  - **Layer 2, this host**: `\DevOptimizer\Phone-Tailnet-Watch` (10 min,
+    LIMITED rights, `conhost --headless`) runs
+    `scripts/phone-tailnet-watch.ps1` — covers endpoints omv can't see
+    (USB serial `RFCTA0AEKZP`, current-DHCP LAN, tailnet :5555). Exits
+    silently when the peer is online; relaunches the app + re-pins
+    `always_on_vpn_app` when `pidof` is empty; 30-min cooldown stamp
+    `logs/.phone-ts-lastfix`; ntfy alert on remediation or when no adb
+    endpoint answers. Log: `logs/phone-tailnet-watch.log`.
+- Gotchas: peer `HostName` is `Galaxy S22+` (match `-match 'galaxy|s22'`,
+    not `-eq`); `tailscale status --json` returns `Peer:null` while
+    tailscaled restarts — treat as transient, not offline; `adb devices`
+    can hang on a dead adb server — `Get-AdbDevices` wraps it in a 20s
+    job timeout; Powershell vars are case-insensitive (`$Peer`/`$peer`
+    collide).
+- Android side: `settings put global always_on_vpn_app com.tailscale.ipn`
+  is set — the OS restarts the tunnel on process kill without any
+  watcher.
+
 ## Pre-PR check
 
 `scripts/git-pr-check.ps1 [-Json]` — origin/main HEAD, divergence, open PRs,
