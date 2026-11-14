@@ -31,6 +31,15 @@ any recurrence (names containing `:` are invisible to Win32).
   trigger fails `Register-ScheduledTask` type checks) runs housekeeping with
   `-PruneDocker`. Remove with `scripts/register-docker-prune-task.ps1
   -Unregister`.
+- Scheduled task `DeepClean-Elevated` (`\DevOptimizer\`, monthly 1st 04:00,
+  Highest) runs `scripts/admin-cleanup-elevated.ps1 -SkipVhdx`: DISM
+  component-store cleanup, WU download cache, Delivery Optimization cache,
+  oldest shadow copy, Windows.old — WITHOUT touching Docker Desktop or WSL
+  (section 6 skipped), so it is safe to fire any time via
+  `schtasks /run /tn "\DevOptimizer\DeepClean-Elevated"`. Self-registers via
+  the `WSL-Memory-Watchdog` piggyback (no UAC); the script transcripts to
+  `logs\admin-cleanup-elevated.log`. The section-6 VHDX tier stays in the
+  05:00 `Nightly-Vhdx-Compact` window.
 - Scheduled task `Daily-Full-Cleanup` (`\DevOptimizer\`, daily 06:30 —
   after the 05:00 VHDX compaction window so Docker is back) runs
   `scripts/daily-full-cleanup.ps1`: swap-orphan reaper, safe cleanup,

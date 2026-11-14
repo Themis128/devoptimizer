@@ -6,9 +6,14 @@
     Section 6 compacts docker_data.vhdx (terminates only the docker-desktop
     distro - Ubuntu keeps running). Pass -ShutdownWsl to also compact the
     Ubuntu ext4.vhdx, which requires a full wsl --shutdown.
+    Pass -SkipVhdx to run sections 0-5 only (DISM, update caches, shadow
+    copies, Windows.old) without touching Docker Desktop or WSL - used by
+    the monthly \DevOptimizer\DeepClean-Elevated task so it can run while
+    the stack is up.
 #>
 param(
-    [switch]$ShutdownWsl
+    [switch]$ShutdownWsl,
+    [switch]$SkipVhdx
 )
 
 # Windows 11 Admin Cleanup - Run Elevated
@@ -16,6 +21,10 @@ $ErrorActionPreference = 'Continue'
 
 # Import shared modules
 . "$PSScriptRoot\lib\Notify.ps1"
+
+# Console output is invisible under conhost --headless; transcript it so the
+# scheduled-task runs are auditable.
+try { Start-Transcript -Path 'D:\DevOptimizer\logs\admin-cleanup-elevated.log' -Append -ErrorAction Stop | Out-Null } catch {}
 
 function MB { param($b) [math]::Round($b/1MB, 1) }
 function GB { param($b) [math]::Round($b/1GB, 2) }
@@ -168,6 +177,9 @@ if (Test-Path $winOld) {
 # Ubuntu-24.04 keeps running. ext4.vhdx (Ubuntu) additionally needs a full
 # wsl --shutdown, so it only runs with -ShutdownWsl.
 Write-Host "`n--- [6] WSL VHDX compaction ---" -ForegroundColor Cyan
+if ($SkipVhdx) {
+    Write-Host "  [6] skipped via -SkipVhdx (Docker Desktop / WSL untouched)" -ForegroundColor DarkGray
+} else {
 
 function Test-VhdxLocked([string]$path) {
     try {
@@ -227,6 +239,8 @@ if ($ShutdownWsl) {
     }
 }
 
+} # end -SkipVhdx else
+
 # --- [7] OpenSSH server (sshd) repair + watch task ---
 # Dies silently on WSL/Docker bounces and on the >=9.4 host-key/logs ACL bug.
 # sshd-repair.ps1 repairs config/ACLs/recovery actions and, with -RegisterTask,
@@ -249,4 +263,5 @@ Write-Host ("C: free after  : {0:N2} GB" -f ($after/1GB))
 Write-Host ("Freed on C:   : {0:N2} GB" -f (($after - $before)/1GB))
 Write-Host "`nDone. A reboot is recommended after DISM operations." -ForegroundColor Yellow
 
+try { Stop-Transcript | Out-Null } catch {}
 exit 0
