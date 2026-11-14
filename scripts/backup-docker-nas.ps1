@@ -69,6 +69,7 @@ $files = @()
 # --- [3] Postgres dump (nightly) ------------------------------------------------
 # Target social-postgres explicitly (port 5433) as it holds the actual data;
 # the generic 'postgres' container (port 5432) is often empty/template.
+$gzipExe = 'C:\Program Files\Git\usr\bin\gzip.exe'
 $pgContainer = 'social-postgres'
 if (docker ps --format '{{.Names}}' 2>$null | Where-Object { $_ -eq $pgContainer }) {
     $pgUser = (docker inspect $pgContainer --format '{{range .Config.Env}}{{println .}}{{end}}' 2>$null |
