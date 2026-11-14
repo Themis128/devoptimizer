@@ -20,44 +20,10 @@ param(
 $ErrorActionPreference = 'Continue'
 
 # One-shot elevated lanes: flag files in C:\tmp trigger a single action then
-# self-remove. Used for ops that need admin but have no dedicated task
-# (e.g. software downgrades). Remove the block when no longer needed.
-if (Test-Path 'C:\tmp\dd-downgrade.flag') {
-    $flagLog = 'D:\DevOptimizer\logs\dd-downgrade.log'
-    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-    if (-not $isAdmin) {
-        # Do NOT consume the flag - a later elevated run can still fire.
-        Add-Content -Path $flagLog -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') flag present but not elevated - deferred"
-        exit 4
-    }
-    Remove-Item 'C:\tmp\dd-downgrade.flag' -Force -ErrorAction SilentlyContinue
-    $inst = 'C:\tmp\DockerDesktop-4.98.0-Installer.exe'
-    if (-not (Test-Path $inst)) {
-        Add-Content -Path $flagLog -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') flag consumed but installer missing at $inst - aborted"
-        exit 3
-    }
-    Start-Transcript -Path $flagLog -Force | Out-Null
-    Write-Host "=== DD downgrade installer start $(Get-Date -Format o) ==="
-    # Stop DD fully first — installer fails while DD binaries/WSL distros are live
-    & "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\bin\docker.exe" desktop stop 2>&1 | Out-Null
-    Get-Process -ErrorAction SilentlyContinue | Where-Object {
-        $_.ProcessName -match 'Docker Desktop|com\.docker\.'
-    } | Stop-Process -Force -ErrorAction SilentlyContinue
-    wsl --shutdown 2>&1 | Out-Null
-    Start-Sleep -Seconds 15
-    # DD bootstrapper args (NOT Inno /VERYSILENT - that would launch a hidden GUI)
-    $p = Start-Process -FilePath $inst -ArgumentList 'install','--quiet','--accept-license' -Wait -PassThru
-    Write-Host "installer exit code: $($p.ExitCode)"
-    if ($p.ExitCode -ne 0) {
-        # Failed install must not leave the stack down - relaunch DD.
-        Write-Host "install failed - relaunching Docker Desktop"
-        $dd = "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe"
-        if (Test-Path $dd) { Start-Process -FilePath $dd }
-        else { Start-Process -FilePath 'C:\Program Files\Docker\Docker\Docker Desktop.exe' -ErrorAction SilentlyContinue }
-    }
-    Stop-Transcript | Out-Null
-    exit $p.ExitCode
-}
+# self-remove. The dd-downgrade lane was REMOVED 2026-11-14 after DD 4.98
+# was installed via winget — its internal upgrade path uninstalled 4.99
+# WITHOUT --keep-data and wiped docker_data.vhdx. Do not re-add installer
+# lanes here; software installs belong in reviewed one-off tasks.
 
 # Import shared modules
 . "$PSScriptRoot\lib\Notify.ps1"
