@@ -48,6 +48,13 @@ if (Test-Path 'C:\tmp\dd-downgrade.flag') {
     # DD bootstrapper args (NOT Inno /VERYSILENT - that would launch a hidden GUI)
     $p = Start-Process -FilePath $inst -ArgumentList 'install','--quiet','--accept-license' -Wait -PassThru
     Write-Host "installer exit code: $($p.ExitCode)"
+    if ($p.ExitCode -ne 0) {
+        # Failed install must not leave the stack down - relaunch DD.
+        Write-Host "install failed - relaunching Docker Desktop"
+        $dd = "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe"
+        if (Test-Path $dd) { Start-Process -FilePath $dd }
+        else { Start-Process -FilePath 'C:\Program Files\Docker\Docker\Docker Desktop.exe' -ErrorAction SilentlyContinue }
+    }
     Stop-Transcript | Out-Null
     exit $p.ExitCode
 }
