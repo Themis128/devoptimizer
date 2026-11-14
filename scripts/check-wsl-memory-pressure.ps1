@@ -47,14 +47,19 @@ try {
 # 30 min, so register the elevated variant in-process once (no UAC) and drop
 # the limited duplicate. Same bootstrap pattern as Sshd-Watch above.
 try {
-    if (-not (Get-ScheduledTask -TaskName 'Windows-Patch-Check-Elevated' -ErrorAction SilentlyContinue)) {
+    $patchTask = Get-ScheduledTask -TaskName 'Windows-Patch-Check-Elevated' -ErrorAction SilentlyContinue
+    # Re-register when missing OR when the action is not conhost-headless
+    # (first registration used a raw powershell.exe action = monthly flash;
+    # popup_task_audit verdict FLASH-RISK caught it 2026-11-14).
+    $headless = $patchTask -and ($patchTask.Actions[0].Execute -match 'conhost')
+    if (-not $headless) {
         $patchXml = 'C:\Users\tbaltzakis\devin-scripts\win-patch-task-elevated.xml'
         if (Test-Path $patchXml) {
             Register-ScheduledTask -TaskName 'Windows-Patch-Check-Elevated' `
                 -Xml (Get-Content $patchXml -Raw) -Force -ErrorAction Stop | Out-Null
             Unregister-ScheduledTask -TaskName 'Windows-Patch-Check' -Confirm:$false -ErrorAction SilentlyContinue
             if (Get-ScheduledTask -TaskName 'Windows-Patch-Check-Elevated' -ErrorAction SilentlyContinue) {
-                Add-Content -Path 'D:\DevOptimizer\logs\wsl-memory-pressure.log' -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') registered Windows-Patch-Check-Elevated via elevated piggyback (no UAC)"
+                Add-Content -Path 'D:\DevOptimizer\logs\wsl-memory-pressure.log' -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') (re)registered Windows-Patch-Check-Elevated via elevated piggyback (no UAC, headless action)"
             }
         }
     }
