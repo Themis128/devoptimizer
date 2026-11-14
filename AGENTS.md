@@ -38,6 +38,18 @@ any recurrence (names containing `:` are invisible to Win32).
   E: shader cache. Register via `scripts/register-daily-cleanup-task.ps1
   [-Unregister]`. Log: `logs/daily-full-cleanup.log`.
 
+## DMR RAM guard
+
+- `scripts/dmr-ram-guard.ps1` + task `DevOptimizer-DMR-RAM-Guard` (every 5 min,
+  conhost --headless). Evicts Docker Model Runner residents under host RAM
+  pressure: <1.8GB free evicts non-pinned models, <1.0GB also evicts the
+  pinned set (qwen3-4b-instruct, qwen3-embedding-0.6b — cold reload beats a
+  stalled host). Thresholds sit ABOVE Host Guard 1007's ~1GB pri-5 line so
+  eviction lands before the insistent ntfy alarm fires. Model loads come from
+  real SocialAuto traffic so the load→crunch→evict loop is structural — this
+  is the gentle tier below wsl-guardian's T2/T3 ladder (which only reacts to
+  probe failures after the dive). Log: `logs/dmr-ram-guard.log`.
+
 ## VHDX compaction
 
 - Canonical daily compactor: `\DevOptimizer\Nightly-Vhdx-Compact` (05:00,
