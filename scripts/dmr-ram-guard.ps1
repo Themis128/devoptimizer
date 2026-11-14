@@ -4,17 +4,19 @@
 #   (60s-15m) but under an active caller mix the decay can lag the dive.
 #   wsl-guardian's T2/T3 ladder only reacts to probe FAILURES - by then the
 #   host is already swapping. This is the gentle tier below that ladder.
-# Every 10 min via conhost --headless scheduled task. Pure ASCII (PS 5.1).
+# Every 5 min via conhost --headless scheduled task. Pure ASCII (PS 5.1).
 #
-# Tiers:
-#   free < 1500MB : evict non-pinned residents (transients reload on demand)
-#   free <  800MB : also evict the pinned set (4B mid + 0.6B embedding) - a
+# Tiers (set ABOVE Host Guard's ~1GB pri-5 crit line so eviction lands first;
+# model loads come from real traffic so the load->crunch->evict loop is
+# structural - the guard's job is to keep free RAM above the alarm line):
+#   free < 1800MB : evict non-pinned residents (transients reload on demand)
+#   free < 1000MB : also evict the pinned set (4B mid + 0.6B embedding) - a
 #                   20-40s cold reload beats a host stall.
 # Pinned = DMR_MID_MODEL (chatbot latency, 30m keep_alive by design) +
 #          DMR_EMBEDDING_MODEL (keep-warm tier). Everything else is fair game.
 param(
-    [int]$WarnMb   = 1500,
-    [int]$CritMb   = 800,
+    [int]$WarnMb   = 1800,
+    [int]$CritMb   = 1000,
     [switch]$DryRun
 )
 
