@@ -260,6 +260,18 @@ as housekeeping step [4]. Dead launchers get archived to
   commands that still pop a window: task action = `wscript.exe //nologo
   "...\run-hidden.vbs" "<cmd> [args]>"` — waits for exit, propagates the real
   exit code so Task Scheduler's Last Run Result stays truthful.
+- **WSL-interop `powershell.exe` calls flash a console on the desktop too**
+  (console subsystem allocates a visible conhost even for `-WindowStyle
+  Hidden`/`Start-Process -WindowStyle Hidden` — the flash happens before the
+  style applies). Every `powershell.exe -Command`/`-File` invoked from bash
+  pops a window for the user. Route through the same helper instead:
+  `wscript.exe //nologo "C:\Users\tbaltzakis\devin-scripts\run-hidden.vbs"
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\path\script.ps1`
+  — pass the command as separate args (the vbs re-quotes only args containing
+  spaces; a single pre-quoted arg breaks exe parsing). Have the .ps1 write
+  its own log file (sh.Run does no shell redirection); read results via
+  `/mnt/c`. `conhost --headless` is NOT a substitute for output-capturing
+  calls — it swallows child stdout.
 - `devin-scripts\wsl-resume-watch.ps1` + task `WSL-Resume-Watch` (event:
   Power-Troubleshooter ID 1) probes WSL vsock after resume and only runs
   `wsl --shutdown` + distro recovery when actually wedged — never restarts a
