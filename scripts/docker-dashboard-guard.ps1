@@ -6,7 +6,7 @@
 # running in the tray. Runs headless via scheduled task every 5 min.
 $closed = 0
 Get-Process 'Docker Desktop' -ErrorAction SilentlyContinue |
-  Where-Object { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle } |
+  Where-Object { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -match 'Dashboard|Containers|Images|Volumes|Builds|Debug' } |
   ForEach-Object {
     $_.CloseMainWindow() | Out-Null
     $closed++

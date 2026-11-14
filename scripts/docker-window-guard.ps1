@@ -8,7 +8,7 @@ $log = 'D:\DevOptimizer\scripts\_docker-window-guard.log'
 while ($true) {
     try {
         $procs = Get-Process -Name 'Docker Desktop' -ErrorAction SilentlyContinue |
-            Where-Object { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle }
+            Where-Object { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -match 'Dashboard|Containers|Images|Volumes|Builds|Debug' }
         foreach ($p in $procs) {
             $null = $p.CloseMainWindow()
             "$(Get-Date -Format o) closed Docker Desktop window pid=$($p.Id) title=$($p.MainWindowTitle)" |

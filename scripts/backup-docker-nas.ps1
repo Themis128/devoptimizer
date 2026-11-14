@@ -75,8 +75,13 @@ if (docker ps --format '{{.Names}}' 2>$null | Where-Object { $_ -eq $pgContainer
         Where-Object { $_ -match '^POSTGRES_USER=' }) -replace '^POSTGRES_USER=', ''
     if (-not $pgUser) { $pgUser = 'postgres' }
     $dumpFile = Join-Path $nightlyDir ("pgdumpall-{0}.sql.gz" -f $dateTag)
-    docker exec $pgContainer pg_dumpall -U $pgUser 2>$null | & gzip.exe > $dumpFile
-    if ((Test-Path $dumpFile) -and ((Get-Item $dumpFile).Length -gt 1KB)) {
+    # cmd /c pipeline: PowerShell `>` redirection re-encodes native stdout as
+    # UTF-16 text and corrupts gzip binary output (all dumps 2026-11-12..14
+    # were garbage). cmd redirection is byte-transparent.
+    $gzipExe = 'C:\Program Files\Git\usr\bin\gzip.exe'
+    cmd /c "docker exec $pgContainer pg_dumpall -U $pgUser 2>nul | `"$gzipExe`" > `"$dumpFile`""
+    if ((Test-Path $dumpFile) -and ((Get-Item $dumpFile).Length -gt 1KB) -and
+        ((Format-Hex -Path $dumpFile -Count 2 | Out-String) -match '1F8B')) {
         $files += $dumpFile; Log ("pg_dumpall OK: {0} ({1:N1} MB)" -f $pgContainer, ((Get-Item $dumpFile).Length/1MB))
     } else { NoteFail ("pg_dumpall produced no data from {0}" -f $pgContainer) }
 } else {
@@ -88,8 +93,9 @@ if (docker ps --format '{{.Names}}' 2>$null | Where-Object { $_ -eq $pgContainer
             Where-Object { $_ -match '^POSTGRES_USER=' }) -replace '^POSTGRES_USER=', ''
         if (-not $pgUser) { $pgUser = 'postgres' }
         $dumpFile = Join-Path $nightlyDir ("pgdumpall-{0}.sql.gz" -f $dateTag)
-        docker exec $fallback pg_dumpall -U $pgUser 2>$null | & gzip.exe > $dumpFile
-        if ((Test-Path $dumpFile) -and ((Get-Item $dumpFile).Length -gt 1KB)) {
+        cmd /c "docker exec $fallback pg_dumpall -U $pgUser 2>nul | `"$gzipExe`" > `"$dumpFile`""
+        if ((Test-Path $dumpFile) -and ((Get-Item $dumpFile).Length -gt 1KB) -and
+            ((Format-Hex -Path $dumpFile -Count 2 | Out-String) -match '1F8B')) {
             $files += $dumpFile; Log ("pg_dumpall OK: {0} ({1:N1} MB)" -f $fallback, ((Get-Item $dumpFile).Length/1MB))
         } else { NoteFail ("pg_dumpall produced no data from {0}" -f $fallback) }
     } else { Log 'no postgres container found (pg dump skipped)' }
@@ -150,7 +156,12 @@ if ($monthly) {
 } else {
     $cmd = "tar czf - -C /home/tbaltzakis cu130-slim/docker-compose.yml cu130-slim/.env cloudless.gr 2>/dev/null"
 }
-& wsl.exe -d Ubuntu-24.04 -e sh -lc $cmd > $wslOut 2>$null
+# WSL writes the archive itself via /mnt/<drive> — PowerShell `>` re-encodes
+# native stdout as UTF-16 and corrupted every wsl-*.tar.gz (verified 2026-11-14).
+$wslStaging = $nightlyDir
+if ($wslStaging -match '^([A-Za-z]):\\(.*)$') { $wslStaging = '/mnt/' + $Matches[1].ToLower() + '/' + ($Matches[2] -replace '\\', '/') }
+$wslOutName = Split-Path $wslOut -Leaf
+& wsl.exe -d Ubuntu-24.04 -e sh -lc "$cmd > '$wslStaging/$wslOutName'"
 if ((Test-Path $wslOut) -and ((Get-Item $wslOut).Length -gt 1KB)) { $files += $wslOut; Log ("wsl layer OK: {0:N1} MB" -f ((Get-Item $wslOut).Length/1MB)) }
 else { NoteFail 'wsl layer tar empty' }
 
