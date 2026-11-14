@@ -19,6 +19,32 @@ param(
 # Windows 11 Admin Cleanup - Run Elevated
 $ErrorActionPreference = 'Continue'
 
+# One-shot elevated lanes: flag files in C:\tmp trigger a single action then
+# self-remove. Used for ops that need admin but have no dedicated task
+# (e.g. software downgrades). Remove the block when no longer needed.
+if (Test-Path 'C:\tmp\dd-downgrade.flag') {
+    $flagLog = 'D:\DevOptimizer\logs\dd-downgrade.log'
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if (-not $isAdmin) {
+        # Do NOT consume the flag - a later elevated run can still fire.
+        Add-Content -Path $flagLog -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') flag present but not elevated - deferred"
+        exit 4
+    }
+    Remove-Item 'C:\tmp\dd-downgrade.flag' -Force -ErrorAction SilentlyContinue
+    $inst = 'C:\tmp\DockerDesktop-4.98.0-Installer.exe'
+    if (-not (Test-Path $inst)) {
+        Add-Content -Path $flagLog -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') flag consumed but installer missing at $inst - aborted"
+        exit 3
+    }
+    Start-Transcript -Path $flagLog -Force | Out-Null
+    Write-Host "=== DD downgrade installer start $(Get-Date -Format o) ==="
+    # DD bootstrapper args (NOT Inno /VERYSILENT - that would launch a hidden GUI)
+    $p = Start-Process -FilePath $inst -ArgumentList 'install','--quiet','--accept-license' -Wait -PassThru
+    Write-Host "installer exit code: $($p.ExitCode)"
+    Stop-Transcript | Out-Null
+    exit $p.ExitCode
+}
+
 # Import shared modules
 . "$PSScriptRoot\lib\Notify.ps1"
 
