@@ -8,8 +8,10 @@
     Docker Desktop and fed the vsock flap loop.
 .DESCRIPTION
     Safe-by-construction:
-      - only files older than -MinAgeHours (default 2) are candidates, so a
-        boot in progress is never touched;
+      - files older than -MinAgeHours (default 2) are candidates; younger
+        files are reaped only when an exclusive-open probe proves they are
+        NOT locked by the hypervisor (dead-VM orphans), so a boot in
+        progress is never touched;
       - the LIVE VM's swap.vhdx is held open by the hypervisor, so the
         delete simply fails and the file is skipped;
       - the GUID dir is removed only if empty afterwards.
@@ -48,8 +50,19 @@ foreach ($d in $dirs) {
     $swap = Join-Path $d.FullName 'swap.vhdx'
     if (-not (Test-Path $swap)) { continue }
     $item = Get-Item $swap
-    # Fresh files belong to a boot in progress or the live VM - never touch.
-    if ($item.LastWriteTime -gt $cutoff) { $skipped++; continue }
+    # Fresh files belong to a boot in progress or the live VM. The live
+    # VM's swap is locked by the hypervisor, so an UNLOCKED fresh file is
+    # an orphan from a VM that died mid-boot (vsock flaps churn these) —
+    # reclaim it now instead of waiting out MinAgeHours while C: drains.
+    $freshOrphan = $false
+    if ($item.LastWriteTime -gt $cutoff) {
+        try {
+            $fs = [System.IO.File]::Open($swap, 'Open', 'ReadWrite', 'None')
+            $fs.Close()
+            $freshOrphan = $true
+        } catch { $freshOrphan = $false }
+        if (-not $freshOrphan) { $skipped++; continue }
+    }
     $mb = [math]::Round($item.Length / 1MB)
     if ($DryRun) {
         Log "DRYRUN would reap $($d.Name) swap.vhdx ${mb} MB (last write $($item.LastWriteTime))"
@@ -59,7 +72,8 @@ foreach ($d in $dirs) {
     try {
         Remove-Item $swap -Force -ErrorAction Stop
         $reclaimed += $item.Length; $reaped++
-        Log "reaped $($d.Name) swap.vhdx ${mb} MB (last write $($item.LastWriteTime))"
+        $how = if ($freshOrphan) { 'fresh-orphan (unlocked)' } else { 'aged' }
+        Log "reaped $($d.Name) swap.vhdx ${mb} MB ($how, last write $($item.LastWriteTime))"
     } catch {
         # Locked = live VM's swap disk; anything else is unexpected - keep it.
         $skipped++
