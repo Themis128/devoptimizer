@@ -238,3 +238,22 @@ try {
 } catch {
     Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') rewrap piggyback failed: $($_.Exception.Message)"
 }
+
+# Elevated-once lane: drop a .ps1 into D:\DevOptimizer\elevated-once\ and it
+# runs here (elevated, headless) on the next pass, then is deleted. For
+# one-shot admin changes unelevated shells cannot do (e.g. IP forwarding).
+# Trigger immediately: schtasks /run /tn '\DevOptimizer\WSL-Memory-Watchdog'
+try {
+    $onceDir = 'D:\DevOptimizer\elevated-once'
+    if (Test-Path $onceDir) {
+        Get-ChildItem $onceDir -Filter *.ps1 -File | ForEach-Object {
+            try {
+                & $_.FullName
+                Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') elevated-once ran $($_.Name)"
+            } catch {
+                Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') elevated-once FAILED $($_.Name): $($_.Exception.Message)"
+            }
+            Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue
+        }
+    }
+} catch {}
