@@ -176,10 +176,20 @@ foreach ($f in $files) {
 $tier = if ($monthly) { 'monthly' } elseif ($weekly) { 'weekly' } else { 'nightly' }
 ssh -o BatchMode=yes omv ("mkdir -p {0}/{1}" -f $NasDir, $tier) 2>$null | Out-Null
 $okCount = 0
+$scpFails = 0
 foreach ($f in ($files + $manifest)) {
-    scp -o BatchMode=yes -q $f ("omv:{0}/{1}/" -f $NasDir, $tier) 2>$null
-    if ($LASTEXITCODE -eq 0) { $okCount++ } else { NoteFail ("scp failed: {0}" -f (Split-Path $f -Leaf)) }
+    $sent = $false
+    foreach ($attempt in 1..3) {
+        scp -o BatchMode=yes -o ConnectTimeout=15 -q $f ("omv:{0}/{1}/" -f $NasDir, $tier) 2>$null
+        if ($LASTEXITCODE -eq 0) { $sent = $true; break }
+        # if the NAS link died mid-run, don't burn retries on every file
+        ssh -o BatchMode=yes -o ConnectTimeout=8 omv 'echo nas-ok' 2>$null | Out-Null
+        if ($LASTEXITCODE -ne 0) { break }
+        Start-Sleep -Seconds (5 * $attempt)
+    }
+    if ($sent) { $okCount++ } else { $scpFails++; NoteFail ("scp failed: {0}" -f (Split-Path $f -Leaf)) }
 }
+if ($scpFails -gt 0 -and $okCount -eq 0) { NoteFail 'NAS transfer: all files failed (link down mid-run?)' }
 Log ("transferred {0}/{1} file(s) to omv:{2}/{3}" -f $okCount, ($files.Count + 1), $NasDir, $tier)
 
 # --- [7] Retention -----------------------------------------------------------------

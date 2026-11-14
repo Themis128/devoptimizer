@@ -2,7 +2,7 @@
 .SYNOPSIS
     Registers/unregisters the DevOptimizer-WSL-Repair watchdog task.
 .DESCRIPTION
-    Every 1 minute, current user, hidden/headless via portable pwsh.
+    Every 30 minutes, current user, hidden/headless via portable pwsh.
     Runs scripts\repair-wsl-docker-integration.ps1 which detects and fixes
     the WSL2/Docker-Desktop integration failure modes (root-owned ~,
     missing /var/run/docker.sock, stopped distro) before Docker Desktop
@@ -32,10 +32,12 @@ if ($Unregister) {
 }
 
 $tr = 'C:\Windows\System32\conhost.exe --headless "' + $pwshExe + '" -NoProfile -ExecutionPolicy Bypass -File "' + $script + '"'
-& schtasks.exe /Create /TN $taskName /SC MINUTE /MO 1 /TR $tr /F /IT | Out-Null
+# 2026-11-14: was /MO 1 (a wsl.exe probe every minute is hot); 30 min is the
+# AGENTS.md-documented cadence. /F overwrites in place.
+& schtasks.exe /Create /TN $taskName /SC MINUTE /MO 30 /TR $tr /F /IT | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "schtasks /Create failed ($LASTEXITCODE)" }
 
-Write-Host "Registered $taskName (every 1 min)"
+Write-Host "Registered $taskName (every 30 min)"
 Write-Host "Runs: $script"
 Write-Host "Log:   D:\DevOptimizer\logs\wsl-repair.log"
 Write-Host "Remove with: scripts\register-wsl-repair-task.ps1 -Unregister"

@@ -111,8 +111,15 @@ if ($mkdirTest.Code -ne 0 -or $foreignN -gt 0) {
     $settingsPath = "$env:APPDATA\Docker\settings-store.json"
     try {
         $st = Get-Content $settingsPath -Raw -ErrorAction Stop | ConvertFrom-Json
-        $listed = @($st.IntegratedWslDistros) -contains $Distro
-        if (-not $listed) {
+        if (-not $st.PSObject.Properties['IntegratedWslDistros']) {
+            # DD >= 4.98 (2026-11-14) rewrote settings-store.json to a minimal
+            # schema without IntegratedWslDistros - WSL integration defaults to
+            # the default distro (engine reachable with the key absent).
+            # Nothing to re-enable; the [docker] engine check below is the
+            # real probe. Do NOT inject the key: DD ignores unknown settings
+            # keys and would rewrite the file on next start anyway.
+            Log "[integration] no IntegratedWslDistros key (DD 4.98+ schema) - default-distro integration governs, skipping"
+        } elseif (@($st.IntegratedWslDistros) -notcontains $Distro) {
             if (-not $DryRun) {
                 $st.IntegratedWslDistros = @($st.IntegratedWslDistros) + @($Distro)
                 $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
@@ -186,9 +193,15 @@ if ($sock.Code -ne 0 -or -not $engineOk) {
                         Start-Sleep -Seconds 5
                         try {
                             $st = Get-Content $settingsPath -Raw -ErrorAction Stop | ConvertFrom-Json
-                            $st.IntegratedWslDistros = @()
-                            if ($st.PSObject.Properties['EnableIntegrationWithDefaultWslDistro']) { $st.EnableIntegrationWithDefaultWslDistro = $false }
-                            $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
+                            if ($st.PSObject.Properties['IntegratedWslDistros']) {
+                                $st.IntegratedWslDistros = @()
+                                if ($st.PSObject.Properties['EnableIntegrationWithDefaultWslDistro']) { $st.EnableIntegrationWithDefaultWslDistro = $false }
+                                $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
+                            }
+                            # DD 4.98+ schema: key absent - the DD restart below
+                            # IS the reset (integration rides the default-distro
+                            # default; verified 2026-11-14 engine reachable with
+                            # the key gone).
                         } catch { Log "[integration] settings reset failed: $($_.Exception.Message)" }
                         Start-Process "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe"
                         $deadline = (Get-Date).AddMinutes(4)
@@ -200,7 +213,8 @@ if ($sock.Code -ne 0 -or -not $engineOk) {
                         if ($eng.Code -eq 0 -and $eng.Out -match '^\d+\.\d+') {
                             try {
                                 $st = Get-Content $settingsPath -Raw -ErrorAction Stop | ConvertFrom-Json
-                                if (@($st.IntegratedWslDistros) -notcontains $Distro) {
+                                if ($st.PSObject.Properties['IntegratedWslDistros'] -and
+                                    @($st.IntegratedWslDistros) -notcontains $Distro) {
                                     $st.IntegratedWslDistros = @($st.IntegratedWslDistros) + @($Distro)
                                     $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
                                     Log "[integration] re-added $Distro post-reset (DD re-pushes proxy)"

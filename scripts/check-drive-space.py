@@ -164,10 +164,14 @@ def main():
                 # shadow copy, VHDX compaction). Runs as the stored admin
                 # principal; failure is non-fatal - the warning already went out.
                 try:
+                    # CREATE_NO_WINDOW: with pythonw as the task host (no
+                    # console), a bare console child (schtasks) would allocate
+                    # a VISIBLE window on the crit path. 2026-11-14.
                     subprocess.run(
                         ["schtasks", "/run", "/tn", "AdminCleanupTask"],
                         capture_output=True,
                         timeout=30,
+                        creationflags=subprocess.CREATE_NO_WINDOW,
                     )
                     log("AdminCleanupTask triggered (crit disk)")
                 except Exception as e:

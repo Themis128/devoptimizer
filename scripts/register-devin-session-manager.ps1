@@ -43,7 +43,7 @@ $trigger = New-ScheduledTaskTrigger `
     -Once `
     -At 00:15 `
     -RepetitionInterval (New-TimeSpan -Hours 4) `
-    -RepetitionDuration (New-TimeSpan -Hours 24)
+    -RepetitionDuration (New-TimeSpan -Days 3650)
 
 # Settings - longer time limit for potential WSL operations
 $settings = New-ScheduledTaskSettingsSet `

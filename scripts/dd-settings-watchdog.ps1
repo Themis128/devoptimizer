@@ -15,6 +15,10 @@
       (the compose stack's docker.sock lives in that distro - losing the
       integration entry kills every container lane).
     - EnableIntegrationWithDefaultWslDistro must stay $true.
+    - DD >= 4.98 (2026-11-14): settings-store.json migrated to a minimal
+      schema with NO integration keys - integration defaults to the default
+      WSL distro, so schema 'store-v2' is drift-free by design (verified
+      live: engine reachable with the keys absent).
     - userns-remap is NOT checked: Docker Desktop does not support it on the
       WSL2 backend (docker/for-win#6897) and the old script wrote it to
       Ubuntu-24.04:/etc/docker/daemon.json - a distro Docker Desktop never
@@ -61,9 +65,18 @@ function Get-CurrentState {
         return $result
     }
     if ($ActiveFile -eq $StoreFile) {
-        $result.schema = 'store'
-        $result.defaultWsl = $json.EnableIntegrationWithDefaultWslDistro
-        if ($json.IntegratedWslDistros) { $result.distros = @($json.IntegratedWslDistros) }
+        $result.defaultWslKey = [bool]($json.PSObject.Properties['EnableIntegrationWithDefaultWslDistro'])
+        $result.distrosKey    = [bool]($json.PSObject.Properties['IntegratedWslDistros'])
+        if (-not $result.defaultWslKey -and -not $result.distrosKey) {
+            # DD >= 4.98 (2026-11-14): minimal settings-store schema without the
+            # IntegratedWslDistros / EnableIntegrationWithDefaultWslDistro keys -
+            # WSL integration defaults to the default distro, nothing to enforce.
+            $result.schema = 'store-v2'
+        } else {
+            $result.schema = 'store'
+            if ($result.defaultWslKey) { $result.defaultWsl = $json.EnableIntegrationWithDefaultWslDistro }
+            if ($result.distrosKey)    { $result.distros = @($json.IntegratedWslDistros) }
+        }
     } else {
         # Legacy schema: presence of the file at all is the best signal we get;
         # the old hardening keys were escape-hatch only and no longer exist.
@@ -80,10 +93,10 @@ function Test-SettingsDrift {
         return $drift
     }
     if ($current.schema -eq 'store') {
-        if ($current.defaultWsl -ne $true) {
+        if ($current.defaultWslKey -and $current.defaultWsl -ne $true) {
             $drift += "EnableIntegrationWithDefaultWslDistro: current=$($current.defaultWsl) desired=True"
         }
-        if ($current.distros -notcontains 'Ubuntu-24.04') {
+        if ($current.distrosKey -and @($current.distros) -notcontains 'Ubuntu-24.04') {
             $drift += "IntegratedWslDistros missing Ubuntu-24.04: current=[$($current.distros -join ',')]"
         }
     }
@@ -101,16 +114,22 @@ function Restore-Settings {
     try {
         $json = Get-Content $StoreFile -Raw | ConvertFrom-Json
         $changed = $false
-        if ($json.EnableIntegrationWithDefaultWslDistro -ne $true) {
+        # Only touch keys that exist. DD 4.98+ minimal schema ('store-v2'):
+        # keys absent = defaults in force, injecting them is pointless - DD
+        # ignores unknown settings keys and rewrites the file on exit anyway.
+        if ($json.PSObject.Properties['EnableIntegrationWithDefaultWslDistro'] -and
+            $json.EnableIntegrationWithDefaultWslDistro -ne $true) {
             $json.EnableIntegrationWithDefaultWslDistro = $true
             $changed = $true
         }
-        $distros = @()
-        if ($json.IntegratedWslDistros) { $distros = @($json.IntegratedWslDistros) }
-        if ($distros -notcontains 'Ubuntu-24.04') {
-            $distros += 'Ubuntu-24.04'
-            $json.IntegratedWslDistros = $distros
-            $changed = $true
+        if ($json.PSObject.Properties['IntegratedWslDistros']) {
+            $distros = @()
+            if ($json.IntegratedWslDistros) { $distros = @($json.IntegratedWslDistros) }
+            if ($distros -notcontains 'Ubuntu-24.04') {
+                $distros += 'Ubuntu-24.04'
+                $json.IntegratedWslDistros = $distros
+                $changed = $true
+            }
         }
         if (-not $changed) { return $false }
         $json | ConvertTo-Json -Depth 10 | Set-Content -Path $StoreFile -Encoding UTF8
@@ -131,15 +150,33 @@ function Restart-DockerDesktopLimited {
         Write-Log "Restart suppressed - last restart $($state.lastRestart) within ${RestartCooldownHours}h cooldown" 'WARN'
         return $false
     }
-    & 'C:\Program Files\Docker\Docker\DockerCli.exe' -Shutdown 2>$null
+    # 2026-11-14: DD 4.98 moved to a per-user install - resolve the exe
+    # dynamically (the hard-coded 'C:\Program Files' path no longer exists,
+    # and a Start-Process on a missing exe silently no-ops under
+    # $ErrorActionPreference = 'SilentlyContinue').
+    $ddExe = @("$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe",
+               'C:\Program Files\Docker\Docker\Docker Desktop.exe') |
+        Where-Object { Test-Path $_ } | Select-Object -First 1
+    if (-not $ddExe) {
+        Write-Log "Docker Desktop.exe not found in known install locations - restart skipped" 'WARN'
+        return $false
+    }
+    $ddCli = @('C:\Program Files\Docker\Docker\DockerCli.exe',
+               "$env:LOCALAPPDATA\Programs\DockerDesktop\DockerCli.exe") |
+        Where-Object { Test-Path $_ } | Select-Object -First 1
+    if ($ddCli) { & $ddCli -Shutdown 2>$null }
     Get-Process 'Docker Desktop','com.docker.backend' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
     Start-Sleep 5
-    Start-Process 'C:\Program Files\Docker\Docker\Docker Desktop.exe'
+    Start-Process $ddExe
     return $true
 }
 
 # --- Main ---
-$desiredNote = 'store-schema: IntegratedWslDistros+=Ubuntu-24.04, EnableIntegrationWithDefaultWslDistro=true'
+$desiredNote = switch ($current.schema) {
+    'store-v2' { 'DD 4.98+ minimal schema: no integration keys (default-distro integration governs)' }
+    'store'    { 'IntegratedWslDistros+=Ubuntu-24.04, EnableIntegrationWithDefaultWslDistro=true' }
+    default    { 'legacy schema' }
+}
 $current = Get-CurrentState
 $drift = Test-SettingsDrift $current
 

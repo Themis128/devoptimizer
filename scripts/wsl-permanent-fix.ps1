@@ -49,6 +49,7 @@ $ErrorActionPreference = 'Stop'
 $logFile = 'D:\DevOptimizer\logs\wsl-permanent-fix.log'
 $stateFile = 'D:\DevOptimizer\logs\wsl-permanent-fix-state.json'
 $ddSettingsFile = "$env:APPDATA\Docker\settings.json"
+$ddStoreFile    = "$env:APPDATA\Docker\settings-store.json"
 $ddDaemonFile = "$env:APPDATA\Docker\daemon.json"
 
 # Import shared modules
@@ -88,14 +89,27 @@ function Harden-DockerDesktopConfig {
     }
     
     # Disable automatic WSL integration user/group management
-    $settings.disableWSLIntegrationAutoConfig = $true
-    $settings.wslIntegrationAutoConfigure = $false
-    
-    # Also ensure docker group management is off
-    $settings.manageDockerGroup = $false
-    
-    $settings | ConvertTo-Json -Depth 5 | Set-Content -Path $ddSettingsFile -Force
-    Write-Out "  Updated settings.json: disabled WSL auto-config and docker group management"
+    # 2026-11-14: DD >= 4.35 reads settings-store.json - the legacy settings.json
+    # write was landing in a dead file. Write BOTH files with Add-Member -Force
+    # so the minimal 4.98 schema (keys absent) does not throw on assignment.
+    $hardenKeys = @{
+        disableWSLIntegrationAutoConfig = $true
+        wslIntegrationAutoConfigure     = $false
+        manageDockerGroup               = $false
+    }
+    foreach ($f in @($ddSettingsFile, $ddStoreFile)) {
+        if (-not (Test-Path $f)) { continue }
+        try {
+            $s = Get-Content $f -Raw | ConvertFrom-Json
+            foreach ($k in $hardenKeys.Keys) {
+                $s | Add-Member -NotePropertyName $k -NotePropertyValue $hardenKeys[$k] -Force
+            }
+            $s | ConvertTo-Json -Depth 5 | Set-Content -Path $f -Force
+            Write-Out ("  Updated {0}: disabled WSL auto-config + docker group management" -f (Split-Path $f -Leaf))
+        } catch {
+            Write-Out ("  WARN: could not harden {0}: {1}" -f $f, $_.Exception.Message)
+        }
+    }
     
     # Also update daemon.json to not rely on docker group
     if (Test-Path $ddDaemonFile) {
@@ -304,7 +318,11 @@ if ($Install) {
     # Create scheduled task for Active Guard (every 2 min + at logon)
     $action = New-ScheduledTaskAction -Execute 'pwsh.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File "D:\DevOptimizer\scripts\wsl-permanent-fix.ps1"'
     $triggerLogon = New-ScheduledTaskTrigger -AtLogOn
-    $triggerRepetition = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 2) -RepetitionDuration (New-TimeSpan -Days 1)
+    # 2026-11-14: -Days 1 expired on 11-08 and silently killed the 2-min
+    # guard cadence (PS 5.1 also DEFAULTS RepetitionDuration to 1 day when
+    # an interval is given without one - always set this explicitly).
+    # 3650d matches the other long-lived watchdogs.
+    $triggerRepetition = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 2) -RepetitionDuration (New-TimeSpan -Days 3650)
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -Hidden
     $principal = New-ScheduledTaskPrincipal -UserId (Get-CimInstance Win32_ComputerSystem).UserName -LogonType Interactive -RunLevel Highest
     
