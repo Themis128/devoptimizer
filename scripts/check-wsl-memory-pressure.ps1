@@ -47,14 +47,19 @@ try {
 # 30 min, so register the elevated variant in-process once (no UAC) and drop
 # the limited duplicate. Same bootstrap pattern as Sshd-Watch above.
 try {
-    if (-not (Get-ScheduledTask -TaskName 'Windows-Patch-Check-Elevated' -ErrorAction SilentlyContinue)) {
+    $patchTask = Get-ScheduledTask -TaskName 'Windows-Patch-Check-Elevated' -ErrorAction SilentlyContinue
+    # Re-register when missing OR when the action is not conhost-headless
+    # (first registration used a raw powershell.exe action = monthly flash;
+    # popup_task_audit verdict FLASH-RISK caught it 2026-11-14).
+    $headless = $patchTask -and ($patchTask.Actions[0].Execute -match 'conhost')
+    if (-not $headless) {
         $patchXml = 'C:\Users\tbaltzakis\devin-scripts\win-patch-task-elevated.xml'
         if (Test-Path $patchXml) {
             Register-ScheduledTask -TaskName 'Windows-Patch-Check-Elevated' `
                 -Xml (Get-Content $patchXml -Raw) -Force -ErrorAction Stop | Out-Null
             Unregister-ScheduledTask -TaskName 'Windows-Patch-Check' -Confirm:$false -ErrorAction SilentlyContinue
             if (Get-ScheduledTask -TaskName 'Windows-Patch-Check-Elevated' -ErrorAction SilentlyContinue) {
-                Add-Content -Path 'D:\DevOptimizer\logs\wsl-memory-pressure.log' -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') registered Windows-Patch-Check-Elevated via elevated piggyback (no UAC)"
+                Add-Content -Path 'D:\DevOptimizer\logs\wsl-memory-pressure.log' -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') (re)registered Windows-Patch-Check-Elevated via elevated piggyback (no UAC, headless action)"
             }
         }
     }
@@ -67,6 +72,21 @@ try {
     if (-not (Get-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Net-Soft-Reset' -ErrorAction SilentlyContinue)) {
         & 'D:\DevOptimizer\scripts\network-soft-reset.ps1' -RegisterTask
         Add-Content -Path 'D:\DevOptimizer\logs\wsl-memory-pressure.log' -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') registered Net-Soft-Reset via elevated piggyback"
+    }
+} catch {}
+
+# --- Elevated lane: register \DevOptimizer\Popup-Flash-Watch (on-demand) ---
+# On-demand console-flash catcher for flashes not attributable to any
+# scheduled-task action (popup_task_audit stays clean but flashes persist).
+try {
+    if (-not (Get-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Popup-Flash-Watch' -ErrorAction SilentlyContinue)) {
+        $act = New-ScheduledTaskAction -Execute 'C:\Windows\System32\conhost.exe' `
+            -Argument '--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\DevOptimizer\scripts\popup-flash-watch.ps1"'
+        $trg = New-ScheduledTaskTrigger -Once -At (Get-Date '2030-01-01')
+        $pri = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Highest
+        Register-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Popup-Flash-Watch' `
+            -Action $act -Trigger $trg -Principal $pri -Force -ErrorAction Stop | Out-Null
+        Add-Content -Path 'D:\DevOptimizer\logs\wsl-memory-pressure.log' -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') registered Popup-Flash-Watch via elevated piggyback (on-demand)"
     }
 } catch {}
 
