@@ -187,7 +187,7 @@ public class RegistryServiceTests
             ["storage"] = 1,
             ["system"] = 2,
             ["system-optimization"] = 3,
-            ["utilities"] = 277,
+            ["utilities"] = 278,
             ["verification"] = 2,
         };
         var actualCounts = snapshot.Commands

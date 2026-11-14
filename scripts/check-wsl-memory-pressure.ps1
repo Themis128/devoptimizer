@@ -106,6 +106,20 @@ try {
     }
 } catch {}
 
+# --- Elevated lane: register \DevOptimizer\DeepClean-Elevated (monthly 1st 04:00) ---
+# Sections 0-5 of admin-cleanup-elevated.ps1 with -SkipVhdx: DISM component
+# store, WU download cache, Delivery Optimization cache, oldest shadow copy,
+# Windows.old. Docker/WSL untouched, so it is safe to fire any time.
+try {
+    $dcTask = Get-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'DeepClean-Elevated' -ErrorAction SilentlyContinue
+    $dcActionOk = $dcTask -and ($dcTask.Actions.Arguments -match 'SkipVhdx') -and ($dcTask.Actions.Execute -match 'conhost\.exe')
+    if (-not $dcActionOk) {
+        & schtasks.exe /create /tn '\DevOptimizer\DeepClean-Elevated' /sc monthly /d 1 /st 04:00 /rl HIGHEST /ru $env:USERNAME `
+            /tr "C:\Windows\System32\conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"D:\DevOptimizer\scripts\admin-cleanup-elevated.ps1`" -SkipVhdx" /f | Out-Null
+        Add-Content -Path 'D:\DevOptimizer\logs\wsl-memory-pressure.log' -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') registered DeepClean-Elevated via elevated piggyback (monthly 1st 04:00, -SkipVhdx)"
+    }
+} catch {}
+
 
 # --- CDP relay firewall pin (2026-11-07): WSL->host 9229 blocked inbound ---
 try {
