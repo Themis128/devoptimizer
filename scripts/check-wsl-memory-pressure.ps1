@@ -75,6 +75,21 @@ try {
     }
 } catch {}
 
+# --- Elevated lane: register \DevOptimizer\Popup-Flash-Watch (on-demand) ---
+# On-demand console-flash catcher for flashes not attributable to any
+# scheduled-task action (popup_task_audit stays clean but flashes persist).
+try {
+    if (-not (Get-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Popup-Flash-Watch' -ErrorAction SilentlyContinue)) {
+        $act = New-ScheduledTaskAction -Execute 'C:\Windows\System32\conhost.exe' `
+            -Argument '--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\DevOptimizer\scripts\popup-flash-watch.ps1"'
+        $trg = New-ScheduledTaskTrigger -Once -At (Get-Date '2030-01-01')
+        $pri = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Highest
+        Register-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Popup-Flash-Watch' `
+            -Action $act -Trigger $trg -Principal $pri -Force -ErrorAction Stop | Out-Null
+        Add-Content -Path 'D:\DevOptimizer\logs\wsl-memory-pressure.log' -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') registered Popup-Flash-Watch via elevated piggyback (on-demand)"
+    }
+} catch {}
+
 
 # --- CDP relay firewall pin (2026-11-07): WSL->host 9229 blocked inbound ---
 try {
