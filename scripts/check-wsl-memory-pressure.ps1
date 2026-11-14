@@ -90,6 +90,22 @@ try {
     }
 } catch {}
 
+# --- Elevated lane: register \DevOptimizer\Phone-Tailnet-Watch (10 min) ---
+# Layer-2 phone-tailnet watchdog: relaunches the phone's Tailscale app over
+# adb when galaxy-s22 drops off the tailnet (omv watcher is layer 1; this
+# host covers USB serial + DHCP-drift LAN endpoints omv can't see).
+try {
+    if (-not (Get-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Phone-Tailnet-Watch' -ErrorAction SilentlyContinue)) {
+        $act = New-ScheduledTaskAction -Execute 'C:\Windows\System32\conhost.exe' `
+            -Argument '--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\DevOptimizer\scripts\phone-tailnet-watch.ps1"'
+        $trg = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 10)
+        $pri = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
+        Register-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Phone-Tailnet-Watch' `
+            -Action $act -Trigger $trg -Principal $pri -Force -ErrorAction Stop | Out-Null
+        Add-Content -Path 'D:\DevOptimizer\logs\wsl-memory-pressure.log' -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') registered Phone-Tailnet-Watch via elevated piggyback (10 min)"
+    }
+} catch {}
+
 
 # --- CDP relay firewall pin (2026-11-07): WSL->host 9229 blocked inbound ---
 try {
