@@ -112,6 +112,13 @@ any recurrence (names containing `:` are invisible to Win32).
   `scripts/install-startup-launchers.ps1` (idempotent).
   `start-chrome-debug.bat` is deliberately NOT installed — it binds :9222,
   which Lenovo Vantage WebView2 owns; debug lane is :9229 via cdp-launch.
+- `scripts/ntfy-windows-bridge.py` (2026-11-15): read-only ntfy.cloudless.gr
+  topic streams (cloudless-alerts/-ops, nextcloud-ops, devoptimizer-alerts)
+  -> native Windows toasts via `windows_toasts`, pri>=4 as Alarm scenario.
+  Runs under `pythonw.exe` via `scripts/startup/ntfy-bridge.bat` +
+  `ntfy-bridge-hidden.vbs`; token at
+  `%APPDATA%\devin\secrets\ntfy-phone-token`. Needs `pip install
+  windows-toasts` (user site). Logs to `logs/ntfy-bridge.log`.
 - Disabled autostart entries (2026-11-13): Teams (`Run` value removed +
   `TeamsTfwStartupTask` State=1), LinkedIn UWP (`LinkedInAppStartUpId`
   State=1), stale EPSDNMON/Chrome/Edge auto-launch values removed. UWP

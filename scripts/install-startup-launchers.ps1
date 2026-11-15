@@ -21,7 +21,7 @@ $ErrorActionPreference = 'Stop'
 $src      = 'D:\DevOptimizer\scripts\startup'
 $hidden   = "$env:USERPROFILE\startup-hidden"
 $startup  = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
-$bats     = 'cdp-launch','dmr-tunnel','win_agent'
+$bats     = 'cdp-launch','dmr-tunnel','win_agent','ntfy-bridge'
 
 New-Item -ItemType Directory -Path $hidden -Force | Out-Null
 
