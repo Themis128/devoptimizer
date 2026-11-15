@@ -102,6 +102,13 @@ if (docker ps --format '{{.Names}}' 2>$null | Where-Object { $_ -eq $pgContainer
     } else { Log 'no postgres container found (pg dump skipped)' }
 }
 
+# Post-section assert: every run must produce a pgdumpall — 2026-11-15 the
+# section emitted zero log lines and the dump silently never landed. If the
+# set lacks one, the whole Postgres backup is absent and that must be loud.
+if (-not ($files | Where-Object { $_ -match 'pgdumpall-.*\.sql\.gz$' })) {
+    NoteFail 'pgdumpall missing from backup set — Postgres NOT backed up this run'
+}
+
 # --- [4] Docker volumes, size-tiered --------------------------------------------
 $gzip = 'C:\Program Files\Git\usr\bin\gzip.exe'
 $volSizes = @{}
