@@ -33,9 +33,9 @@ $stateFile = 'D:\DevOptimizer\logs\host-guard-state.json'
 . "$PSScriptRoot\lib\State.ps1"
 
 function Log { param($m) Add-Content -Path $logFile -Value ("{0} {1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $m) }
-function Note { param($id, $msg)
+function Note { param($id, $msg, $sev)
     Log ("event{0}: {1}" -f $id, $msg)
-    $severity = if ($id -ge 1007) { 'Critical' } else { 'Warning' }
+    $severity = if ($sev) { $sev } elseif ($id -ge 1007) { 'Critical' } else { 'Warning' }
     Send-DevOptAlert -Severity $severity -Title "Host Guard Event $id" -Message $msg -Tags 'host-guard', 'memory', 'vram' -EventId $id
 }
 
@@ -120,7 +120,10 @@ if ($availMB -lt $CriticalThresholdMB) {
     if ($devinOpen) {
         $cull = Cull-LlamaServers
         $afterDevin = [int](Get-Counter '\Memory\Available MBytes' -ErrorAction SilentlyContinue).CounterSamples[0].CookedValue
-        Note 1007 ("CRITICAL Available {0} MB with Devin OPEN - {1}; available now {2} MB. No bounce while Devin open." -f $availMB, $cull, $afterDevin)
+        # Only page pri-5 if still critical AFTER remediation - a successful
+        # cull self-heals in seconds and does not warrant the insistent alarm.
+        $sev = if ($afterDevin -lt $CriticalThresholdMB) { 'Critical' } else { 'Warning' }
+        Note 1007 ("CRITICAL Available {0} MB with Devin OPEN - {1}; available now {2} MB. No bounce while Devin open." -f $availMB, $cull, $afterDevin) $sev
         exit 0
     }
     if ((LastAction 'lastBounce') -ge $now.AddMinutes(-$BounceRateLimitMinutes)) {
@@ -148,7 +151,8 @@ if ($availMB -lt $CriticalThresholdMB) {
     Start-Sleep -Seconds 15
     $probe = curl.exe -s -o NUL -w '%{http_code}' -m 10 'http://localhost:9390/metrics' 2>$null
     $after = [int](Get-Counter '\Memory\Available MBytes' -ErrorAction SilentlyContinue).CounterSamples[0].CookedValue
-    Note 1007 ("CRITICAL {0} MB -> auto-bounce done. Available now {1} MB, 9390={2}" -f $availMB, $after, $probe)
+    $sev = if ($after -lt $CriticalThresholdMB) { 'Critical' } else { 'Warning' }
+    Note 1007 ("CRITICAL {0} MB -> auto-bounce done. Available now {1} MB, 9390={2}" -f $availMB, $after, $probe) $sev
     exit 0
 }
 
