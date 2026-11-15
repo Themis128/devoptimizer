@@ -106,12 +106,28 @@ if ($engineUp -and $vramPct -gt $VramPercentThreshold -and $availMB -lt $SoftThr
 }
 
 # --- T4: critical -> everything + auto-bounce when Devin closed ---------------------
+function Cull-LlamaServers {
+    # stray DMR llama-servers respawn on demand; killing them is the proven
+    # fast recovery (2026-11-15: 203MB -> 5.7GB free). Safe even mid-request.
+    $llamas = @(Get-Process com.docker.llama-server -ErrorAction SilentlyContinue)
+    if ($llamas.Count -eq 0) { return "0 llamas" }
+    $mb = [int](($llamas | Measure-Object WorkingSet64 -Sum).Sum / 1MB)
+    $llamas | Stop-Process -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 3
+    return ("culled {0} llama-server(s) ~{1} MB" -f $llamas.Count, $mb)
+}
 if ($availMB -lt $CriticalThresholdMB) {
     if ($devinOpen) {
-        Note 1007 ("CRITICAL Available {0} MB with Devin OPEN - alerting only, no bounce. Close Devin or free memory manually." -f $availMB)
+        $cull = Cull-LlamaServers
+        $afterDevin = [int](Get-Counter '\Memory\Available MBytes' -ErrorAction SilentlyContinue).CounterSamples[0].CookedValue
+        Note 1007 ("CRITICAL Available {0} MB with Devin OPEN - {1}; available now {2} MB. No bounce while Devin open." -f $availMB, $cull, $afterDevin)
         exit 0
     }
-    if ((LastAction 'lastBounce') -ge $now.AddMinutes(-$BounceRateLimitMinutes)) { Log 'T4: bounce rate-limited (recent bounce)'; exit 0 }
+    if ((LastAction 'lastBounce') -ge $now.AddMinutes(-$BounceRateLimitMinutes)) {
+        $cull = Cull-LlamaServers
+        Log ("T4: bounce rate-limited (recent bounce); {0}" -f $cull)
+        exit 0
+    }
     SaveState @{ lastBounce = $now }
     Log 'T4: critical memory with Devin closed - AUTO-BOUNCE starting'
     & 'C:\Program Files\Docker\Docker\DockerCli.exe' -Shutdown 2>$null
