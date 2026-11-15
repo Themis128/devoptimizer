@@ -61,5 +61,21 @@ foreach ($m in $evict) {
 Start-Sleep -Seconds 5
 $afterMb = [int]((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1KB)
 Log "free ${freeMb}MB -> ${afterMb}MB"
+
+# Stage 2: docker model unload marks models inactive but the Windows-side
+# com.docker.llama-server processes can linger holding GBs (observed 2026-11-15:
+# 7-model eviction left free at 298MB until the procs were killed by hand ->
+# +4GB instantly). Kill stragglers; DMR respawns them on demand.
+if ($afterMb -lt $WarnMb) {
+    $strays = @(Get-Process com.docker.llama-server -ErrorAction SilentlyContinue)
+    if ($strays.Count -gt 0) {
+        $strayMb = [int](($strays | Measure-Object WorkingSet64 -Sum).Sum/1MB)
+        Log "still ${afterMb}MB - killing $($strays.Count) stray llama-server proc(s), ~${strayMb}MB" 'WARN'
+        if (-not $DryRun) { $strays | Stop-Process -Force -ErrorAction SilentlyContinue }
+        Start-Sleep -Seconds 3
+        $afterMb = [int]((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1KB)
+        Log "post-kill free ${afterMb}MB"
+    }
+}
 if ($crit) { Notify 'dmr-ram-guard CRIT' "host RAM ${freeMb}MB -> evicted $($evict.Count) model(s) incl. pinned set; now ${afterMb}MB free" }
 exit 0
