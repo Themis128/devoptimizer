@@ -84,6 +84,18 @@ any recurrence (names containing `:` are invisible to Win32).
   + DD relaunch) even while the Devin app stays open — the user never has to
   close Devin for the heal to land. When deferral happens it sends one ntfy
   notice/day (`logs\.vsock-heal-notified`) so the queued heal is visible.
+  **Idle-recycle lane** (2026-11-15, PR #46): a third heal class for the
+  fsbridge poison (hashed `\\wsl.localhost` mounts empty -> Exited(127)
+  waves) which leaves the distro proxy ALIVE and produces no wedge-log
+  evidence — the wedge heal never saw it. The script probes
+  `cu130-slim/.devin/skills/wsl-fsbridge-ops/scripts/fsbridge_doctor.py
+  status` each pass (skipped when a wedge heal is pending) and, when the
+  bridge is poisoned + user idle ≥30min + no devin-server, runs
+  `Invoke-IdleRecycle` (`wsl --shutdown` + DD relaunch, once/day stamp
+  `logs\.idle-recycle-fired`). Post-heal, cu130-slim's
+  `scripts/fsbridge-reconcile.sh` (called from social-stack-watchdog)
+  auto-retires the volume-transplant overrides. Gate B alerts once/day if
+  the bridge stays poisoned after the day's recycle.
   Register via `scripts/register-vhdx-devin-exit-task.ps1 [-Unregister]`.
 
 ## Console-popup prevention (2026-11-13)
