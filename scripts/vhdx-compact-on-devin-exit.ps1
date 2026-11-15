@@ -56,6 +56,21 @@ function Send-HealNotice([string]$msg) {
     } catch { }
 }
 
+function Invoke-IdleRecycle([string]$why) {
+    # General idle recycle - heals the fsbridge poison class (hashed
+    # \\wsl.localhost mounts empty -> Exited(127) waves) which has NO vsock
+    # wedge evidence, so the wedge heal never fires for it. Same bounce,
+    # own once/day stamp so it can't stack with the wedge heal.
+    Log "idle recycle ($why) - wsl --shutdown to heal fsbridge/poisoned mounts"
+    & wsl.exe --shutdown 2>&1 | Out-Null
+    & wsl.exe -d Ubuntu-24.04 -e true 2>&1 | Out-Null   # warm the distro back up
+    $ddExe = "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe"
+    if (Test-Path $ddExe) { Start-Process $ddExe }
+    Set-Content -Path $idleFlag -Value $today
+    Send-HealNotice "WSL recycled while idle ($why) - heals poisoned bind mounts / fsbridge. Docker Desktop relaunched."
+    Log 'wsl recycled (idle) + Docker Desktop relaunched'
+}
+
 # --- State ---
 $today = Get-Date -Format 'yyyy-MM-dd'
 $compactedToday = (Test-Path $stamp) -and ((Get-Content $stamp -Raw).Trim() -eq $today)
@@ -70,6 +85,26 @@ if (Test-Path $repairLog) {
 }
 $healedToday  = (Test-Path $wedgeFlag) -and ((Get-Content $wedgeFlag -Raw).Trim() -eq $today)
 $healPending  = $wedged -and -not $healedToday
+$idleFlag     = 'D:\DevOptimizer\logs\.idle-recycle-fired'
+$idleHealedToday = (Test-Path $idleFlag) -and ((Get-Content $idleFlag -Raw).Trim() -eq $today)
+
+# fsbridge poison probe: hashed \\wsl.localhost bind mounts materialize empty
+# -> containers Exited(127) waves with NO vsock wedge evidence, so the wedge
+# heal above never sees it. fsbridge_doctor.py status prints EMPTY-mount and
+# casualty counts; probe only when no wedge is already pending (that heal
+# covers the bridge too). wsl calls flake on a wedged plane - retry once.
+$fsbridgeBad = $false
+if (-not $wedged) {
+    foreach ($i in 1..2) {
+        $doc = & wsl.exe -d Ubuntu-24.04 -e python3 `
+            /home/tbaltzakis/cu130-slim/.devin/skills/wsl-fsbridge-ops/scripts/fsbridge_doctor.py status 2>$null
+        if ($doc) {
+            if ($doc | Select-String 'casualties: [1-9]|[1-9][0-9]* EMPTY/unreadable') { $fsbridgeBad = $true }
+            break
+        }
+        Start-Sleep -Seconds 5
+    }
+}
 
 # Heal-resistant wedge: the shutdown heal already ran today but NEWER wedge
 # evidence exists in the repair log - escalate to the elevated network soft
@@ -104,22 +139,26 @@ function Invoke-WedgeHeal([string]$why) {
 # --- Gate A: Devin desktop app running ---
 if (Get-Process -Name 'Devin' -ErrorAction SilentlyContinue) {
     # The app being open is not itself a blocker - a live agent session is.
-    # A pending wedge heal may proceed once the user has been away >= 30 min.
-    if (-not ($healPending -or $resistant)) { exit 0 }
+    # A pending heal (wedge OR fsbridge poison) may proceed once the user has
+    # been away >= 30 min; each heal class has its own once/day stamp.
+    $idleRecycleDue = $fsbridgeBad -and -not $idleHealedToday
+    if (-not ($healPending -or $resistant -or $idleRecycleDue)) { exit 0 }
     $idle = try { [DevOptIdle]::MinutesIdle() } catch { -1 }
     if ($idle -ge 0 -and $idle -lt 30) {
         # Tell the user once per day that a heal is queued behind their session.
         $notified = (Test-Path $notifiedFlag) -and ((Get-Content $notifiedFlag -Raw).Trim() -eq $today)
         if (-not $notified) {
             Set-Content -Path $notifiedFlag -Value $today
-            Send-HealNotice "vsock wedge detected; heal queued - fires when you step away >=30min or close Devin (latest: nightly WSL bounce)."
-            Log "wedge heal deferred - Devin open, user active (idle ${idle}m); notice sent"
+            $what = if ($healPending -or $resistant) { 'vsock wedge detected' } else { 'poisoned WSL bind mounts (fsbridge) detected' }
+            Send-HealNotice "$what; heal queued - fires when you step away >=30min or close Devin (latest: nightly WSL bounce)."
+            Log "heal deferred - Devin open, user active (idle ${idle}m); notice sent"
         }
         exit 0
     }
-    if (Test-DevinServerAlive) { Log 'wedge heal deferred - devin-server still alive (active agent session)'; exit 0 }
+    if (Test-DevinServerAlive) { Log 'heal deferred - devin-server still alive (active agent session)'; exit 0 }
     if ($healPending) { Invoke-WedgeHeal 'idle-escalation' }
     elseif ($resistant) { Invoke-NetSoftReset 'idle-escalation' }
+    elseif ($idleRecycleDue) { Invoke-IdleRecycle 'idle-escalation' }
     exit 0
 }
 
@@ -132,6 +171,14 @@ if (Test-DevinServerAlive) { exit 0 }
 if ($compactedToday) {
     if ($healPending) { Invoke-WedgeHeal 'devin-exit' }
     elseif ($resistant) { Invoke-NetSoftReset 'devin-exit' }
+    elseif ($fsbridgeBad -and -not $idleHealedToday) {
+        # Today's WSL recycle already ran (compaction) yet the bridge is still
+        # poisoned - a second same-day bounce is unlikely to heal it; surface
+        # once instead of looping shut downs.
+        Log "fsbridge still poisoned after today's recycle - manual investigation needed"
+        Send-HealNotice "fsbridge still poisoned after today's WSL recycle - bind mounts may need manual repair."
+        Set-Content -Path $idleFlag -Value $today
+    }
     exit 0
 }
 
