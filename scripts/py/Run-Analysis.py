@@ -29,6 +29,9 @@ def main() -> None:
               file=sys.stderr)
         sys.exit(1)
     shell = "pwsh" if shutil.which("pwsh") else "powershell"
+    # Forwarded args: GNU-style --name maps to PowerShell -name so the
+    # target's parameters bind (e.g. --root -> -Root).
+    rest = [a[1:] if a.startswith("--") else a for a in rest]
     cmd = [shell, "-NoProfile", "-ExecutionPolicy", "Bypass",
            "-File", target, *rest]
     cwd = str(Path(__file__).resolve().parent)
