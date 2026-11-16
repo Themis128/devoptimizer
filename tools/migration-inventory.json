@@ -764,7 +764,9 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 7864,
-      "tranche": 6
+      "tranche": null,
+      "excluded": true,
+      "reason": "function library, no entrypoint (module-style)"
     },
     {
       "name": "config-demo",
@@ -802,7 +804,9 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 8672,
-      "tranche": 6
+      "tranche": null,
+      "excluded": true,
+      "reason": "requires PS module dot-source (admin-privilege-manager.ps1)"
     },
     {
       "name": "check-nextcloud-sync",
@@ -811,7 +815,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 8928,
-      "tranche": 7
+      "tranche": 6
     },
     {
       "name": "manage-devin-sessions",
@@ -820,7 +824,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 8961,
-      "tranche": 7
+      "tranche": 6
     },
     {
       "name": "fine-tune-nextcloud",
@@ -996,7 +1000,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 24399,
-      "tranche": 8
+      "tranche": 7
     },
     {
       "name": "run-dism-admin",
@@ -1005,7 +1009,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 152,
-      "tranche": 8
+      "tranche": 7
     },
     {
       "name": "run-compaction-elevated",
@@ -1104,7 +1108,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 552,
-      "tranche": 9
+      "tranche": 8
     },
     {
       "name": "check-syntax",
@@ -1113,7 +1117,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 552,
-      "tranche": 9
+      "tranche": 8
     },
     {
       "name": "run-analysis",
@@ -1267,7 +1271,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 568,
-      "tranche": 10
+      "tranche": 9
     },
     {
       "name": "apply-msi-xtu-config",
@@ -1276,7 +1280,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 569,
-      "tranche": 10
+      "tranche": 9
     },
     {
       "name": "monitor-dashboard-pro",
@@ -1386,7 +1390,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 579,
-      "tranche": 11
+      "tranche": 10
     },
     {
       "name": "bootstrap-devenvironment",
@@ -1395,7 +1399,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 579,
-      "tranche": 11
+      "tranche": 10
     },
     {
       "name": "verify-settings",
@@ -1505,7 +1509,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 587,
-      "tranche": 12
+      "tranche": 11
     },
     {
       "name": "switch-profile",
@@ -1514,7 +1518,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 587,
-      "tranche": 12
+      "tranche": 11
     },
     {
       "name": "create-desktop-shortcut-ollama",
@@ -1624,7 +1628,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 592,
-      "tranche": 13
+      "tranche": 12
     },
     {
       "name": "configure-xtu-advanced",
@@ -1633,7 +1637,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 592,
-      "tranche": 13
+      "tranche": 12
     },
     {
       "name": "apply-all-overclock-cli",
@@ -1754,7 +1758,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 603,
-      "tranche": 14
+      "tranche": 13
     },
     {
       "name": "startup-management-1",
@@ -1763,7 +1767,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 603,
-      "tranche": 14
+      "tranche": 13
     },
     {
       "name": "configure-xtu-hardware-based",
@@ -1873,7 +1877,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 615,
-      "tranche": 15
+      "tranche": 14
     },
     {
       "name": "auto-configure-xtu",
@@ -1882,7 +1886,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 615,
-      "tranche": 15
+      "tranche": 14
     },
     {
       "name": "normalize-bat-files-fixed-1",
@@ -1981,7 +1985,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 644,
-      "tranche": 16
+      "tranche": 15
     },
     {
       "name": "03-install-dev-tools-noadmin",
@@ -1990,7 +1994,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 652,
-      "tranche": 16
+      "tranche": 15
     },
     {
       "name": "cdp-launch",
@@ -2089,7 +2093,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 3097,
-      "tranche": 17
+      "tranche": 16
     },
     {
       "name": "quick-global-setup-noadmin",
@@ -2098,7 +2102,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 3238,
-      "tranche": 17
+      "tranche": 16
     },
     {
       "name": "organize-files",
@@ -2197,7 +2201,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 5872,
-      "tranche": 18
+      "tranche": 17
     },
     {
       "name": "setup-global-access-noadmin",
@@ -2206,7 +2210,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 5953,
-      "tranche": 18
+      "tranche": 17
     },
     {
       "name": "aws-iac-manager-ascii-admin",
@@ -2305,7 +2309,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 9985,
-      "tranche": 19
+      "tranche": 18
     },
     {
       "name": "make-all-bat-operational-admin",
@@ -2314,7 +2318,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 10352,
-      "tranche": 19
+      "tranche": 18
     },
     {
       "name": "enhanced-dev-tools-installer-noadmin",
@@ -2413,7 +2417,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 26499,
-      "tranche": 20
+      "tranche": 19
     },
     {
       "name": "check-devin-wsl-processes",
@@ -2422,7 +2426,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 60,
-      "tranche": 20
+      "tranche": 19
     },
     {
       "name": "compact-wsl",
@@ -2521,7 +2525,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 2394,
-      "tranche": 21
+      "tranche": 20
     },
     {
       "name": "clean-extensions",
@@ -2530,7 +2534,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 2422,
-      "tranche": 21
+      "tranche": 20
     },
     {
       "name": "winold-delete-worker2",
@@ -2629,7 +2633,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 5754,
-      "tranche": 22
+      "tranche": 21
     },
     {
       "name": "check-wsl-system-status",
@@ -2649,7 +2653,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 6872,
-      "tranche": 22
+      "tranche": 21
     },
     {
       "name": "win11-safe-cleanup",
@@ -2748,7 +2752,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 11433,
-      "tranche": 23
+      "tranche": 22
     },
     {
       "name": "extended-cleanup",
@@ -2757,7 +2761,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 12728,
-      "tranche": 23
+      "tranche": 22
     },
     {
       "name": "fixed-system-deep-clean",
@@ -2867,7 +2871,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 585,
-      "tranche": 24
+      "tranche": 23
     },
     {
       "name": "quick-cleanup",
@@ -2876,7 +2880,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 585,
-      "tranche": 24
+      "tranche": 23
     },
     {
       "name": "start-vscodeinsidersoptimized",
@@ -2975,7 +2979,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 613,
-      "tranche": 25
+      "tranche": 24
     },
     {
       "name": "vscode-automonitor-optimized",
@@ -2984,7 +2988,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 615,
-      "tranche": 25
+      "tranche": 24
     },
     {
       "name": "devoptimizer-backend",
@@ -3083,7 +3087,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 7874,
-      "tranche": 26
+      "tranche": 25
     },
     {
       "name": "ollama-intelligent-optimizer-noadmin",
@@ -3092,7 +3096,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 8072,
-      "tranche": 26
+      "tranche": 25
     },
     {
       "name": "self-healing-system-template-admin",
@@ -3191,7 +3195,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 1640,
-      "tranche": 27
+      "tranche": 26
     },
     {
       "name": "wsl-gpu-rebind",
@@ -3200,7 +3204,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 1659,
-      "tranche": 27
+      "tranche": 26
     },
     {
       "name": "register-devin-maintenance",
@@ -3299,7 +3303,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 20995,
-      "tranche": 28
+      "tranche": 27
     },
     {
       "name": "maintenance",
@@ -3308,7 +3312,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 581,
-      "tranche": 28
+      "tranche": 27
     },
     {
       "name": "nvidia-pair",
@@ -3407,7 +3411,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 5669,
-      "tranche": 29
+      "tranche": 28
     },
     {
       "name": "cursor-ai-git-cache-clear-noadmin",
@@ -3416,7 +3420,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 5709,
-      "tranche": 29
+      "tranche": 28
     },
     {
       "name": "ollama-multi-model-system-status-admin",
@@ -3526,7 +3530,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": true,
       "size": 1051,
-      "tranche": 30
+      "tranche": 29
     },
     {
       "name": "register-phone-watchdog-task",
@@ -3535,7 +3539,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": true,
       "size": 1622,
-      "tranche": 30
+      "tranche": 29
     },
     {
       "name": "register-wsl-repair-task",
@@ -3634,7 +3638,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": true,
       "size": 4454,
-      "tranche": 31
+      "tranche": 30
     },
     {
       "name": "check-devinhealth",
@@ -3643,7 +3647,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": true,
       "size": 4895,
-      "tranche": 31
+      "tranche": 30
     },
     {
       "name": "update-all-ollama-scripts",
@@ -3742,7 +3746,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": true,
       "size": 13121,
-      "tranche": 32
+      "tranche": 31
     },
     {
       "name": "invoke-devindailymaintenance",
@@ -3751,7 +3755,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": true,
       "size": 16180,
-      "tranche": 32
+      "tranche": 31
     },
     {
       "name": "enhanced-system-health",
@@ -3850,7 +3854,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": true,
       "size": 6806,
-      "tranche": 33
+      "tranche": 32
     },
     {
       "name": "health-monitor-admin",
@@ -3859,7 +3863,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": true,
       "size": 7182,
-      "tranche": 33
+      "tranche": 32
     },
     {
       "name": "vscode-optimization",
@@ -3958,7 +3962,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 652,
-      "tranche": 34
+      "tranche": 33
     },
     {
       "name": "02-ultra-performance-admin",
@@ -3967,7 +3971,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 942,
-      "tranche": 34
+      "tranche": 33
     },
     {
       "name": "create-desktop-launcher",
@@ -4066,7 +4070,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 14697,
-      "tranche": 35
+      "tranche": 34
     },
     {
       "name": "centeral-launcher-1",
@@ -4075,7 +4079,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 15019,
-      "tranche": 35
+      "tranche": 34
     },
     {
       "name": "centeral-launcher-noadmin",
@@ -4185,7 +4189,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 623,
-      "tranche": 36
+      "tranche": 35
     },
     {
       "name": "pre-bounce-check",
@@ -4194,7 +4198,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 8335,
-      "tranche": 36
+      "tranche": 35
     },
     {
       "name": "host-guard",
@@ -4293,7 +4297,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": true,
       "size": 5158,
-      "tranche": 37
+      "tranche": 36
     },
     {
       "name": "advanced-diagnostics",
@@ -4324,7 +4328,7 @@
       "entryPoint": "cmd",
       "requiresAdmin": false,
       "size": 20583,
-      "tranche": 37
+      "tranche": 36
     },
     {
       "name": "enhanced-system-diagnostics-noadmin",
@@ -4423,7 +4427,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 19136,
-      "tranche": 38
+      "tranche": 37
     },
     {
       "name": "otter-notestoggle",
@@ -4443,7 +4447,7 @@
       "entryPoint": "powershell",
       "requiresAdmin": false,
       "size": 14058,
-      "tranche": 38
+      "tranche": 37
     },
     {
       "name": "git-pr-check",
