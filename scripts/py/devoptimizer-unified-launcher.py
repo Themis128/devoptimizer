@@ -123,9 +123,12 @@ def main():
             if not admin and sys.platform == "win32":
                 # Relaunch elevated, matching "(Restart Required)".
                 try:
+                    relaunch_args = " ".join(
+                        [f'"{Path(__file__)}"'] +
+                        [f'"{a}"' for a in sys.argv[1:]])
                     rc = ctypes.windll.shell32.ShellExecuteW(
                         None, "runas", sys.executable,
-                        f'"{Path(__file__)}"', None, 1)
+                        relaunch_args, None, 1)
                     if rc > 32:
                         print("[INFO] Elevated relaunch requested; "
                               "exiting.")
