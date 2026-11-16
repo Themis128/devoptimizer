@@ -26,7 +26,7 @@ def build_ps(force: bool) -> str:
     return (
         "$ErrorActionPreference = 'Stop'; "
         "$service = New-Object -ComObject 'Schedule.Service'; $service.Connect(); "
-        "$rootFolder = $service.GetFolder('\\\\'); "
+        "$rootFolder = $service.GetFolder('\\'); "
         "try { $folder = $service.GetFolder('\\DevOptimizer') } "
         "catch { $rootFolder.CreateFolder('DevOptimizer'); "
         "        $folder = $service.GetFolder('\\DevOptimizer') }; "
@@ -38,7 +38,11 @@ def build_ps(force: bool) -> str:
         "$def.Settings.StartWhenAvailable = $true; "
         "$def.Settings.RunOnlyIfNetworkAvailable = $false; "
         "$def.Settings.ExecutionTimeLimit = 'PT2H'; "
+        "$def.Settings.DisallowStartIfOnBatteries = $false; "
+        "$def.Settings.StopIfGoingOnBatteries = $false; "
         "$def.Settings.Hidden = $true; "
+        "$def.Settings.RestartCount = 3; "
+        "$def.Settings.RestartInterval = 'PT5M'; "
         "$def.Principal.RunLevel = 1; "
         "$def.Principal.LogonType = 3; "
         "$trigger = $def.Triggers.Create(3); "  # weekly

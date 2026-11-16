@@ -23,7 +23,7 @@ def build_ps(script: str, task_name: str, task_path: str, force: bool) -> str:
     return (
         "$ErrorActionPreference = 'Stop'; "
         "$service = New-Object -ComObject 'Schedule.Service'; $service.Connect(); "
-        "$rootFolder = $service.GetFolder('\\\\'); "
+        "$rootFolder = $service.GetFolder('\\'); "
         "try { $folder = $service.GetFolder('\\DevOptimizer') } "
         "catch { $rootFolder.CreateFolder('DevOptimizer'); "
         "        $folder = $service.GetFolder('\\DevOptimizer') }; "
@@ -36,6 +36,8 @@ def build_ps(script: str, task_name: str, task_path: str, force: bool) -> str:
         "$def.Settings.AllowDemandStart = $true; "
         "$def.Settings.StartWhenAvailable = $true; "
         "$def.Settings.ExecutionTimeLimit = 'PT24H'; "
+        "$def.Settings.DisallowStartIfOnBatteries = $false; "
+        "$def.Settings.StopIfGoingOnBatteries = $false; "
         "$def.Settings.Hidden = $true; "
         "$def.Principal.RunLevel = 1; "
         "$def.Principal.LogonType = 3; "
