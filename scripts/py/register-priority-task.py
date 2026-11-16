@@ -13,8 +13,7 @@ from pathlib import Path
 # TAGS: scheduled-task, devin, priority
 
 TASK = "Devin-Lower-Priority"
-TR = ('conhost.exe --headless powershell.exe -NoProfile '
-      '-ExecutionPolicy Bypass -File '
+TR = ('powershell.exe -NoProfile -ExecutionPolicy Bypass -File '
       '"D:\\DevOptimizer\\scripts\\lower-devin-priority.ps1" '
       '-Loop -Interval 30')
 

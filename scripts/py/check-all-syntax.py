@@ -76,16 +76,10 @@ def main() -> None:
                 "w", suffix=".lst", delete=False, encoding="utf-8") as tmp:
             tmp.write("\n".join(files))
             tmp_path = tmp.name.replace("/", "\\")
-        try:
-            return await run_command(
-                [exe, "-NoProfile", "-NonInteractive",
-                 "-Command", build_ps(tmp_path)],
-                timeout=600)
-        finally:
-            try:
-                Path(tmp.name).unlink(missing_ok=True)
-            except OSError:
-                pass
+        return await run_command(
+            [exe, "-NoProfile", "-NonInteractive",
+             "-Command", build_ps(tmp_path)],
+            timeout=600)
 
     result = asyncio.run(run())
     if result.returncode != 0:

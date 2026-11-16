@@ -372,6 +372,25 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 191 | `tools/Variants/QUICK-GLOBAL-SETUP-Admin.bat` | `scripts/py/quick-global-setup.py` | Same port (`--admin` label only; actions identical). |
 | 192 | `tools/Variants/CREATE-DESKTOP-SHORTCUTS-NoAdmin.bat` | `scripts/py/create-desktop-shortcuts.py` | 5 WScript.Shell .lnk files via COM. |
 
+
+## Phase 5 — full migration, tranche 18 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 205 | `tools/Variants/AUTO-RECOVERY-SYSTEM-NoAdmin.bat` | `scripts/py/auto-recovery-system.py` | Self-healing pass: batch fixes, perms, exec policy, network, temp/cache, validation; logs/auto-recovery.log. |
+| 206 | `tools/Variants/AUTO-RECOVERY-SYSTEM-Admin.bat` | `scripts/py/auto-recovery-system.py` | Same port with `--admin`. |
+| 207 | `tools/Variants/ENHANCED-DEV-TOOLS-INSTALLER-Admin.bat` | `scripts/py/enhanced-dev-tools-installer.py` | choco + npm -g + config steps; --dry-run. |
+| 208 | `tools/Variants/QUALITY-GATES-NoAdmin.bat` | `scripts/py/quality-gates.py` | 20 named gates -> shell checks; logs/quality-gates.log; --json; exit 1 on failure. |
+| 209 | `tools/Variants/QUALITY-GATES-Admin.bat` | `scripts/py/quality-gates.py` | Same port with `--admin`. |
+| 210 | `tools/Variants/MAKE-ALL-BAT-OPERATIONAL-NoAdmin.bat` | `scripts/py/make-all-bat-operational.py` | -NoAdmin copies of 5 admin bats, exec policy, @echo off check. |
+| 211 | `tools/Variants/MAKE-ALL-BAT-OPERATIONAL-Admin.bat` | `scripts/py/make-all-bat-operational.py` | Same port with `--admin`. |
+| 212 | `tools/Variants/ENHANCED-DEV-TOOLS-INSTALLER-NoAdmin.bat` | `scripts/py/enhanced-dev-tools-installer.py` | Same port. |
+| 213 | `tools/Variants/ollama-intelligent-monitor-NoAdmin.bat` | `scripts/py/ollama-intelligent-monitor.py` | 9-item monitoring menu -> ollama-batch-helper; --choice. |
+| 214 | `tools/Variants/ollama-intelligent-monitor-Admin.bat` | `scripts/py/ollama-intelligent-monitor.py` | Same port with `--admin`. |
+| 215 | `tools/Variants/ollama-script-generator-NoAdmin.bat` | `scripts/py/ollama-script-generator.py` | 8-item generator menu -> helper; --choice/--sub/--desc. |
+| 216 | `tools/Variants/ollama-script-generator-Admin.bat` | `scripts/py/ollama-script-generator.py` | Same port with `--admin`. |
+
+
 ## Phase 5 — full migration, tranche 17 (2026-11-16)
 
 | # | Original | Python port | Notes |
@@ -388,3 +407,4 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 202 | `tools/Variants/AWS-IAC-MANAGER-ASCII-NoAdmin.bat` | `scripts/py/aws-iac-manager-ascii.py` | Same port. |
 | 203 | `tools/Variants/AWS-POWERSHELL-MODULES-DOWNLOADER-NoAdmin.bat` | `scripts/py/aws-powershell-modules-downloader.py` | Same port. |
 | 204 | `tools/normalize-bat-files.bat` | `scripts/py/normalize-bat-files.py` | Standard-header rewrite + non-ASCII strip; backup dir; -dry-run. |
+

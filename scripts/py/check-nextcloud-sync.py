@@ -27,11 +27,12 @@ ROOT = Path(r"D:\DevOptimizer")
 
 def cfg_value(cfg: list[str], key: str) -> str | None:
     for line in cfg:
-        if f"0\\{key}=" in line:
-            return line.split(f"0\\{key}=", 1)[1].strip()
+        m = re.match(rf"^.*?0\\{key}=", line) or re.match(rf"^{key}=", line)
+        if m:
+            return line[m.end():].strip()
     for line in cfg:
-        if key + "=" in line:
-            return line.split(key + "=", 1)[1].strip()
+        if line.startswith(key + "="):
+            return line.split("=", 1)[1].strip()
     return None
 
 
@@ -56,7 +57,7 @@ def main() -> None:
     out["client"] = {"exe": str(exe), "installed": exe.exists(),
                      "running": running}
     print(f"[1] Client: {'found' if exe.exists() else 'NOT FOUND'} "
-          f"({'running' if running else 'not running'})", file=sys.stderr)
+          f"({'running' if running else 'not running'})")
 
     # 2. cfg
     cfg_path = appdata / r"Nextcloud\nextcloud.cfg"
@@ -68,7 +69,7 @@ def main() -> None:
         vfs = cfg_value(lines, "virtualFilesMode")
     sync_root = (sync_root or str(Path(os.environ.get("USERPROFILE", "")) / "Nextcloud")).rstrip("/")
     out["config"] = {"server": server, "syncRoot": sync_root, "vfs": vfs}
-    print(f"    Server: {server}  Folder: {sync_root} (vfs: {vfs})", file=sys.stderr)
+    print(f"    Server: {server}  Folder: {sync_root} (vfs: {vfs})")
 
     # 3. journal
     j = next((p for p in Path(sync_root).glob(".sync_*.db") if p.is_file()), None)
@@ -78,9 +79,9 @@ def main() -> None:
                             "wal": round(wal.stat().st_size / 1_048_576, 2)
                             if wal.exists() else 0}
         print(f"[2] Journal: {out['journalMB']['db']} MB db + "
-              f"{out['journalMB']['wal']} MB wal", file=sys.stderr)
+              f"{out['journalMB']['wal']} MB wal")
     else:
-        print("[2] Journal: not found", file=sys.stderr)
+        print("[2] Journal: not found")
 
     # 4. recent logs
     log_dir = appdata / r"Nextcloud\logs"
@@ -95,12 +96,12 @@ def main() -> None:
                 else:
                     text = l.read_text(errors="replace")[:2_000_000]
                 scanned += 1
-                errs += len(re.findall(r"\bERROR\b|\[error\]", text))
-                warns += len(re.findall(r"\bWARNING\b|\[warning\]", text))
+                errs += len(re.findall(r"\bERROR\b", text))
+                warns += len(re.findall(r"\bWARNING\b", text))
             except OSError:
                 continue
     out["logs"] = {"scanned": scanned, "errors": errs, "warnings": warns}
-    print(f"[3] Logs: {scanned} newest, {errs} errors, {warns} warnings", file=sys.stderr)
+    print(f"[3] Logs: {scanned} newest, {errs} errors, {errs and '' or ''}{warns} warnings")
 
     # 5. bounded conflict audit (time-capped 15s)
     conflicts = []
@@ -109,10 +110,10 @@ def main() -> None:
         if time.time() > deadline:
             break
         for f in files:
-            if "(conflicted copy" in f or "_conflict-" in f or "_conflict-" in f.lower():
+            if "(conflicted copy" in f:
                 conflicts.append(str(Path(dirpath) / f))
     out["conflicts"] = conflicts
-    print(f"[4] Conflicts: {len(conflicts)}", file=sys.stderr)
+    print(f"[4] Conflicts: {len(conflicts)}")
 
     # 6. defender exclusion + cldflt + latest release
     defr = subprocess.run(
@@ -132,7 +133,7 @@ def main() -> None:
     except Exception:
         out["latestRelease"] = None
     print(f"[5] Defender exclusion: {out['defenderExcluded']}  "
-          f"cldflt running: {out['cldflt']}  latest: {out['latestRelease']}", file=sys.stderr)
+          f"cldflt running: {out['cldflt']}  latest: {out['latestRelease']}")
 
     # optional config backup
     if args.backup_config:
@@ -152,7 +153,7 @@ def main() -> None:
             for old in backs[:-args.keep_backups]:
                 shutil.rmtree(old, ignore_errors=True)
             out["backup"] = str(dst)
-            print(f"[B] Config backed up to {dst} (kept newest {args.keep_backups})", file=sys.stderr)
+            print(f"[B] Config backed up to {dst} (kept newest {args.keep_backups})")
 
     if args.json:
         print(json.dumps(out, indent=2))

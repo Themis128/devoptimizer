@@ -47,7 +47,7 @@ def _read() -> dict:
         return {"queue": [], "version": 1,
                 "updated": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     try:
-        return json.loads(QUEUE_FILE.read_text(encoding="utf-8-sig"))
+        return json.loads(QUEUE_FILE.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return {"queue": [], "version": 1}
 
@@ -55,23 +55,7 @@ def _read() -> dict:
 def _write(q: dict) -> None:
     QUEUE_FILE.parent.mkdir(parents=True, exist_ok=True)
     q["updated"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
-    tmp = QUEUE_FILE.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(q, indent=2), encoding="utf-8")
-    last_err = None
-    for attempt in range(20):
-        try:
-            os.replace(tmp, QUEUE_FILE)
-            break
-        except OSError as e:
-            # Windows: os.replace fails while a concurrent reader holds
-            # the queue file open. Retry briefly; never fall back to a
-            # non-atomic overwrite (a truncated write reads back as an
-            # empty queue and erases every pending command).
-            last_err = e
-            time.sleep(0.05 * (attempt + 1))
-    else:
-        tmp.unlink(missing_ok=True)
-        raise last_err
+    QUEUE_FILE.write_text(json.dumps(q, indent=2), encoding="utf-8")
 
 
 def enqueue(command: str, working_dir: str, description: str) -> dict:
@@ -157,7 +141,7 @@ def main() -> None:
     parser.add_argument("action", choices=["enqueue", "dequeue", "peek",
                                            "list", "clear", "send-next"])
     parser.add_argument("--command")
-    parser.add_argument("--working-directory", default=os.getcwd())
+    parser.add_argument("--working-directory", default="")
     parser.add_argument("--description", default="")
     parser.add_argument("--max-retries", type=int, default=3)
     args = parser.parse_args()

@@ -17,23 +17,22 @@ from pathlib import Path
 # CATEGORY: utilities
 # TAGS: ollama, ai, runner
 
-API = "http://localhost:11434"  # overridable via config ollama.serverUrl
+API = "http://localhost:11434"
 
 
-def http_json(path: str, payload: dict | None, timeout: int,
-              base: str) -> dict:
+def http_json(path: str, payload: dict | None, timeout: int) -> dict:
     data = json.dumps(payload).encode() if payload is not None else None
-    req = urllib.request.Request(base + path, data=data,
+    req = urllib.request.Request(API + path, data=data,
                                  headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read())
 
 
-def run_model(model: str, prompt: str, timeout: int, base: str) -> dict:
+def run_model(model: str, prompt: str, timeout: int) -> dict:
     try:
         resp = http_json("/api/generate",
                          {"model": model, "prompt": prompt, "stream": False},
-                         timeout, base)
+                         timeout)
         return {"model": model, "success": True, "response": resp.get("response", "")}
     except Exception as e:  # noqa: BLE001 - per-model failure is reported, not fatal
         return {"model": model, "success": False, "error": str(e)}
@@ -66,13 +65,11 @@ def main() -> None:
             deny = c.get("deny") or []
             if c.get("concurrency"):
                 args.concurrency = c["concurrency"]
-            global API
-            API = (c.get("ollama", {}) or {}).get("serverUrl")                 or c.get("serverUrl") or API
         except json.JSONDecodeError as e:
             print(f"warn: config parse failed: {e}", file=sys.stderr)
 
     try:
-        models = [m["name"] for m in http_json("/api/tags", None, 30, API)["models"]]
+        models = [m["name"] for m in http_json("/api/tags", None, 30)["models"]]
     except Exception as e:  # noqa: BLE001
         print(f"cannot list models: {e}", file=sys.stderr)
         sys.exit(1)
@@ -93,8 +90,7 @@ def main() -> None:
     results = []
     with concurrent.futures.ThreadPoolExecutor(
             max_workers=args.concurrency) as pool:
-        futs = {pool.submit(run_model, m, prompt,
-                            args.timeout_seconds, API): m
+        futs = {pool.submit(run_model, m, prompt, args.timeout_seconds): m
                 for m in models}
         for fut in concurrent.futures.as_completed(futs):
             r = fut.result()

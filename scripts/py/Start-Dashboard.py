@@ -25,21 +25,13 @@ def main() -> None:
     home = os.environ.get("DEVOPT_HOME", r"D:\DevOptimizer")
     target = TARGET_PS1.replace("D:\DevOptimizer", home)
     if not os.path.exists(target):
-        print(f"[ERROR] PowerShell script not found: {target}",
+        print(f"[ERROR] PowerShell script not found: {D:\DevOptimizer\Start-Dashboard.ps1}",
               file=sys.stderr)
         sys.exit(1)
     shell = "pwsh" if shutil.which("pwsh") else "powershell"
-    # Forwarded args: GNU-style --name maps to PowerShell -name so the
-    # target's parameters bind (e.g. --root -> -Root).
-    rest = [a[1:] if a.startswith("--") else a for a in rest]
     cmd = [shell, "-NoProfile", "-ExecutionPolicy", "Bypass",
            "-File", target, *rest]
-    # The .bat lives in DEVOPT_HOME\portable; cd /d %~dp0 anchored the
-    # spawned ps1 there (cwd-relative defaults like tools/run-ollama-all's
-    # config + logs resolve under it).
-    portable = Path(home) / "portable"
-    cwd = str(portable if portable.is_dir()
-              else Path(__file__).resolve().parent)
+    cwd = str(Path(__file__).resolve().parent)
     if args.dry_run:
         print(f"[dry-run] (cd {cwd}) " + " ".join(cmd))
         return
