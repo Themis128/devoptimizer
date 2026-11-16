@@ -337,3 +337,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 166 | `portable/next-steps-complete.bat` | `scripts/py/next-steps-complete.py` | Shim -> config\overclocking\next-steps-complete.ps1. |
 | 167 | `portable/ollama-analytics-dashboard.bat` | `scripts/py/ollama-analytics-dashboard-shim.py` | Shim -> tools\ollama-analytics-dashboard.ps1 (module excluded). |
 | 168 | `portable/PowerShell-Progress-Fixer.bat` | `scripts/py/PowerShell-Progress-Fixer.py` | Shim -> Testing\PowerShell-Progress-Fixer.ps1. |
+
+## Phase 5 — full migration, tranche 15 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 169 | `portable/PRODUCTION-REALTIME-FIXER.bat` | `scripts/py/PRODUCTION-REALTIME-FIXER.py` | Shim -> Testing\PRODUCTION-REALTIME-FIXER.ps1. |
+| 170 | `portable/enhanced-event-log-checker.bat` | `scripts/py/enhanced-event-log-checker-shim.py` | Shim -> scripts\enhanced-event-log-checker.ps1 (t7 port exists). |
+| 171 | `portable/simple-dual-version-creator.bat` | `scripts/py/simple-dual-version-creator-shim.py` | Shim -> tools\simple-dual-version-creator.ps1 (t6 port exists). |
+| 172 | `portable/automate-profile-creation.bat` | `scripts/py/automate-profile-creation.py` | Shim -> config\overclocking\automate-profile-creation.ps1. |
+| 173 | `portable/save-msi-config-to-program-files.bat` | `scripts/py/save-msi-config-to-program-files.py` | Shim -> config\overclocking\save-msi-config-to-program-files.ps1. |
+| 174 | `scripts/startup/dmr-tunnel.bat` | `scripts/py/dmr-tunnel.py` | ssh -R 12436 keep-alive loop + single-instance guard; --once for a single connect. |
+| 175 | `tools/Variants/03-Install-Dev-Tools-NoAdmin.bat` | `scripts/py/install-dev-tools-noadmin.py` | Runs dev-optimizer-fixed.ps1 -Mode Basic -NoPause; --dry-run. |
+| 176 | `scripts/startup/cdp-launch.bat` | `scripts/py/cdp-launch.py` | Launches headless Chrome :9330 + cdp_relay.py :9229 when not listening. |
+| 177 | `scripts/register-admin-task-elevated.bat` | `scripts/py/register-admin-task-elevated.py` | SYSTEM weekly SUN 03:00 registration; action wrapped in conhost --headless (repo rule). |
+| 178 | `tools/Variants/03-Install-Dev-Tools-Admin.bat` | `scripts/py/install-dev-tools-admin.py` | Same as NoAdmin variant (admin :checkAdmin tail is dead code); delegates via importlib. |
+| 179 | `portable/create-desktop-shortcut-admin.bat` | `scripts/py/create-desktop-shortcut-admin-shim.py` | Shim -> create-desktop-shortcut-admin.ps1. |
+| 180 | `portable/apply-overclock-admin.bat` | `scripts/py/apply-overclock-admin.py` | Shim -> config\overclocking\apply-overclock-admin.ps1. |
