@@ -662,3 +662,49 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 482 | Clean-DDrive.ps1 | scripts/py/clean-ddrive.py |
 | 483 | FIXED-SYSTEM-DEEP-CLEAN.ps1 | scripts/py/fixed-system-deep-clean.py |
 | 484 | Cursor-AI-Module.ps1 | scripts/py/cursor-ai-module-1.py |
+| 485 | scripts/devin/Check-DevinHealth.ps1 | scripts/py/check-devinhealth.py |
+| 486 | scripts/network-soft-reset.ps1 | scripts/py/network-soft-reset.py |
+| 487 | scripts/repair-phone-notifications.ps1 | scripts/py/repair-phone-notifications.py |
+| 488 | tools/Variants/00-SETUP-GLOBAL-ACCESS-Admin.bat | scripts/py/00-setup-global-access-admin.py |
+| 489 | tools/Variants/00-SETUP-GLOBAL-ACCESS-IMPROVED-Admin.bat | scripts/py/00-setup-global-access-improved-admin.py |
+| 490 | tools/Variants/00-SETUP-GLOBAL-ACCESS-IMPROVED-NoAdmin.bat | scripts/py/00-setup-global-access-improved-noadmin.py |
+| 491 | tools/Variants/00-SETUP-GLOBAL-ACCESS-NoAdmin.bat | scripts/py/00-setup-global-access-noadmin.py |
+| 492 | tools/Variants/03-Install-Dev-Tools-Admin.bat | scripts/py/03-install-dev-tools-admin.py |
+| 493 | tools/Variants/03-Install-Dev-Tools-NoAdmin.bat | scripts/py/03-install-dev-tools-noadmin.py |
+| 494 | tools/Variants/AUTO-RECOVERY-SYSTEM-Admin.bat | scripts/py/auto-recovery-system-admin.py |
+| 495 | tools/Variants/AUTO-RECOVERY-SYSTEM-NoAdmin.bat | scripts/py/auto-recovery-system-noadmin.py |
+| 496 | tools/Variants/AWS-IAC-MANAGER-ASCII-Admin.bat | scripts/py/aws-iac-manager-ascii-admin.py |
+| 497 | tools/Variants/AWS-IAC-MANAGER-ASCII-NoAdmin.bat | scripts/py/aws-iac-manager-ascii-noadmin.py |
+| 498 | tools/Variants/AWS-IAC-MANAGER-Admin.bat | scripts/py/aws-iac-manager-admin.py |
+| 499 | tools/Variants/AWS-IAC-MANAGER-NoAdmin.bat | scripts/py/aws-iac-manager-noadmin.py |
+| 500 | tools/Variants/AWS-POWERSHELL-MODULES-DOWNLOADER-Admin.bat | scripts/py/aws-powershell-modules-downloader-admin.py |
+| 501 | tools/Variants/AWS-POWERSHELL-MODULES-DOWNLOADER-NoAdmin.bat | scripts/py/aws-powershell-modules-downloader-noadmin.py |
+| 502 | tools/Variants/AWS-TERRAFORM-ANALYZER-Admin.bat | scripts/py/aws-terraform-analyzer-admin.py |
+| 503 | tools/Variants/AWS-TERRAFORM-ANALYZER-NoAdmin.bat | scripts/py/aws-terraform-analyzer-noadmin.py |
+| 504 | tools/Variants/CREATE-DESKTOP-SHORTCUTS-NoAdmin.bat | scripts/py/create-desktop-shortcuts-noadmin.py |
+| 505 | tools/Variants/ENHANCED-DEV-TOOLS-INSTALLER-Admin.bat | scripts/py/enhanced-dev-tools-installer-admin.py |
+| 506 | tools/Variants/ENHANCED-DEV-TOOLS-INSTALLER-NoAdmin.bat | scripts/py/enhanced-dev-tools-installer-noadmin.py |
+| 507 | tools/Variants/M365-ACCOUNTS-ENHANCER-Admin.bat | scripts/py/m365-accounts-enhancer-admin.py |
+| 508 | tools/Variants/M365-ACCOUNTS-ENHANCER-NoAdmin.bat | scripts/py/m365-accounts-enhancer-noadmin.py |
+| 509 | tools/Variants/MAKE-ALL-BAT-OPERATIONAL-Admin.bat | scripts/py/make-all-bat-operational-admin.py |
+| 510 | tools/Variants/MAKE-ALL-BAT-OPERATIONAL-NoAdmin.bat | scripts/py/make-all-bat-operational-noadmin.py |
+| 511 | tools/Variants/OPEN-UI-NEW-WINDOW-Admin.bat | scripts/py/open-ui-new-window-admin.py |
+| 512 | tools/Variants/OPEN-UI-NEW-WINDOW-NoAdmin.bat | scripts/py/open-ui-new-window-noadmin.py |
+| 513 | tools/Variants/QUALITY-GATES-Admin.bat | scripts/py/quality-gates-admin.py |
+| 514 | tools/Variants/QUALITY-GATES-NoAdmin.bat | scripts/py/quality-gates-noadmin.py |
+| 515 | tools/Variants/QUICK-GLOBAL-SETUP-Admin.bat | scripts/py/quick-global-setup-admin.py |
+| 516 | tools/Variants/QUICK-GLOBAL-SETUP-NoAdmin.bat | scripts/py/quick-global-setup-noadmin.py |
+| 517 | tools/Variants/QUICK-UI-ACCESS-Admin.bat | scripts/py/quick-ui-access-admin.py |
+| 518 | tools/Variants/QUICK-UI-ACCESS-NoAdmin.bat | scripts/py/quick-ui-access-noadmin.py |
+| 519 | tools/Variants/REAL-TIME-MONITOR-Admin.bat | scripts/py/real-time-monitor-admin.py |
+| 520 | tools/Variants/REAL-TIME-MONITOR-NoAdmin.bat | scripts/py/real-time-monitor-noadmin.py |
+| 521 | tools/Variants/SETUP-GLOBAL-ACCESS-Admin.bat | scripts/py/setup-global-access-admin.py |
+| 522 | tools/Variants/SETUP-GLOBAL-ACCESS-NoAdmin.bat | scripts/py/setup-global-access-noadmin.py |
+| 523 | tools/Variants/ollama-intelligent-monitor-Admin.bat | scripts/py/ollama-intelligent-monitor-admin.py |
+| 524 | tools/Variants/ollama-intelligent-monitor-NoAdmin.bat | scripts/py/ollama-intelligent-monitor-noadmin.py |
+| 525 | tools/Variants/ollama-script-generator-Admin.bat | scripts/py/ollama-script-generator-admin.py |
+| 526 | tools/Variants/ollama-script-generator-NoAdmin.bat | scripts/py/ollama-script-generator-noadmin.py |
+| 527 | scripts/lib/Log.ps1 | (excluded: module library, no entry point) |
+| 528 | scripts/lib/State.ps1 | (excluded: module library, no entry point) |
+| 529 | scripts/lib/Notify.ps1 | (excluded: module library, no entry point) |
+| 530 | scripts/lib/TaskUtil.ps1 | (excluded: module library, no entry point) |
