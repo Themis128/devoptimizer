@@ -30,7 +30,7 @@ def run(cmd, dry):
     if dry:
         print("[dry-run] " + " ".join(cmd))
         return 0
-    return subprocess.run(cmd, capture_output=True).returncode
+    return subprocess.run(cmd).returncode
 
 
 def m365_login_fix(dry):
@@ -43,6 +43,8 @@ def m365_login_fix(dry):
          r"Remove-Item -Path "
          r"'HKCU:\Software\Microsoft\Office\16.0\Common\Identity\Identities' "
          "-Recurse -Force -ErrorAction SilentlyContinue"], dry)
+    for svc in OFFICE_SVC:
+        run(["net", "start", svc], dry)
 
 
 def services_reset(dry):
@@ -69,8 +71,8 @@ def onedrive_sync_fix(dry):
     for im in ("OneDrive.exe", "OneDriveSetup.exe"):
         run(["taskkill", "/f", "/im", im], dry)
     run(["powershell", "-Command",
-         r"Start-Process \"$env:LOCALAPPDATA\Microsoft\OneDrive\OneDrive.exe\" "
-         "-ArgumentList '/reset'"], dry)
+         "Start-Process \"$env:LOCALAPPDATA\\Microsoft\\OneDrive"
+         "\\OneDrive.exe\" -ArgumentList '/reset'"], dry)
 
 
 def security_settings(dry):
@@ -95,8 +97,8 @@ def health_check(dry):
 def office_repair(dry):
     run(["net", "stop", "Microsoft Office Click-to-Run Service"], dry)
     run(["powershell", "-Command",
-         r"Start-Process '\"C:\Program Files\Common Files\microsoft "
-         r"shared\ClickToRun\OfficeClickToRun.exe\"' -ArgumentList "
+         "Start-Process \"C:\\Program Files\\Common Files\\microsoft "
+         "shared\\ClickToRun\\OfficeClickToRun.exe\" -ArgumentList "
          "'scenario=Repair','RepairType=QuickRepair'"], dry)
 
 

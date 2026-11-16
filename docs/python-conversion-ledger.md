@@ -405,8 +405,6 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 226 | `scripts/create-admin-cleanup-task.ps1` | `scripts/py/create-admin-cleanup-task.py` | One-shot SYSTEM task ~1min; action wrapped in conhost --headless. |
 | 227 | `scripts/register-admin-cleanup-system.ps1` | `scripts/py/register-admin-cleanup-system.py` | Delegates to register-admin-task-elevated.py (same registration). |
 | 228 | `scripts/register-d-drive-cleanup-task.ps1` | `scripts/py/register-d-drive-cleanup-task.py` | Daily 02:30 SYSTEM task, Priority 7, 3x restart; conhost --headless. |
-||||||| dc9af6d
-||||||| b00a185
 ## Phase 5 — full migration, tranche 17 (2026-11-16)
 | 193 | `tools/Variants/CREATE-DESKTOP-SHORTCUTS-Admin.bat` | `scripts/py/create-desktop-shortcuts-admin.py` | Admin-gated delegate of create-desktop-shortcuts.py. |
 | 194 | `tools/Variants/00-SETUP-GLOBAL-ACCESS-IMPROVED-NoAdmin.bat` | `scripts/py/setup-global-access-improved.py` | HKLM + user PATH append with confirm; `--admin` = admin variant. |

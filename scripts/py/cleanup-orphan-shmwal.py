@@ -33,7 +33,7 @@ def main() -> None:
                 print(f"[dry-run] delete {f.name}", file=sys.stderr)
             else:
                 f.unlink(missing_ok=True)
-                print(f"Deleting orphan: {f.name}")
+                print(f"Deleting orphan: {f.name}", file=sys.stderr)
     if args.json:
         print(json.dumps({"deleted": deleted, "count": len(deleted)}))
     else:
