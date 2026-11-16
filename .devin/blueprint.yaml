@@ -1,0 +1,21 @@
+# https://docs.devin.ai/onboard-devin/environment-yaml
+initialize: |
+  # pwsh for the generated registry pipeline (Discover/Build-Registry + sync pins)
+  curl -fsSL https://github.com/PowerShell/PowerShell/releases/download/v7.4.13/powershell-7.4.13-linux-x64.tar.gz -o /tmp/pwsh.tar.gz \
+    && mkdir -p "$HOME/pwsh" && tar -xzf /tmp/pwsh.tar.gz -C "$HOME/pwsh" \
+    && chmod +x "$HOME/pwsh/pwsh" && rm /tmp/pwsh.tar.gz
+  echo "PATH=$HOME/pwsh:$PATH" >> "$ENVRC"
+  echo "TEMP=/tmp" >> "$ENVRC"  # Build-Registry.ps1 writes $env:TEMP
+knowledge:
+  - name: registry pipeline
+    contents: |
+      After adding/removing scripts (AGENTS.md):
+      ./Discover-Scripts.ps1 -RootPath $PWD -OutputPath config/discovered-scripts.json -PassThru
+      ./Build-Registry.ps1 -DiscoveryPath config/discovered-scripts.json -Validate -Force -RootPath $PWD
+      python3 tools/sync-registry-pins.py
+  - name: python port conventions
+    contents: |
+      Ports go in scripts/py/<name>.py: argparse CLI, read-only default,
+      --dry-run for mutations, --json for data surfaces, logs to stderr,
+      '# CATEGORY:' + '# TAGS:' headers, helpers in py/devoptimizer_cli/core/
+      (winops.py, executor.py). Ledger: docs/python-conversion-ledger.md.
