@@ -14,6 +14,8 @@ from pathlib import Path
 
 
 def tail_lines(path: Path, n: int) -> list[str]:
+    if n <= 0:
+        return []
     try:
         with path.open(encoding="utf-8", errors="replace") as f:
             return f.read().splitlines()[-n:]
