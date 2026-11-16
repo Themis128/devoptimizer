@@ -109,3 +109,20 @@ user-requested deviation from the delete-after-port rule.
 | scripts/restart-docker.ps1 | scripts/py/restart-docker.py | mutating; --dry-run, --wait |
 | scripts/check-devin.ps1 | scripts/py/check-devin.py | pure-Python log scan, --count, --json |
 | scripts/list-acp-dbs.ps1 | scripts/py/list-acp-dbs.py | pure-Python dir listing, --json |
+
+## Phase 5 — full migration, tranche 2 (2026-11-16)
+
+| PS original | Python port | Notes |
+|---|---|---|
+| scripts/check-elevated-task.ps1 | scripts/py/check-elevated-task.py | \DevOptimizer\ task-name match via shim, --json |
+| scripts/check-acp-size.ps1 | scripts/py/check-acp-size.py | pure-Python dir size, --json |
+| scripts/check-devin-logs.ps1 | scripts/py/check-devin-logs.py | pure-Python log tail, --count/--tail |
+| scripts/check-devin-all-logs.ps1 | scripts/py/check-devin-all-logs.py | *.log only, --count/--tail |
+| scripts/check-tasks.ps1 | scripts/py/check-tasks.py | Get-ScheduledTaskInfo via shim, --json |
+| scripts/check-task-triggers.ps1 | scripts/py/check-task-triggers.py | trigger StartBoundary via shim, --json |
+| scripts/shutdown-and-compact.ps1 | scripts/py/shutdown-and-compact.py | mutating; --dry-run, --vhdx, elevated Optimize-VHD |
+| scripts/create-compaction-task.ps1 | scripts/py/create-compaction-task.py | mutating; --dry-run, --minutes |
+| scripts/create-priority-task.ps1 | scripts/py/create-priority-task.py | mutating; --dry-run |
+| scripts/check-outlook.ps1 | scripts/py/check-outlook.py | processes + AppModel events via shim, crash dumps pure-Python, --json |
+| scripts/register-admin-task-elevated.ps1 | scripts/py/register-admin-task-elevated.py | mutating; --dry-run |
+| scripts/check-store-apps.ps1 | scripts/py/check-store-apps.py | Get-AppxPackage via shim, --json |
