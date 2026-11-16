@@ -42,14 +42,14 @@ def run(args_: str, out_name, reports: Path, project: Path,
             return
         reports.mkdir(parents=True, exist_ok=True)
         with open(out, "w") as fh:
-            subprocess.run(f'{exe} {args_}', shell=True,
-                           cwd=project, stdout=fh,
-                           stderr=subprocess.STDOUT)
-    else:
-        if dry:
-            print(f"[dry-run] {exe} {args_} (cwd={project})")
-            return
-        subprocess.run(f'{exe} {args_}', shell=True, cwd=project)
+            return subprocess.run(f'{exe} {args_}', shell=True,
+                                  cwd=project, stdout=fh,
+                                  stderr=subprocess.STDOUT).returncode
+    if dry:
+        print(f"[dry-run] {exe} {args_} (cwd={project})")
+        return 0
+    return subprocess.run(f'{exe} {args_}', shell=True,
+                          cwd=project).returncode
 
 
 ACTIONS = [
@@ -67,10 +67,7 @@ ACTIONS = [
         ("graph -type=plan", "plan-graph.dot"),
         ("graph -type=apply", "apply-graph.dot"),
         ("graph -json", "dependency-graph.json")]),
-    ("Drift Detection", [
-        ("plan -detailed-exitcode", "drift-plan.txt"),
-        ("plan -out=drift-plan.out", None),
-        ("show -json drift-plan.out", "drift-plan.json")]),
+    ("Drift Detection", []),   # special-cased below
     ("Cost Estimation", []),   # special-cased below
     ("Security Analysis", []),
     ("Performance Analysis", []),
@@ -104,9 +101,15 @@ def cost_estimation(reports, project, dry):
             "infracost-summary.txt", reports, project, dry,
             tool="infracost")
     else:  # terraform_cost_estimation fallback
-        run("plan -out=cost-plan.out", None, reports, project, dry)
-        run("show -json cost-plan.out", "cost-plan.json",
-            reports, project, dry)
+        rc = run("plan -out=cost-plan.out", None, reports, project,
+                 dry)
+        if rc == 0 and (dry or
+                        (project / "cost-plan.out").is_file()):
+            run("show -json cost-plan.out", "cost-plan.json",
+                reports, project, dry)
+        else:
+            print("terraform plan failed — skipping export",
+                  file=sys.stderr)
 
 
 def security_analysis(reports, project, dry):
@@ -135,7 +138,8 @@ def security_analysis(reports, project, dry):
 
 
 def performance_analysis(reports, project, dry):
-    run("state list", "total-resources.txt", reports, project, dry)
+    run('state list | find /c /v ""', "total-resources.txt",
+        reports, project, dry)
     run('state list | findstr /i "aws_"', "aws-resources.txt",
         reports, project, dry)
     run("plan -out=perf-plan.out", "plan-performance.txt",
@@ -179,7 +183,24 @@ def state_backup(project, dry):
     print(f"backed up -> {dest}")
 
 
+def drift_detection(reports, project, dry):
+    run("plan -detailed-exitcode", "drift-plan.txt", reports,
+        project, dry)
+    rc = run("plan -out=drift-plan.out", None, reports, project,
+             dry)
+    if rc == 0 and (dry or
+                    (project / "drift-plan.out").is_file()):
+        run("show -json drift-plan.out", "drift-plan.json",
+            reports, project, dry)
+    else:
+        print("terraform plan failed — skipping export",
+              file=sys.stderr)
+
+
 def apply(choice: int, reports: Path, project: Path, dry: bool):
+    if choice == 4:
+        drift_detection(reports, project, dry)
+        return
     if choice == 5:
         cost_estimation(reports, project, dry)
         return
