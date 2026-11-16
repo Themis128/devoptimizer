@@ -16,6 +16,7 @@ from pathlib import Path
 
 # CATEGORY: cleanup
 # TAGS: windows11, admin, dism, sfc, wu, shadow-copies
+# REQUIRES: admin
 
 
 def gb(b):
@@ -64,7 +65,7 @@ def main() -> None:
                    help="assert elevation (original hard-requires it)")
     args = p.parse_args()
     dry = args.dry_run
-    if args.admin and not (is_admin() or dry):
+    if not dry and not is_admin():
         print("[ERROR] Must run as Administrator!", file=sys.stderr)
         sys.exit(1)
 

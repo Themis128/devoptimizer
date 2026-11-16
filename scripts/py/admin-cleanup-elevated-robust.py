@@ -22,6 +22,7 @@ from pathlib import Path
 
 # CATEGORY: cleanup
 # TAGS: windows11, robust, dism, shadow-copies, wer, recycle-bin
+# REQUIRES: admin
 
 LOG_DIR = Path(r"D:\DevOptimizer\logs")
 
@@ -69,7 +70,7 @@ def main() -> None:
     ap.add_argument("--admin", action="store_true")
     args = ap.parse_args()
     dry = args.dry_run
-    if args.admin and not (is_admin() or dry):
+    if not dry and not is_admin():
         sys.exit("This script requires Administrator privileges.")
 
     logf = LOG_DIR / ("admin-cleanup-robust-"

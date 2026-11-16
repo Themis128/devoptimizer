@@ -44,6 +44,21 @@ def save_state(st):
     STATE.write_text(json.dumps(st))
 
 
+def distro_running(distro: str) -> bool:
+    # wsl -l -v is a service-level query - it answers even when the VM
+    # is wedged. A probe would boot a deliberately stopped distro, so
+    # this must be checked first (never boot a VM somebody turned off).
+    env = dict(os.environ, WSL_UTF8="1")
+    try:
+        r = subprocess.run(["wsl.exe", "-l", "-v"],
+                           capture_output=True, text=True, timeout=30,
+                           env=env)
+        out = r.stdout or ""
+    except Exception:
+        return False
+    return "Running" in out and distro in out
+
+
 def probe(distro: str) -> bool:
     env = dict(os.environ, WSL_UTF8="1")
     try:
@@ -65,6 +80,11 @@ def bounce(distro: str):
 
 def pass_once(args) -> int:
     st = get_state()
+    if not distro_running(args.distro):
+        if st["fails"]:
+            log("distro stopped - reset fails")
+            save_state({"fails": 0, "lastBounce": st["lastBounce"]})
+        return 0
     if probe(args.distro):
         if st["fails"]:
             log(f"recovered after {st['fails']} fails")
@@ -79,9 +99,14 @@ def pass_once(args) -> int:
     log(f"probe fail #{fails}")
     if fails >= args.threshold and cooled:
         log("threshold reached — bouncing distro")
-        ok = bounce(args.distro)
-        last = datetime.datetime.now().isoformat()
-        fails = 0 if ok else fails
+        try:
+            ok = bounce(args.distro)
+        except Exception as e:
+            ok = False
+            log(f"bounce raised: {e}")
+        if ok:
+            last = datetime.datetime.now().isoformat()
+            fails = 0
         log("bounce ok" if ok else "bounce FAILED")
         save_state({"fails": fails, "lastBounce": last})
     else:

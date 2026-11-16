@@ -78,8 +78,14 @@ def main() -> None:
     log(f"Threshold: {args.months_inactive} months inactive; "
         f"DryRun: {dry}; Log: {logp}")
 
-    cutoff = datetime.datetime.now() - datetime.timedelta(
-        days=30 * args.months_inactive)
+    now = datetime.datetime.now()
+    m = now.month - args.months_inactive
+    y = now.year + (m - 1) // 12
+    m = (m - 1) % 12 + 1
+    day = min(now.day, [31, 29 if y % 4 == 0 and (y % 100 != 0 or
+                        y % 400 == 0) else 28,
+                        31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1])
+    cutoff = now.replace(year=y, month=m, day=day)
     freed = 0.0
     deleted, skipped, stale_nuxt = [], [], []
 

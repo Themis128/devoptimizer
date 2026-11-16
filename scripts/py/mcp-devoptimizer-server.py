@@ -82,7 +82,20 @@ def call_tool(name, a):
         return run_ps(DEV / "devin" / "Check-DevinHealth.ps1",
                       *(["-Repair"] if a.get("repair") else []))
     if name == "devin_diagnostics":
-        p = (["-OutFile", a["outfile"]] if a.get("outfile") else [])
+        p = []
+        if a.get("outfile"):
+            # Constrain diagnostics output to the DevOptimizer tree -
+            # the MCP client controls this value and the server may
+            # run elevated.
+            resolved = Path(a["outfile"])
+            if not resolved.is_absolute():
+                resolved = (DEV / resolved)
+            try:
+                resolved.resolve().relative_to(DEV.resolve())
+            except ValueError:
+                return ("ERROR: outfile must be inside "
+                        f"{DEV}")
+            p = ["-OutFile", str(resolved)]
         return run_ps(DEV / "devin" / "Get-DevinDiagnostics.ps1", *p)
     if name == "devin_doctor":
         p = ((["-SkipInstall"] if a.get("skipInstall") else []) +

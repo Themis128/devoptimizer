@@ -11,10 +11,22 @@ from pathlib import Path
 
 # CATEGORY: cleanup
 # TAGS: cleanup, dism, elevated, windows-update
+# REQUIRES: admin
 
 WU = Path(r"C:\Windows\SoftwareDistribution\Download")
-DO = Path(r"C:\ProgramData\Microsoft\Windows\DeliveryOptimization\Cache")
+# Monitored by check-cleanup-status.ps1 under the NetworkService
+# profile (ProgramData\... is a different, mostly-empty location).
+DO = Path(r"C:\Windows\ServiceProfiles\NetworkService\AppData\Local"
+          r"\Microsoft\Windows\DeliveryOptimization\Cache")
 WINOLD = Path(r"C:\Windows.old")
+
+
+def is_admin():
+    try:
+        import ctypes
+        return bool(ctypes.windll.shell32.IsUserAnAdmin())
+    except Exception:
+        return False
 
 
 def sh(cmd: str, dry: bool):
@@ -44,12 +56,25 @@ def main() -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--dry-run", action="store_true")
     args = p.parse_args()
+    if not args.dry_run and not is_admin():
+        sys.exit("This script MUST be run as Administrator.")
 
     print("=== Windows 11 Admin Cleanup ===")
     sh("Dism /Online /Cleanup-Image /StartComponentCleanup /NoRestart",
        args.dry_run)
     clear_dir(WU, args.dry_run)
-    clear_dir(DO, args.dry_run)
+    if args.dry_run:
+        print("[dry-run] Delete-DeliveryOptimizationCache "
+              f"(cache dir {DO})")
+    else:
+        r = subprocess.run(
+            ["powershell", "-NoProfile", "-Command",
+             "try { Delete-DeliveryOptimizationCache -ErrorAction "
+             "Stop } catch { try { Remove-Item -LiteralPath "
+             f"'{DO}' -Recurse -Force -ErrorAction Stop }} "
+             "catch {} }"], capture_output=True, text=True,
+            errors="replace")
+        print(r.stdout.strip() or "DO cache cleared")
     if args.dry_run:
         print(f"rd /s /q {WINOLD}")
     elif WINOLD.is_dir():

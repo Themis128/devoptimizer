@@ -208,11 +208,14 @@ foreach ($group in $categoryGroups) {
         elseif ($metaAdmin -is [int]) { $requiresAdmin = ($metaAdmin -ne 0) }
 
         $ext = ([string]$item.Extension).TrimStart('.')
-        if (-not $requiresAdmin -and $ext -eq 'ps1') {
+        if (-not $requiresAdmin -and $ext -in @('ps1', 'py')) {
             $targetScript = Join-Path $RootPath $item.RelativePath
             if (Test-Path -LiteralPath $targetScript) {
                 $targetText = Get-Content -LiteralPath $targetScript -Raw -ErrorAction SilentlyContinue
                 if ($targetText -match '(?im)^\s*#\s*requires\s+-RunAsAdministrator') { $requiresAdmin = $true }
+                # Python ports declare elevation via '# REQUIRES: admin' (the
+                # discovery header convention for all script types).
+                if ($targetText -match '(?im)^\s*#\s*REQUIRES\s*:[^\n]*\badmin\b') { $requiresAdmin = $true }
             }
         }
 

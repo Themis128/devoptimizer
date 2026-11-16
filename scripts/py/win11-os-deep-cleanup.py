@@ -16,8 +16,17 @@ from pathlib import Path
 
 # CATEGORY: cleanup
 # TAGS: windows11, dism, hibernation, windows-old, system-logs
+# REQUIRES: admin
 
 LOG_DIR = Path(r"D:\DevOptimizer\logs")
+
+
+def is_admin():
+    try:
+        import ctypes
+        return bool(ctypes.windll.shell32.IsUserAnAdmin())
+    except Exception:
+        return False
 
 
 def free_gb() -> float:
@@ -52,6 +61,8 @@ def main() -> None:
     p.add_argument("--dry-run", action="store_true")
     args = p.parse_args()
     dry = args.dry_run
+    if not dry and not is_admin():
+        sys.exit("This script MUST be run as Administrator.")
 
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     logf = LOG_DIR / ("os-cleanup-"

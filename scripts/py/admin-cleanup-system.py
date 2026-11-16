@@ -26,9 +26,18 @@ from devoptimizer_cli.core.winops import run_ps_command  # noqa: E402
 
 # CATEGORY: cleanup
 # TAGS: windows11, system, dism, wer, prefetch, scheduled-task
+# REQUIRES: admin
 
 LOG_FILE = Path(r"D:\DevOptimizer\logs\admin-cleanup-system.log")
 NOTIFY_PS = _REPO_ROOT / "scripts" / "lib" / "Notify.ps1"
+
+
+def is_admin():
+    try:
+        import ctypes
+        return bool(ctypes.windll.shell32.IsUserAnAdmin())
+    except Exception:
+        return False
 
 
 def mb(b):
@@ -103,6 +112,8 @@ def main() -> None:
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
     dry = args.dry_run
+    if not dry and not is_admin():
+        sys.exit("This script MUST be run as Administrator.")
 
     before = shutil.disk_usage("C:\\").free
     log("=== Admin Cleanup (SYSTEM) ===")
