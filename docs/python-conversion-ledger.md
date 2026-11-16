@@ -596,3 +596,15 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 417 | `scripts/dd-settings-watchdog.ps1` | `scripts/py/dd-settings-watchdog.py` | t35 | `python3 scripts/py/dd-settings-watchdog.py` | drift detect + restore + 6h restart cooldown; store-v2 tolerated |
 | 418 | `scripts/real-time-monitoring.ps1` | `scripts/py/real-time-monitoring.py` | t35 | `python3 scripts/py/real-time-monitoring.py -Mode metrics` | typeperf counters; dashboard/report/metrics/alerts modes |
 | 419 | `scripts/health-dashboard.ps1` | `scripts/py/health-dashboard.py` | t35 | `python3 scripts/py/health-dashboard.py` | state JSONs + log tails -> html+json dashboard |
+| 420 | `portable/real-time-monitoring.bat` | `scripts/py/real-time-monitoring-1.py` | t36 | `python3 scripts/py/real-time-monitoring-1.py` | DEVOPT_HOME scripts/ ps1 shim |
+| 421 | `portable/Audit-Extensions.bat` | `scripts/py/audit-extensions.py` | t36 | `python3 scripts/py/audit-extensions.py` | DEVOPT_HOME ps1 shim |
+| 422 | `portable/Security-Hardening.bat` | `scripts/py/security-hardening.py` | t36 | `python3 scripts/py/security-hardening.py` | DEVOPT_HOME ps/ ps1 shim |
+| 423 | `portable/security-functions.bat` | `scripts/py/security-functions-1.py` | t36 | `python3 scripts/py/security-functions-1.py` | DEVOPT_HOME scripts/ ps1 shim |
+| 424 | `scripts/check-restore-points.ps1` | `scripts/py/check-restore-points.py` | t36 | `python3 scripts/py/check-restore-points.py` | wmic SystemRestore top-10 list |
+| 425 | `scripts/check-restore-points-logged.ps1` | `scripts/py/check-restore-points-logged.py` | t36 | `python3 scripts/py/check-restore-points-logged.py` | same + logs/restore-points-<ts>.log |
+| 426 | `scripts/create-restore-point.ps1` | `scripts/py/create-restore-point.py` | t36 | `python3 scripts/py/create-restore-point.py` | wmic CreateRestorePoint MODIFY_SETTINGS + verify; needs admin |
+| 427 | `scripts/create-restore-point-2.ps1` | `scripts/py/create-restore-point-2.py` | t36 | `python3 scripts/py/create-restore-point-2.py` | duplicate variant of 426 |
+| 428 | `scripts/win11-health-snapshot.ps1` | `scripts/py/win11-health-snapshot.py` | t36 | `python3 scripts/py/win11-health-snapshot.py` | 11-section snapshot; reg/sc/wmic/wevtutil/fsutil + ps where needed |
+| 429 | `tools/Variants/ENHANCED-SYSTEM-DIAGNOSTICS-NoAdmin.bat` | `scripts/py/enhanced-system-diagnostics-noadmin.py` | t36 | `python3 scripts/py/enhanced-system-diagnostics-noadmin.py` | 12-option diagnostics menu -> Desktop/DevOptimizer/Diagnostics |
+| 430 | `tools/Variants/ENHANCED-SYSTEM-DIAGNOSTICS-Admin.bat` | `scripts/py/enhanced-system-diagnostics-admin.py` | t36 | `python3 scripts/py/enhanced-system-diagnostics-admin.py` | admin variant + REQUIRES marker |
+| - | `scripts/security-functions.ps1` | (excluded) | t36 | - | module-style function library, not a runnable command |
