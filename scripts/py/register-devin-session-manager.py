@@ -24,7 +24,7 @@ LOG_PATH = r"D:\DevOptimizer\logs\devin-session-manager.log"
 
 
 def build_ps(force: bool) -> str:
-    guard = "" if force else "if ($existing) { Write-Error 'exists'; exit 2 }; "
+    guard = "" if force else "if ($existing) { Write-Output 'exists - use --force to update'; exit 0 }; "
     return (
         "$ErrorActionPreference = 'Stop'; "
         f"if (-not (Test-Path '{SCRIPT}')) {{ Write-Error 'script missing'; exit 1 }}; "

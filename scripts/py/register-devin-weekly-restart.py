@@ -30,7 +30,7 @@ def main() -> None:
     script = r"D:\DevOptimizer\scripts\restart-devin-weekly.ps1"
     log_path = r"$env:USERPROFILE\AppData\Local\DevOptimizer\logs\devin-restart.log"
 
-    guard = "" if args.force else "if ($existing) { Write-Error 'exists'; exit 2 }; "
+    guard = "" if args.force else "if ($existing) { Write-Output 'exists - use --force to update'; exit 0 }; "
     ps = (
         "$ErrorActionPreference = 'Stop'; "
         f"if (-not (Test-Path '{script}')) {{ Write-Error 'script missing'; exit 1 }}; "
