@@ -101,9 +101,11 @@ def get_models(container):
         lr = run(["docker", "logs", "--tail", "500",
                   container], 30)
         for line in ((lr.stdout if lr else "").splitlines()):
+            if not re.search(r"\bload", line, re.IGNORECASE):
+                continue
             m = re.search(
-                r'(?:loading|loaded|load)\s+(?:model\s+)?'
-                r'["\']?([\w./:-]+)', line, re.IGNORECASE)
+                r'model\s*[:="\']+\s*([\w./-]+)',
+                line, re.IGNORECASE)
             if m and not any(x["Id"] == m.group(1)
                              for x in models):
                 models.append({"Id": m.group(1),

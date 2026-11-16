@@ -118,7 +118,7 @@ def read_json(p):
         return json.loads(Path(p).read_text(
             encoding="utf-8-sig"))
     except Exception:
-        return {}
+        return None
 
 
 def write_json(p, d):
@@ -141,18 +141,20 @@ def harden():
         if not f.exists():
             continue
         try:
-            if f.stat().st_size > 0 and not read_json(f):
+            s = read_json(f)
+            if f.stat().st_size > 0 and s is None:
                 out(f"  WARN: {f.name} unreadable - "
                     "skipping (would lose config)")
                 continue
-            s = read_json(f)
+            if s is None:
+                s = {}
             s.update(keys)
             write_json(f, s)
             out(f"  Updated {f.name}: disabled WSL "
                 "auto-config + docker group management")
         except Exception as e:
             out(f"  WARN: could not harden {f}: {e}")
-    d = read_json(DD_DAEMON)
+    d = read_json(DD_DAEMON) or {}
     d["userns-remap"] = "default"
     write_json(DD_DAEMON, d)
     out("  Updated daemon.json: enabled userns-remap")
