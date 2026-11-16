@@ -26,6 +26,10 @@ def main() -> None:
            "& {Set-ExecutionPolicy Bypass -Scope Process -Force; "
            f"& '{SCRIPT}' -Mode 'Basic' -NoPause}}"]
     print("Running 03-Install-Dev-Tools (standard mode)...")
+    if not SCRIPT.is_file() and not args.dry_run:
+        print(f"ERROR: installer script not found: {SCRIPT}",
+              file=sys.stderr)
+        sys.exit(1)
     if args.dry_run:
         print("[dry-run] " + " ".join(cmd))
         return
