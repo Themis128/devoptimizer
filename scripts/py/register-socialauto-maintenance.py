@@ -34,7 +34,8 @@ def main():
         print(f"[FAIL] {SCRIPT} not found - install the Hub first.",
               file=sys.stderr)
         return 1
-    arg = ("-NoProfile -ExecutionPolicy Bypass -File " + chr(34)
+    arg = ("--headless powershell.exe -NoProfile -ExecutionPolicy"
+           " Bypass -File " + chr(34)
            + SCRIPT + chr(34))
     ps = (
         "$action = New-ScheduledTaskAction -Execute 'C:\\Windows\\System32\\conhost.exe'"
