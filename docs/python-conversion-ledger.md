@@ -560,3 +560,15 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | scripts/vscode-optimization.ps1 | scripts/py/vscode-optimization.py | t32 | settings+extensions | Stable/Insiders |
 | scripts/CENTERAL-LAUNCHER.ps1 | scripts/py/centeral-launcher.py | t32 | 30-entry menu | --quick/--status/--help |
 | scripts/UNIFIED-LAUNCHER.ps1 | scripts/py/unified-launcher.py | t32 | logged 30-entry menu | config/help sub-menus |
+| portable/Workspace-Launcher.bat | scripts/py/workspace-launcher.py | t33 | pwsh shim | DEVOPT_HOME target |
+| portable/UNIFIED-LAUNCHER.bat | scripts/py/unified-launcher-2.py | t33 | pwsh shim | scripts/ target |
+| portable/CENTERAL-LAUNCHER.bat | scripts/py/centeral-launcher-2.py | t33 | pwsh shim | scripts/ target |
+| portable/vscode-optimization.bat | scripts/py/vscode-optimization-1.py | t33 | pwsh shim | scripts/ target |
+| tools/Old-Launchers/UNIVERSAL-DESKTOP-LAUNCHER.bat | scripts/py/universal-desktop-launcher.py | t33 | working-launcher delegate | full-path call |
+| tools/Old-Launchers/CREATE-DESKTOP-LAUNCHER.bat | scripts/py/create-desktop-launcher.py | t33 | shortcut creator | repo tools/ fallback |
+| tools/Old-Launchers/UNIVERSAL-LAUNCHER.bat | scripts/py/universal-launcher.py | t33 | 4-option menu | elevated RUN-AS-ADMIN lane |
+| tools/Variants/UNIVERSAL-LAUNCHER-NoAdmin.bat | scripts/py/universal-launcher-noadmin.py | t33 | 4-option menu | standard-mode banner |
+| tools/Variants/UNIVERSAL-LAUNCHER-Admin.bat | scripts/py/universal-launcher-admin.py | t33 | 4-option menu | admin gate + delegate |
+| tools/Variants/02-Ultra-Performance-NoAdmin.bat | scripts/py/02-ultra-performance-noadmin.py | t33 | dev-optimizer -Mode Basic | exit 1 on fail |
+| tools/Variants/02-Ultra-Performance-Admin.bat | scripts/py/02-ultra-performance-admin.py | t33 | dev-optimizer -Mode Basic | checkAdmin never invoked in original |
+| tools/Variants/01-Quick-Optimization-NoAdmin.bat | scripts/py/01-quick-optimization-noadmin.py | t33 | dev-optimizer -Mode Basic | exit = error count |
