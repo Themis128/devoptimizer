@@ -168,13 +168,7 @@ public class RegistryServiceTests
         var livePath = Path.Combine(repoRoot!, "config", "hub-registry.json");
         var snapshot = new RegistryService().LoadSnapshot(livePath);
 
-<<<<<<< HEAD
-        Assert.Equal(720, snapshot.Commands.Count);
-||||||| dc9af6d
-        Assert.Equal(711, snapshot.Commands.Count);
-=======
-        Assert.Equal(717, snapshot.Commands.Count);
->>>>>>> devin/1794831933-python-migration-t18
+        Assert.Equal(726, snapshot.Commands.Count);
 
         var expectedCounts = new Dictionary<string, int>
         {
@@ -193,13 +187,7 @@ public class RegistryServiceTests
             ["storage"] = 1,
             ["system"] = 2,
             ["system-optimization"] = 3,
-<<<<<<< HEAD
-            ["utilities"] = 474,
-||||||| dc9af6d
-            ["utilities"] = 471,
-=======
-            ["utilities"] = 477,
->>>>>>> devin/1794831933-python-migration-t18
+            ["utilities"] = 480,
             ["verification"] = 2,
         };
         var actualCounts = snapshot.Commands
