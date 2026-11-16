@@ -43,7 +43,9 @@ def main() -> None:
         print("[dry-run] " + " ".join(cmd))
         return
 
-    r = subprocess.run(cmd)
+    # run-ollama-all.ps1 resolves its model allow/deny filters relative
+    # to cwd — pin it to the repo root like the .bat did (cd /d "%~dp0\..").
+    r = subprocess.run(cmd, cwd=str(REPO))
     if r.returncode != 0:
         sys.exit(r.returncode)
 
