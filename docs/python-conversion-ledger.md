@@ -160,3 +160,23 @@ user-requested deviation from the delete-after-port rule.
 | scripts/Start-OtterDesktop.ps1 | scripts/py/Start-OtterDesktop.py | CDP :9333 launch; --register/--unregister via shim |
 | scripts/sync-bat-ps1.ps1 | scripts/py/sync-bat-ps1.py | pure-Python .bat launcher generator; --dry-run |
 | scripts/devin/Add-DevinQueue.ps1 | scripts/py/Add-DevinQueue.py | queue-manager enqueue via pwsh subprocess |
+## Phase 5 — full migration, tranche 5 (2026-11-16)
+
+| PS original | Python port | Notes |
+|---|---|---|
+| scripts/register-devin-weekly-restart.ps1 | scripts/py/register-devin-weekly-restart.py | mutating; --force, --dry-run; headless conhost action |
+| scripts/create-priority-task-com.ps1 | scripts/py/create-priority-task-com.py | COM Schedule.Service; --force, --dry-run; headless |
+| scripts/register-devin-priority-simple.ps1 | scripts/py/register-devin-priority-simple.py | mutating; --force, --dry-run; headless |
+| tools/wu-install.ps1 | scripts/py/wu-install.py | WU COM via generated PS block; log+exit-code contract kept |
+| scripts/register-devin-session-manager.ps1 | scripts/py/register-devin-session-manager.py | mutating; --force, --dry-run; headless; -WhatIf preserved |
+| scripts/watch-pending-actions.ps1 | scripts/py/watch-pending-actions.py | read-only status board; --json |
+| scripts/apply-cline-settings.ps1 | scripts/py/apply-cline-settings.py | pure-Python JSON merge + backup; --dry-run, --json |
+| scripts/register-devin-priority-task.ps1 | scripts/py/register-devin-priority-task.py | COM; --force, --dry-run; headless |
+| scripts/create-priority-task-user.ps1 | scripts/py/create-priority-task-user.py | COM; --force, --dry-run; headless |
+| scripts/register-devin-weekly-restart-elevated.ps1 | scripts/py/register-devin-weekly-restart-elevated.py | COM; --force, --dry-run; headless |
+| scripts/restart-devin-weekly.ps1 | scripts/py/restart-devin-weekly.py | taskkill/tasklist + relaunch; --force, --dry-run |
+| scripts/dmr-ram-guard.ps1 | scripts/py/dmr-ram-guard.py | GlobalMemoryStatusEx + docker model unload; --dry-run, --json |
+
+Inventory: 15 items marked excluded — 14 already have .py siblings on
+main (user ports at scripts/ root), plus scripts/chrome-ext-remove.ps1
+(UI automation, Add-Type UIA + SendKeys) under the phase-3 rule.
