@@ -371,3 +371,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 190 | `tools/Variants/00-SETUP-GLOBAL-ACCESS-Admin.bat` | `scripts/py/setup-global-access.py` | Same port (admin check is the whole variant difference). |
 | 191 | `tools/Variants/QUICK-GLOBAL-SETUP-Admin.bat` | `scripts/py/quick-global-setup.py` | Same port (`--admin` label only; actions identical). |
 | 192 | `tools/Variants/CREATE-DESKTOP-SHORTCUTS-NoAdmin.bat` | `scripts/py/create-desktop-shortcuts.py` | 5 WScript.Shell .lnk files via COM. |
+
+## Phase 5 — full migration, tranche 17 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 193 | `tools/Variants/CREATE-DESKTOP-SHORTCUTS-Admin.bat` | `scripts/py/create-desktop-shortcuts-admin.py` | Admin-gated delegate of create-desktop-shortcuts.py. |
+| 194 | `tools/Variants/00-SETUP-GLOBAL-ACCESS-IMPROVED-NoAdmin.bat` | `scripts/py/setup-global-access-improved.py` | HKLM + user PATH append with confirm; `--admin` = admin variant. |
+| 195 | `tools/Variants/REAL-TIME-MONITOR-NoAdmin.bat` | `scripts/py/real-time-monitor.py` | 5s health loop: critical files, exec policy, admin; logs/real-time-monitor.log. |
+| 196 | `tools/Variants/00-SETUP-GLOBAL-ACCESS-IMPROVED-Admin.bat` | `scripts/py/setup-global-access-improved.py` | Same port with `--admin`. |
+| 197 | `tools/Variants/REAL-TIME-MONITOR-Admin.bat` | `scripts/py/real-time-monitor.py` | Same port with `--admin`. |
+| 198 | `tools/Variants/AWS-POWERSHELL-MODULES-DOWNLOADER-Admin.bat` | `scripts/py/aws-powershell-modules-downloader.py` | Sequential Install-Module steps; --dry-run; exit 1 on any failure. |
+| 199 | `tools/Variants/SETUP-GLOBAL-ACCESS-NoAdmin.bat` | `scripts/py/setup-global-access-v2.py` | setx PATH /M (user fallback) + Master Suite desktop shortcut. |
+| 200 | `tools/Variants/AWS-IAC-MANAGER-ASCII-Admin.bat` | `scripts/py/aws-iac-manager-ascii.py` | 14-item menu -> aws CLI table calls; terraform.tfstate print. |
+| 201 | `tools/Variants/SETUP-GLOBAL-ACCESS-Admin.bat` | `scripts/py/setup-global-access-v2.py` | Same port with `--admin`. |
+| 202 | `tools/Variants/AWS-IAC-MANAGER-ASCII-NoAdmin.bat` | `scripts/py/aws-iac-manager-ascii.py` | Same port. |
+| 203 | `tools/Variants/AWS-POWERSHELL-MODULES-DOWNLOADER-NoAdmin.bat` | `scripts/py/aws-powershell-modules-downloader.py` | Same port. |
+| 204 | `tools/normalize-bat-files.bat` | `scripts/py/normalize-bat-files.py` | Standard-header rewrite + non-ASCII strip; backup dir; -dry-run. |
