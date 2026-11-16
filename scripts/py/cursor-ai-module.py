@@ -49,30 +49,58 @@ def apply_keybindings(dry):
 
 
 def install_extensions(dry):
+    cursor = shutil.which("cursor")
     for ext in EXTENSIONS:
         if dry:
             status(f"[dry-run] cursor --install-extension {ext}")
-        else:
-            subprocess.run(["cursor", "--install-extension", ext],
-                           capture_output=True)
+            continue
+        if not cursor:
+            status("cursor CLI not found on PATH", "ERROR")
+            return 1
+        cmd = ([cursor, "--install-extension", ext]
+               if cursor.lower().endswith((".exe", ".com"))
+               else ["cmd", "/c", cursor,
+                     "--install-extension", ext])
+        try:
+            subprocess.run(cmd, capture_output=True)
+        except FileNotFoundError:
+            status(f"Failed to launch {cursor}", "ERROR")
+            return 1
 
 
-def backup(dry):
-    src = CURSOR_USER / "settings.json"
-    dst = CURSOR_USER / f"settings-backup-{time.strftime('%Y%m%d-%H%M%S')}.json"
+BACKUPS_DIR = Path(__file__).resolve().parents[2] / "backups"
+
+
+def backup(dry, name=None):
+    src = CURSOR_USER
+    name = name or f"cursor-backup_{time.strftime('%Y%m%d_%H%M%S')}"
+    dst = BACKUPS_DIR / name
+    if not src.is_dir():
+        status("Cursor user directory not found", "WARNING")
+        return None
     status(f"Backing up {src} -> {dst}")
-    if not dry and src.exists():
-        shutil.copy2(src, dst)
-
-
-def restore(dry):
-    backups = sorted(CURSOR_USER.glob("settings-backup-*.json"))
-    if not backups:
-        status("No backups found", "WARNING")
-        return 1
-    status(f"Restoring {backups[-1]} -> settings.json")
     if not dry:
-        shutil.copy2(backups[-1], CURSOR_USER / "settings.json")
+        dst.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(src, dst, dirs_exist_ok=True)
+    return dst
+
+
+def restore(dry, backup_path=None):
+    src = Path(backup_path) if backup_path else None
+    if src is None:
+        candidates = sorted(BACKUPS_DIR.glob("cursor-backup_*"))
+        if not candidates:
+            status("No backups found", "WARNING")
+            return 1
+        src = candidates[-1]
+    if not src.is_dir():
+        status(f"Backup not found: {src}", "ERROR")
+        return 1
+    backup(dry, "pre-restore_" + time.strftime("%Y%m%d_%H%M%S"))
+    status(f"Restoring {src} -> {CURSOR_USER}")
+    if not dry:
+        CURSOR_USER.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(src, CURSOR_USER, dirs_exist_ok=True)
     return 0
 
 
@@ -103,7 +131,7 @@ def getconfig():
 
 def main():
     ap = argparse.ArgumentParser(description="Cursor AI module")
-    ap.add_argument("--module-operation", default="configure",
+    ap.add_argument("--module-operation", default="",
                     choices=["configure", "keybindings",
                              "extensions", "test", "backup",
                              "restore", "getconfig"])
@@ -111,6 +139,12 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
     op = args.module_operation
+    if not op:
+        ap.print_usage()
+        print("No --module-operation given; available operations: "
+              "configure, keybindings, extensions, test, backup, "
+              "restore, getconfig")
+        return 0
     if op == "configure":
         apply_config(args.profile, args.dry_run)
     elif op == "keybindings":
