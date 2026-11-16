@@ -203,7 +203,7 @@ def main() -> None:
                 pct = round(100 * used / total)
                 log(f"swap {used}/{total} MB ({pct}%), "
                     f"vmmemWSL {vm:.1f} GB")
-                if pct >= 80:
+                if pct >= 80 and not dry:
                     ps("Write-EventLog -LogName 'DevOptimizer' "
                        "-Source 'DevOptimizer' -EventId 1003 "
                        "-EntryType Warning -Message "
@@ -267,15 +267,24 @@ def main() -> None:
         c_free = round(shutil.disk_usage("C:\\").free / 2**30, 1)
         log(f"C: free {c_free} GB")
         if c_free < 5:
-            ps("Write-EventLog -LogName 'DevOptimizer' -Source "
-               "'DevOptimizer' -EventId 1004 -EntryType Error "
-               f"-Message 'C: drive critically low: {c_free} GB free "
-               "- expect WSL stalls and Docker Desktop crashes.'")
+            if dry:
+                log(f"[dry-run] C: critically low {c_free} GB "
+                    "- would write event 1004")
+            else:
+                ps("Write-EventLog -LogName 'DevOptimizer' -Source "
+                   "'DevOptimizer' -EventId 1004 -EntryType Error "
+                   f"-Message 'C: drive critically low: {c_free} GB"
+                   " free - expect WSL stalls and Docker Desktop "
+                   "crashes.'")
             log(f"CRITICAL: C: free {c_free} GB - event 1004")
         elif c_free < 15:
-            ps("Write-EventLog -LogName 'DevOptimizer' -Source "
-               "'DevOptimizer' -EventId 1004 -EntryType Warning "
-               f"-Message 'C: drive low: {c_free} GB free.'")
+            if dry:
+                log(f"[dry-run] C: low {c_free} GB - would write "
+                    "event 1004")
+            else:
+                ps("Write-EventLog -LogName 'DevOptimizer' -Source "
+                   "'DevOptimizer' -EventId 1004 -EntryType Warning "
+                   f"-Message 'C: drive low: {c_free} GB free.'")
             log(f"WARNING: C: free {c_free} GB - event 1004")
     except Exception:
         pass

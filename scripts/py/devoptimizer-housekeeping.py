@@ -106,10 +106,9 @@ def main() -> None:
                                  round(f.stat().st_size / 1024, 1)))
         else:
             try:
+                kb = round(f.stat().st_size / 1024, 1)
                 shutil.move(str(f), str(reports_dir / f.name))
-                report_moves.append(
-                    (f.name, "moved",
-                     round(f.stat().st_size / 1024, 1)))
+                report_moves.append((f.name, "moved", kb))
             except OSError as e:
                 log(f"  WARN move failed '{f.name}': {e}")
                 report_moves.append((f.name, f"FAILED: {e}", 0))

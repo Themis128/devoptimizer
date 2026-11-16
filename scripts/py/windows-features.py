@@ -17,6 +17,7 @@ sys.path.insert(0, str(_REPO_ROOT / "py"))
 
 from devoptimizer_cli.core.winops import run_ps_command  # noqa: E402
 
+# REQUIRES: admin
 # CATEGORY: utilities
 # TAGS: windows-features, optional-features, wsl, hyper-v, iis
 
@@ -62,7 +63,7 @@ DISABLE_MAP = {
 }
 
 PROFILES = {
-    "Developer": (["wsl", "dotnet", "containers"], ["legacy", "print"]),
+    "Development": (["wsl", "dotnet", "iis"], ["legacy", "media"]),
     "Gaming": (["dotnet"], ["legacy", "print", "internet"]),
     "Server": (["iis", "dotnet", "hyperv"],
                ["legacy", "media", "internet"]),
@@ -124,7 +125,8 @@ def main() -> None:
     d = sub.add_parser("disable")
     d.add_argument("features", nargs="+",
                    choices=list(DISABLE_MAP) + ["all"])
-    pr = sub.add_parser("profile", choices=list(PROFILES))
+    pr = sub.add_parser("profile")
+    pr.add_argument("profile", choices=list(PROFILES))
     dm = sub.add_parser("developer-mode")
     dm.add_argument("--off", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
@@ -142,12 +144,18 @@ def main() -> None:
             else args.features
         disable([x for k in keys for x in DISABLE_MAP[k]], dry)
     elif args.cmd == "profile":
-        en, dis = PROFILES[args.cmd]
-        print(f"Applying {args.cmd} profile...")
-        if args.cmd == "Custom":
+        en, dis = PROFILES[args.profile]
+        print(f"Applying {args.profile} profile...")
+        if args.profile == "Custom":
             status(dry)
         else:
             enable([x for k in en for x in ENABLE_MAP[k]], dry)
+            if args.profile == "Development":
+                ps("Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\"
+                   "Microsoft\\Windows\\CurrentVersion\\"
+                   "AppModelUnlock' -Name "
+                   "'AllowDevelopmentWithoutDevLicense' -Value 1; "
+                   "Write-Host 'DeveloperMode=1'", dry)
             disable([x for k in dis for x in DISABLE_MAP[k]], dry)
         print("NOTE: some changes may require a restart.")
     elif args.cmd == "developer-mode":

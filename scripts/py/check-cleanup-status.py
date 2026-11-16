@@ -140,11 +140,13 @@ def main() -> None:
     cleanable += rb
 
     print("\n--- System caches (best effort without admin) ---")
-    row("Windows Update download cache",
-        r"C:\Windows\SoftwareDistribution\Download")
-    row("Delivery Optimization cache",
+    row("Windows Update download cache (admin-only)",
+        r"C:\Windows\SoftwareDistribution\Download",
+        report_only=True)
+    row("Delivery Optimization cache (admin-only)",
         r"C:\Windows\ServiceProfiles\NetworkService\AppData\Local"
-        r"\Microsoft\Windows\DeliveryOptimization\Cache")
+        r"\Microsoft\Windows\DeliveryOptimization\Cache",
+        report_only=True)
 
     print("\n--- VHDX backing disks ---")
     for root in (rf"{LA}\wsl", rf"{LA}\Docker"):
@@ -168,10 +170,14 @@ def main() -> None:
                 pass
 
     print("\n--- Docker (if running) ---")
-    r = subprocess.run(["docker", "version", "--format",
-                        "{{.Server.Version}}"], capture_output=True,
-                       text=True, errors="replace")
-    if r.returncode == 0:
+    try:
+        r = subprocess.run(["docker", "version", "--format",
+                            "{{.Server.Version}}"],
+                           capture_output=True, text=True,
+                           errors="replace")
+    except OSError:
+        r = None
+    if r is not None and r.returncode == 0:
         print(subprocess.run(["docker", "system", "df"],
                              capture_output=True, text=True,
                              errors="replace").stdout)
