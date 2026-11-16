@@ -440,3 +440,17 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 ## Exclusions (tranche 22)
 
 - `scripts/DevOptimizer-Core.ps1` — shared PowerShell module (logging/config helpers consumed by other scripts), not a runnable command; Python equivalent already exists as `py/devoptimizer_cli`.
+
+## Phase 5 — full migration, tranche 23
+| 264 | `portable/Cleanup-CDrive.bat` | `scripts/py/cleanup-cdrive.py` | DEVOPT_HOME/pwsh shim launcher. |
+| 265 | `portable/Cleanup-VSCodeInsiders.bat` | `scripts/py/cleanup-vscodeinsiders.py` | DEVOPT_HOME/pwsh shim launcher. |
+| 266 | `portable/Reorganize-DevOptimizer.bat` | `scripts/py/reorganize-devoptimizer.py` | DEVOPT_HOME/pwsh shim launcher. |
+| 267 | `portable/Uninstall-DevOptimizer.bat` | `scripts/py/uninstall-devoptimizer.py` | DEVOPT_HOME/pwsh shim launcher. |
+| 268 | `portable/wsl-ports.bat` | `scripts/py/wsl-ports.py` | DEVOPT_HOME/pwsh shim launcher. |
+| 269 | `portable/optimizer.bat` | `scripts/py/optimizer.py` | DEVOPT_HOME/pwsh shim launcher. |
+| 270 | `portable/quick-cleanup.bat` | `scripts/py/quick-cleanup.py` | DEVOPT_HOME/pwsh shim launcher. |
+| 271 | `portable/Start-VSCodeInsidersOptimized.bat` | `scripts/py/start-vscodeinsidersoptimized.py` | DEVOPT_HOME/pwsh shim launcher. |
+| 272 | `portable/monitor-temperatures.bat` | `scripts/py/monitor-temperatures.py` | DEVOPT_HOME/pwsh shim launcher (config/overclocking target). |
+| 273 | `portable/optimize-wsl-memory.bat` | `scripts/py/optimize-wsl-memory.py` | DEVOPT_HOME/pwsh shim launcher. |
+| 274 | `portable/wsl-reset-and-setup.bat` | `scripts/py/wsl-reset-and-setup.py` | DEVOPT_HOME/pwsh shim launcher. |
+| 275 | `portable/playwright-optimizer.bat` | `scripts/py/playwright-optimizer.py` | DEVOPT_HOME/pwsh shim launcher. |
