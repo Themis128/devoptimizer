@@ -584,3 +584,15 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 405 | `scripts/debug-config.ps1` | `scripts/py/debug-config.py` | t34 | `python3 scripts/py/debug-config.py` | Invokes config-loader module via pwsh, prints ollama section |
 | 406 | `scripts/update-compose-override.ps1` | `scripts/py/update-compose-override.py` | t34 | `python3 scripts/py/update-compose-override.py` | restart=no for 6 cu130-slim containers via wsl |
 | 407 | `scripts/Insider-Automation.ps1` | `scripts/py/insider-automation.py` | t34 | `python3 scripts/py/insider-automation.py -Operation dailyhealth` | Module ops delegate to DevOptimizer-Core via ps1; tasks via schtasks |
+| 408 | `portable/Monitor-VSCodeInsiders.bat` | `scripts/py/monitor-vscodeinsiders.py` | t35 | `python3 scripts/py/monitor-vscodeinsiders.py` | DEVOPT_HOME ps1 shim |
+| 409 | `portable/debug-line899.bat` | `scripts/py/debug-line899.py` | t35 | `python3 scripts/py/debug-line899.py` | DEVOPT_HOME ps1 shim |
+| 410 | `portable/debug-config.bat` | `scripts/py/debug-config-1.py` | t35 | `python3 scripts/py/debug-config-1.py` | DEVOPT_HOME scripts/ ps1 shim |
+| 411 | `portable/Insider-Automation.bat` | `scripts/py/insider-automation-1.py` | t35 | `python3 scripts/py/insider-automation-1.py` | DEVOPT_HOME scripts/ ps1 shim |
+| 412 | `portable/insiders-extension-config.bat` | `scripts/py/insiders-extension-config.py` | t35 | `python3 scripts/py/insiders-extension-config.py` | DEVOPT_HOME ps1 shim |
+| 413 | `portable/vscode-insiders-extension-config.bat` | `scripts/py/vscode-insiders-extension-config.py` | t35 | `python3 scripts/py/vscode-insiders-extension-config.py` | DEVOPT_HOME ps1 shim |
+| 414 | `portable/Collect-Metrics.bat` | `scripts/py/collect-metrics.py` | t35 | `python3 scripts/py/collect-metrics.py` | DEVOPT_HOME ps/ ps1 shim |
+| 415 | `scripts/pre-bounce-check.ps1` | `scripts/py/pre-bounce-check.py` | t35 | `python3 scripts/py/pre-bounce-check.py -Force` | 8-check safety list; exit 0/1/2 |
+| 416 | `scripts/host-guard.ps1` | `scripts/py/host-guard.py` | t35 | `python3 scripts/py/host-guard.py -OnceVerbose` | T2 drop_caches / T3 runner restart / T4 auto-bounce (Devin-closed only) |
+| 417 | `scripts/dd-settings-watchdog.ps1` | `scripts/py/dd-settings-watchdog.py` | t35 | `python3 scripts/py/dd-settings-watchdog.py` | drift detect + restore + 6h restart cooldown; store-v2 tolerated |
+| 418 | `scripts/real-time-monitoring.ps1` | `scripts/py/real-time-monitoring.py` | t35 | `python3 scripts/py/real-time-monitoring.py -Mode metrics` | typeperf counters; dashboard/report/metrics/alerts modes |
+| 419 | `scripts/health-dashboard.ps1` | `scripts/py/health-dashboard.py` | t35 | `python3 scripts/py/health-dashboard.py` | state JSONs + log tails -> html+json dashboard |
