@@ -303,3 +303,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 142 | `portable/VSCode-AutoMonitor.bat` | `scripts/py/VSCode-AutoMonitor.py` | Shim -> VSCode-AutoMonitor.ps1. |
 | 143 | `portable/configure-xtu-v7.14.2.67.bat` | `scripts/py/configure-xtu-v7.14.2.67.py` | Shim -> config\overclocking\configure-xtu-v7.14.2.67.ps1. |
 | 144 | `portable/create-and-apply-profile.bat` | `scripts/py/create-and-apply-profile.py` | Shim -> config\overclocking\create-and-apply-profile.ps1. |
+
+## Phase 5 — full migration, tranche 13 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 145 | `portable/verify-and-apply-profile.bat` | `scripts/py/verify-and-apply-profile.py` | Shim -> config\overclocking\verify-and-apply-profile.ps1. |
+| 146 | `portable/ollama-analytics.bat` | `scripts/py/ollama-analytics-shim.py` | Shim -> modules\ollama-analytics.ps1 (module excluded). |
+| 147 | `portable/power-management.bat` | `scripts/py/power-management-shim.py` | Shim -> scripts\power-management.ps1 (function library excluded). |
+| 148 | `portable/automation-module.bat` | `scripts/py/automation-module-shim.py` | Shim -> scripts\automation-module.ps1 (t7 port exists). |
+| 149 | `portable/VSCode-ProcessMonitor.bat` | `scripts/py/VSCode-ProcessMonitor.py` | Shim -> VSCode-ProcessMonitor.ps1. |
+| 150 | `portable/normalize-bat-files.bat` | `scripts/py/normalize-bat-files-shim.py` | Shim -> tools\normalize-bat-files.ps1 (t6 port exists). |
+| 151 | `portable/startup-management.bat` | `scripts/py/startup-management-shim.py` | Shim -> scripts\startup-management.ps1 (module excluded). |
+| 152 | `portable/configure-xtu-hardware-based.bat` | `scripts/py/configure-xtu-hardware-based.py` | Shim -> config\overclocking\configure-xtu-hardware-based.ps1. |
+| 153 | `portable/apply-conservative-overclock.bat` | `scripts/py/apply-conservative-overclock.py` | Shim -> config\overclocking\apply-conservative-overclock.ps1. |
+| 154 | `portable/apply-overclock-programmatic.bat` | `scripts/py/apply-overclock-programmatic.py` | Shim -> config\overclocking\apply-overclock-programmatic.ps1. |
+| 155 | `portable/ollama-server-manager.bat` | `scripts/py/ollama-server-manager-shim.py` | Shim -> tools\ollama-server-manager.ps1 (module excluded). |
+| 156 | `portable/overclocking-manager.bat` | `scripts/py/overclocking-manager-shim.py` | Shim -> scripts\overclocking-manager.ps1 (t7 port exists). |
