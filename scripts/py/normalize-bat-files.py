@@ -72,6 +72,9 @@ def normalize(content: str, file_name: str) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--root", default=r"D:\DevOptimizer")
+    parser.add_argument("--flat", action="store_true",
+                        help="only process direct children of --root "
+                             "(mirrors the -fixed original)")
     parser.add_argument("--backup-dir",
                         default=r"backups\bat-fixes_20251004_103512")
     parser.add_argument("--dry-run", action="store_true")
@@ -82,11 +85,12 @@ def main() -> None:
     backup_root = Path(args.backup_dir)
     changed = skipped = failed = 0
 
-    for f in root.rglob("*.bat"):
+    it = root.glob("*.bat") if args.flat else root.rglob("*.bat")
+    for f in it:
         if str(backup_root) in str(f) or not f.is_file():
             continue
         try:
-            content = f.read_text(encoding="utf-8", errors="replace")
+            content = f.read_bytes().decode("utf-8", errors="replace")
             if len(content) < 10:
                 skipped += 1
                 continue
@@ -102,14 +106,16 @@ def main() -> None:
                 rel = f.relative_to(root)
                 backup = backup_root / rel
                 backup.parent.mkdir(parents=True, exist_ok=True)
-                backup.write_bytes(f.read_bytes())
-                f.write_text(new, encoding="utf-8", newline="")
+                if not backup.exists():
+                    backup.write_bytes(f.read_bytes())
+                f.write_bytes(new.encode("utf-8"))
         except OSError as e:
             failed += 1
             print(f"FAILED {f}: {e}", file=sys.stderr)
 
     print(f"normalized={changed} skipped={skipped} failed={failed}",
           file=sys.stderr)
+    sys.exit(1 if failed else 0)
 
 
 if __name__ == "__main__":
