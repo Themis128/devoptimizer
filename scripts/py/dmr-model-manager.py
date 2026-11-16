@@ -106,8 +106,9 @@ def get_models(container):
             m = re.search(
                 r'model\s*[:="\']?\s*([\w./-]+)',
                 line, re.IGNORECASE)
-            if m and not any(x["Id"] == m.group(1)
-                             for x in models):
+            if (m and "/" in m.group(1)
+                    and not any(x["Id"] == m.group(1)
+                                for x in models)):
                 models.append({"Id": m.group(1),
                                "OwnedBy": "docker.ai",
                                "Created": None,
