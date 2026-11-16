@@ -25,7 +25,7 @@ def main() -> None:
     home = os.environ.get("DEVOPT_HOME", r"D:\DevOptimizer")
     target = TARGET_PS1.replace("D:\DevOptimizer", home)
     if not os.path.exists(target):
-        print(f"[ERROR] PowerShell script not found: {D:\DevOptimizer\ps\Rollback-Changes.ps1}",
+        print(f"[ERROR] PowerShell script not found: {target}",
               file=sys.stderr)
         sys.exit(1)
     shell = "pwsh" if shutil.which("pwsh") else "powershell"
