@@ -468,3 +468,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 285 | `tools/Variants/error-handling-template-NoAdmin.bat` | `scripts/py/error-handling-template-noadmin.py` | Error-logging scaffold, standard mode. |
 | 286 | `tools/Variants/error-handling-template-Admin.bat` | `scripts/py/error-handling-template-admin.py` | Error-logging scaffold, admin gate. |
 | 287 | `tools/Variants/OPTIMIZE-TIMEOUT-DELAYS-NoAdmin.bat` | `scripts/py/optimize-timeout-delays-noadmin.py` | Rewrites `timeout /t N` -> `ping -n 2` in sibling .bat files with .backup. |
+
+## Phase 5 — full migration, tranche 25
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 288 | `tools/Variants/OPTIMIZE-TIMEOUT-DELAYS-Admin.bat` | `scripts/py/optimize-timeout-delays-admin.py` | Timeout rewriter; admin gate. |
+| 289 | `tools/Variants/performance-optimization-template-NoAdmin.bat` | `scripts/py/performance-optimization-template-noadmin.py` | Perf scaffold (log/progress/smart_wait/check_process), standard mode. |
+| 290 | `tools/Variants/performance-optimization-template-Admin.bat` | `scripts/py/performance-optimization-template-admin.py` | Perf scaffold, admin gate. |
+| 291 | `tools/Variants/advanced-error-handling-template-NoAdmin.bat` | `scripts/py/advanced-error-handling-template-noadmin.py` | Retry + system validation scaffold. |
+| 292 | `tools/Variants/advanced-error-handling-template-Admin.bat` | `scripts/py/advanced-error-handling-template-admin.py` | Same, admin gate. |
+| 293 | `tools/Variants/self-healing-system-template-NoAdmin.bat` | `scripts/py/self-healing-system-template-noadmin.py` | Health score + auto-recovery scaffold. |
+| 294 | `tools/Variants/self-healing-system-template-Admin.bat` | `scripts/py/self-healing-system-template-admin.py` | Same, admin gate. |
+| 295 | `tools/Variants/ollama-intelligent-optimizer-NoAdmin.bat` | `scripts/py/ollama-intelligent-optimizer-noadmin.py` | 7-mode menu driving ollama-batch-helper.bat. |
+| 296 | `tools/Variants/ollama-intelligent-optimizer-Admin.bat` | `scripts/py/ollama-intelligent-optimizer-admin.py` | Same, admin gate. |
+| 297 | `tools/Old-Launchers/DEVOPTIMIZER-WORKING-LAUNCHER.bat` | `scripts/py/devoptimizer-working-launcher.py` | Status check + 15-option menu to Old-Launchers .bat tools. |
+| 298 | `tools/Old-Launchers/DEVOPTIMIZER-UNIFIED-LAUNCHER.bat` | `scripts/py/devoptimizer-unified-launcher.py` | Admin/standard dual-mode menu launcher. |
+| 299 | `tools/ai-ml/install-dmr-gpu.ps1` | `scripts/py/install-dmr-gpu.py` | `docker model install-runner --backend llama.cpp --gpu cuda` + pass-through args. |
