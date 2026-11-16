@@ -46,8 +46,8 @@ def main():
     args = ap.parse_args()
 
     log(f"Maintenance tool: {args.tool_name}")
-    is_repair = re.search("Repair-Devin", args.tool_name)
-    is_fix_bundle = re.search("FixBundle", args.tool_input)
+    is_repair = re.search("Repair-Devin", args.tool_name, re.IGNORECASE)
+    is_fix_bundle = re.search("FixBundle", args.tool_input, re.IGNORECASE)
     if is_repair and is_fix_bundle and proc_running("Devin"):
         log("DEFER: -FixBundle requested but Devin is running")
         emit("approve", additionalContext=(
