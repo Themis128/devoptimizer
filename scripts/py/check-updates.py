@@ -15,7 +15,6 @@ import sys
 
 
 def main():
-    _ensure_admin()
     ps = r"""
 $session = New-Object -ComObject Microsoft.Update.Session
 $searcher = $session.CreateUpdateSearcher()
@@ -31,6 +30,7 @@ $out = [PSCustomObject]@{
         }
     })
 }
+if ($null -eq $result) { exit 5 }
 $out | ConvertTo-Json -Depth 4
 """
     r = subprocess.run(
@@ -40,8 +40,9 @@ $out | ConvertTo-Json -Depth 4
         print(r.stderr or "update search failed",
               file=sys.stderr)
         return r.returncode
-    data = json.loads(r.stdout) if r.stdout.strip() \
-        else {"Pending": 0, "Updates": []}
+    raw = r.stdout.strip()
+    data = (json.loads(raw) if raw else None) \
+        or {"Pending": 0, "Updates": []}
     if "--json" in sys.argv:
         print(json.dumps(data, indent=2))
         return 0
