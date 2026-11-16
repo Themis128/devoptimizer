@@ -103,6 +103,9 @@ def get_models(container):
         for line in ((lr.stdout if lr else "").splitlines()):
             if not re.search(r"\bload", line, re.IGNORECASE):
                 continue
+            if re.search(r"fail|error|unable|denied|abort",
+                         line, re.IGNORECASE):
+                continue
             m = re.search(
                 r'model\s*[:="\']?\s*([\w./-]+)',
                 line, re.IGNORECASE)
