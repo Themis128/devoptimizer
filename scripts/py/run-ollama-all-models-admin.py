@@ -33,7 +33,16 @@ def main():
         return 0
     prompt = argv[1] if argv[0] == "-prompt" and len(argv) > 1 \
         else argv[0]
-    ps = shutil.which("pwsh") or shutil.which("powershell")
+    try:
+        needs7 = any(t in PS1.read_text(
+            encoding="utf-8", errors="replace")
+            for t in ("-AsHashtable", "??", ".Where("))
+    except OSError:
+        needs7 = False
+    order = ("pwsh", "powershell") if needs7 \
+        else ("powershell", "pwsh")
+    ps = next((shutil.which(h) for h in order
+               if shutil.which(h)), None)
     if not ps:
         print("ERROR: Neither pwsh nor powershell found in PATH",
               file=sys.stderr)
