@@ -34,7 +34,7 @@ def main() -> None:
 
     otter_exe = os.path.join(
         os.environ.get("LOCALAPPDATA", ""),
-        r"Programs\@otter-ai\desktop-app", "Otter.exe")
+        r"Programs\@otter-aidesktop-app", "Otter.exe")
     launcher = Path(__file__).resolve().parent.parent / "Start-OtterDesktop.ps1"
 
     if args.unregister:
@@ -48,10 +48,14 @@ def main() -> None:
         return
 
     if args.register:
+        # conhost --headless action: the headless-rewrapper skips conhost
+        # actions, so emit the portable pwsh path directly when it exists.
         ps = (
-            f"$action = New-ScheduledTaskAction -Execute 'powershell.exe' "
-            f"-Argument \"-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass "
-            f"-File `\"{launcher}`\"\"; "
+            "$sh = 'D:\\DevOptimizer\\pwsh\\pwsh.exe'; "
+            "if (-not (Test-Path $sh)) { $sh = 'powershell.exe' }; "
+            f"$action = New-ScheduledTaskAction -Execute 'conhost.exe' "
+            f"-Argument '--headless ' + $sh + ' -NoProfile -ExecutionPolicy Bypass "
+            f"-File \"{launcher}\"'; "
             "$trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME; "
             f"Register-ScheduledTask -TaskName '{TASK_NAME}' -Action $action "
             "-Trigger $trigger -Description 'Launch Otter desktop with CDP "
