@@ -55,9 +55,12 @@ async def elevate(ps_body: str) -> int:
         tmp = f.name
     try:
         esc = tmp.replace("'", "''")
+        # quote the -File path: ArgumentList items join with spaces, so a
+        # spaced %TEMP% path would be split without embedded quotes.
         r = await run_ps_command(
             "$p = Start-Process powershell -Verb RunAs -Wait -PassThru "
-            f"-ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','{esc}'; "
+            "-ArgumentList '-NoProfile','-ExecutionPolicy','Bypass',"
+            f"'-File','\"{esc}\"'; "
             "exit $p.ExitCode")
         return r.returncode
     finally:

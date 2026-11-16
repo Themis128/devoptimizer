@@ -15,6 +15,11 @@ from pathlib import Path
 HUB = Path(r"D:\DevOptimizer")
 KEEP_LAUNCHERS = {"DEVOPTIMIZER-HUB.bat",
                   "DEVOPTIMIZER-COMPREHENSIVE-LAUNCHER.bat"}
+# Root files the hub/app pipeline depends on — moving them breaks the
+# registry build (Discover/Build) and command execution
+# (Execute-Command.ps1 is loaded from the root by CommandRunnerService).
+KEEP_ROOT = {"Execute-Command.ps1", "Discover-Scripts.ps1",
+             "Build-Registry.ps1"} | KEEP_LAUNCHERS
 SUBFOLDERS = ["Backups", "Documentation", "Logs", "Scripts", "Tools",
               "tools/Variants", "tools/Old-Launchers"]
 
@@ -28,10 +33,10 @@ def moves(hub: Path):
                      ("*-NoAdmin.bat", "tools/Variants"),
                      ("-*.bat", "tools/Old-Launchers")]:
         for f in hub.glob(pat):
-            if f.is_file():
+            if f.is_file() and f.name not in KEEP_ROOT:
                 yield f, hub / dst
     for f in hub.glob("*LAUNCHER*.bat"):
-        if f.is_file() and f.name not in KEEP_LAUNCHERS:
+        if f.is_file() and f.name not in KEEP_ROOT:
             yield f, hub / "tools/Old-Launchers"
 
 
@@ -54,6 +59,9 @@ def main() -> None:
         if not src.exists():
             continue
         target = dst / src.name
+        if target.exists():
+            print(f"skip (exists): {target}", file=sys.stderr)
+            continue
         if args.dry_run:
             print(f"[dry-run] move {src} -> {target}")
         else:
