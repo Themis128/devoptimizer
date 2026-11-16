@@ -286,3 +286,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 130 | `portable/copy-to-desktop.bat` | `scripts/py/copy-to-desktop.py` | Shim -> copy-to-desktop.ps1. |
 | 131 | `portable/ollama-rest.bat` | `scripts/py/ollama-rest-shim.py` | Shim -> modules\ollama-rest.ps1 (module excluded from migration). |
 | 132 | `portable/ollama-utils.bat` | `scripts/py/ollama-utils-shim.py` | Shim -> tools\ollama-utils.ps1 (module excluded). |
+
+## Phase 5 — full migration, tranche 12 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 133 | `portable/save-msi-config.bat` | `scripts/py/save-msi-config.py` | Shim -> save-msi-config.ps1. |
+| 134 | `portable/CREATE-CORRECT-DESKTOP-SHORTCUT.bat` | `scripts/py/CREATE-CORRECT-DESKTOP-SHORTCUT.py` | Shim -> CREATE-CORRECT-DESKTOP-SHORTCUT.ps1. |
+| 135 | `portable/apply-and-document-overclocking.bat` | `scripts/py/apply-and-document-overclocking.py` | Shim -> apply-and-document-overclocking.ps1. |
+| 136 | `portable/sync-bat-ps1.bat` | `scripts/py/sync-bat-ps1.py` | Shim -> scripts\sync-bat-ps1.ps1. |
+| 137 | `portable/configure-overclocking.bat` | `scripts/py/configure-overclocking.py` | Shim -> config\overclocking\configure-overclocking.ps1. |
+| 138 | `portable/configure-overclocking-automated.bat` | `scripts/py/configure-overclocking-automated.py` | Shim -> configure-overclocking-automated.ps1. |
+| 139 | `portable/configure-xtu-advanced.bat` | `scripts/py/configure-xtu-advanced.py` | Shim -> config\overclocking\configure-xtu-advanced.ps1. |
+| 140 | `portable/apply-all-overclock-cli.bat` | `scripts/py/apply-all-overclock-cli.py` | Shim -> config\overclocking\apply-all-overclock-cli.ps1. |
+| 141 | `portable/playwright-helpers.bat` | `scripts/py/playwright-helpers.py` | Shim -> playwright-helpers.ps1. |
+| 142 | `portable/VSCode-AutoMonitor.bat` | `scripts/py/VSCode-AutoMonitor.py` | Shim -> VSCode-AutoMonitor.ps1. |
+| 143 | `portable/configure-xtu-v7.14.2.67.bat` | `scripts/py/configure-xtu-v7.14.2.67.py` | Shim -> config\overclocking\configure-xtu-v7.14.2.67.ps1. |
+| 144 | `portable/create-and-apply-profile.bat` | `scripts/py/create-and-apply-profile.py` | Shim -> config\overclocking\create-and-apply-profile.ps1. |
