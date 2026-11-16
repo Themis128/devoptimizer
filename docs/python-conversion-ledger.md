@@ -425,3 +425,18 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 250 | `scripts/admin-cleanup-elevated-robust.ps1` | `scripts/py/admin-cleanup-elevated-robust.py` | 9-section robust suite, continues on failure. |
 | 251 | `scripts/admin-cleanup-system.ps1` | `scripts/py/admin-cleanup-system.py` | SYSTEM variant; Send-DevOptAlert on failures. |
 | 252 | `scripts/mcp-devoptimizer-server.ps1` | `scripts/py/mcp-devoptimizer-server.py` | Stdio JSON-RPC MCP 2024-11-05; 7 devin_* tools. |
+| 253 | `scripts/check-cleanup-status.ps1` | `scripts/py/check-cleanup-status.py` | Read-only cleanable-space assessment + verdict. |
+| 254 | `scripts/elevated-complete-cleanup.ps1` | `scripts/py/elevated-complete-cleanup.py` | VHDX compaction + DISM/SFC/WU/DO/shadow/Windows.old orchestrator. |
+| 255 | `scripts/devoptimizer-housekeeping.ps1` | `scripts/py/devoptimizer-housekeeping.py` | Repo housekeeping: archive stale reports, NT-name quarantine via Git Bash, check-broken-refs, optional --prune-docker. |
+| 256 | `scripts/windows-features.ps1` | `scripts/py/windows-features.py` | status/enable/disable/profile subcommands over WindowsOptionalFeature. |
+| 257 | `scripts/wsl-resource-balancer.ps1` | `scripts/py/wsl-resource-balancer.py` | Meminfo pressure -> tiered docker memory/restart limits + drop_caches. |
+| 258 | `scripts/wsl-guardian.ps1` | `scripts/py/wsl-guardian.py` | T1/T2/T3 self-healing ladder, state.json cooldowns, deploy-lock, ntfy. |
+| 259 | `scripts/extended-cleanup.ps1` | `scripts/py/extended-cleanup.py` | 7-section user-level cache/log cleanup with per-section day thresholds. |
+| 260 | `scripts/FIXED-SYSTEM-DEEP-CLEAN.ps1` | `scripts/py/fixed-system-deep-clean.py` | 12-step system clean (temps, caches, WU, prefetch, event logs, cleanmgr). |
+| 261 | `scripts/admin-cleanup-elevated.ps1` | `scripts/py/admin-cleanup-elevated.py` | Sections 0-7 incl. docker_data.vhdx compact, --shutdown-wsl/--skip-vhdx. |
+| 262 | `scripts/check-wsl-memory-pressure.ps1` | `scripts/py/check-wsl-memory-pressure.py` | Swap watchdog (1003/1004 events, drop_caches, DD restart) + elevated piggyback lanes. |
+| 263 | `scripts/dev-cleanup.ps1` | `scripts/py/dev-cleanup.py` | Interactive dev cleanup: processes, caches, ports, WSL, Cline; --yes/--aggressive. |
+
+## Exclusions (tranche 22)
+
+- `scripts/DevOptimizer-Core.ps1` — shared PowerShell module (logging/config helpers consumed by other scripts), not a runnable command; Python equivalent already exists as `py/devoptimizer_cli`.
