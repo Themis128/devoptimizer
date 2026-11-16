@@ -608,3 +608,14 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 429 | `tools/Variants/ENHANCED-SYSTEM-DIAGNOSTICS-NoAdmin.bat` | `scripts/py/enhanced-system-diagnostics-noadmin.py` | t36 | `python3 scripts/py/enhanced-system-diagnostics-noadmin.py` | 12-option diagnostics menu -> Desktop/DevOptimizer/Diagnostics |
 | 430 | `tools/Variants/ENHANCED-SYSTEM-DIAGNOSTICS-Admin.bat` | `scripts/py/enhanced-system-diagnostics-admin.py` | t36 | `python3 scripts/py/enhanced-system-diagnostics-admin.py` | admin variant + REQUIRES marker |
 | - | `scripts/security-functions.ps1` | (excluded) | t36 | - | module-style function library, not a runnable command |
+| 431 | check-host-memory.ps1 | scripts/py/check-host-memory.py |
+| 432 | git-pr-check.ps1 | scripts/py/git-pr-check.py |
+| 433 | cleanup-wsl-swap-orphans.ps1 | scripts/py/cleanup-wsl-swap-orphans.py |
+| 434 | bound-container-logs.ps1 | scripts/py/bound-container-logs.py |
+| 435 | popup-flash-watch.ps1 | scripts/py/popup-flash-watch.py |
+| 436 | sync-docker-wsl.ps1 | scripts/py/sync-docker-wsl.py |
+| 437 | backup-docker-nas.ps1 | scripts/py/backup-docker-nas.py |
+| 438 | wsl-permanent-fix.ps1 | scripts/py/wsl-permanent-fix.py |
+| 439 | dmr-model-manager.ps1 | scripts/py/dmr-model-manager.py |
+| 440 | Verify-CommandMatrix.ps1 | scripts/py/verify-commandmatrix.py |
+| 441 | compact-wsl-vhdx.ps1 | scripts/py/compact-wsl-vhdx.py |
