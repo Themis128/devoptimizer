@@ -41,7 +41,6 @@ def main() -> None:
                     except OSError:
                         continue
             else:
-                dirs[:] = [d for d in dirs if d != "node_modules"]
                 for name in files:
                     try:
                         m = (Path(dirpath) / name).stat().st_mtime
