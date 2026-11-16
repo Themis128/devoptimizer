@@ -354,3 +354,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 178 | `tools/Variants/03-Install-Dev-Tools-Admin.bat` | `scripts/py/install-dev-tools-admin.py` | Same as NoAdmin variant (admin :checkAdmin tail is dead code); delegates via importlib. |
 | 179 | `portable/create-desktop-shortcut-admin.bat` | `scripts/py/create-desktop-shortcut-admin-shim.py` | Shim -> create-desktop-shortcut-admin.ps1. |
 | 180 | `portable/apply-overclock-admin.bat` | `scripts/py/apply-overclock-admin.py` | Shim -> config\overclocking\apply-overclock-admin.ps1. |
+
+## Phase 5 — full migration, tranche 16 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 181 | `tools/Variants/OPEN-UI-NEW-WINDOW-Admin.bat` | `scripts/py/open-ui-new-window.py` | Menu -> start-in-new-window launchers; `--admin` = the admin variant's elevation check. |
+| 182 | `tools/standard-admin-helpers.bat` | — | Excluded: function library (checkAdmin helpers), no entrypoint. |
+| 183 | `tools/Variants/OPEN-UI-NEW-WINDOW-NoAdmin.bat` | `scripts/py/open-ui-new-window.py` | Same port; standard mode is the default. |
+| 184 | `tools/Variants/QUICK-UI-ACCESS-NoAdmin.bat` | `scripts/py/quick-ui-access.py` | Shared launcher menu via importlib; `--admin` variant. |
+| 185 | `tools/Variants/QUICK-UI-ACCESS-Admin.bat` | `scripts/py/quick-ui-access.py` | Same port with `--admin`. |
+| 186 | `tools/Variants/00-SETUP-GLOBAL-ACCESS-NoAdmin.bat` | `scripts/py/setup-global-access.py` | HKLM system-PATH append; self-checks admin and exits like NoAdmin variant. |
+| 187 | `tools/Variants/QUICK-GLOBAL-SETUP-NoAdmin.bat` | `scripts/py/quick-global-setup.py` | setx PATH + desktop shortcut + %USERPROFILE%\bin global launchers + bin on PATH; --dry-run. |
+| 188 | `scripts/organize-files.bat` | `scripts/py/organize-files.py` | Moves backups/docs/logs/ps1/-Admin/-NoAdmin/launcher files into hub subfolders; keeps DEVOPTIMIZER-HUB + COMPREHENSIVE-LAUNCHER. |
+| 189 | `tools/ollama-batch-helper.bat` | `scripts/py/ollama-batch-helper.py` | Unique logs/ollama-<ts> dir, runs run-ollama-all.ps1, copies aggregate.md to -output. |
+| 190 | `tools/Variants/00-SETUP-GLOBAL-ACCESS-Admin.bat` | `scripts/py/setup-global-access.py` | Same port (admin check is the whole variant difference). |
+| 191 | `tools/Variants/QUICK-GLOBAL-SETUP-Admin.bat` | `scripts/py/quick-global-setup.py` | Same port (`--admin` label only; actions identical). |
+| 192 | `tools/Variants/CREATE-DESKTOP-SHORTCUTS-NoAdmin.bat` | `scripts/py/create-desktop-shortcuts.py` | 5 WScript.Shell .lnk files via COM. |
