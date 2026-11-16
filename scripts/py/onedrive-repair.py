@@ -18,6 +18,7 @@ from pathlib import Path
 # TAGS: onedrive, reparse, repair
 
 FILE_ATTRIBUTE_REPARSE_POINT = 0x400
+FILE_ATTRIBUTE_DIRECTORY = 0x10
 
 
 def log(msg, log_file=None):
@@ -47,12 +48,22 @@ def ensure_cloud_files_filter(lf):
     return False
 
 
-def _is_reparse(path):
+def _attrs(path):
     try:
-        attrs = ctypes.windll.kernel32.GetFileAttributesW(str(path))
-        return attrs != -1 and bool(attrs & FILE_ATTRIBUTE_REPARSE_POINT)
+        return ctypes.windll.kernel32.GetFileAttributesW(str(path))
     except Exception:
-        return False
+        return -1
+
+
+def _is_reparse(path):
+    a = _attrs(path)
+    return a != -1 and bool(a & FILE_ATTRIBUTE_REPARSE_POINT)
+
+
+def _is_dir_reparse(path):
+    a = _attrs(path)
+    return (a != -1 and bool(a & FILE_ATTRIBUTE_DIRECTORY)
+            and bool(a & FILE_ATTRIBUTE_REPARSE_POINT))
 
 
 def scan_broken(root, lf):
@@ -70,8 +81,12 @@ def scan_broken(root, lf):
     log(f"[INFO] Found {len(reparse)} reparse points", lf)
     for p in reparse:
         try:
-            os.stat(p)
-            list(p.iterdir()) if p.is_dir() else p.read_bytes()[:0]
+            os.stat(p)  # follows the link; fails when target gone
+            if _is_dir_reparse(p):
+                next(iter(p.iterdir()), None)
+            else:
+                with open(p, "rb") as fh:
+                    fh.read(1)
         except OSError:
             broken.append(p)
             log(f"[WARNING] Broken reparse point detected: {p}", lf)
@@ -87,10 +102,11 @@ def quarantine(item, qdir, lf):
     while dest.exists():
         dest = qdir / f"{item.stem}-{i}{item.suffix}"
         i += 1
+    was_dir = _is_dir_reparse(item) or item.is_dir()
     try:
         shutil.move(str(item), str(dest))
         log(f"[SUCCESS] Quarantined: {item} -> {dest}", lf)
-        if item.is_dir() or _is_reparse(item):
+        if was_dir:
             try:
                 item.mkdir(parents=True, exist_ok=True)
                 log(f"[INFO] Recreated directory placeholder: {item}",
@@ -133,11 +149,22 @@ def main():
 
     paths = []
     tp = Path(args.target_path)
-    if tp.is_dir():
+    if args.target_path.upper() == "ALL":
+        prof = Path(os.environ.get("USERPROFILE", ""))
+        one = prof / "OneDrive"
+        if one.is_dir():
+            paths.append(one)
+        paths.extend(d for d in sorted(prof.glob("OneDrive - *"))
+                     if d.is_dir())
+        if not paths:
+            log("[ERROR] No OneDrive roots found under "
+                f"{prof}", lf)
+            return 1
+    elif tp.is_dir():
         paths.append(tp)
-    for d in sorted(tp.parent.glob("OneDrive - *")):
-        if d.is_dir():
-            paths.append(d)
+    else:
+        log(f"[ERROR] Target path not found: {tp}", lf)
+        return 1
     log(f"[INFO] Processing {len(paths)} OneDrive account(s)", lf)
 
     for path in paths:

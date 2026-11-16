@@ -17,8 +17,8 @@ from pathlib import Path
 # TAGS: nvidia, pair, ollama, setup
 
 PAIR_EXE = r"C:\Program Files\PAIR\PAIR.exe"
-PAIR_DATA_ROOT = os.environ.get(
-    "LOCALAPPDATA", "") + r"\Programs\PAIR"
+PAIR_DATA_ROOT = str(Path(os.environ.get(
+    "LOCALAPPDATA", "")) / "Nvidia Corporation" / "Personal AI Router")
 ENGINE_OLLAMA_EXE = str(Path(PAIR_DATA_ROOT) / "engine-bin"
                         / "ollama" / "ollama.exe")
 OLLAMA_RUNTIME = "http://127.0.0.1:11435"

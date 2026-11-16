@@ -25,8 +25,13 @@ $settings = New-ScheduledTaskSettingsSet -WakeToRun -StartWhenAvailable `
     -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
     -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 30) -MultipleInstances IgnoreNew
-Register-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Devin-Daily-Maintenance' -Action $action -Trigger $trigger -Settings $settings -Force | Out-Null
+try {
+Register-ScheduledTask -TaskPath '\DevOptimizer\' -TaskName 'Devin-Daily-Maintenance' -Action $action -Trigger $trigger -Settings $settings -Force -ErrorAction Stop | Out-Null
 Write-Host "Registered"
+} catch {
+Write-Error $_.Exception.Message
+exit 1
+}
 '''  # noqa: E501
 
 REMOVE_PS = ("Unregister-ScheduledTask -TaskPath '\\DevOptimizer\\' "
