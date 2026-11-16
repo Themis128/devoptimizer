@@ -1,7 +1,9 @@
 """Register the BAT-Sync task + startup launcher (Python port of register-bat-sync-task.ps1).
 
 Registers a daily 03:00 LIMITED scheduled task running sync-bat-ps1.ps1
-and drops a .cmd launcher in the Startup folder. Mutating.
+under a headless conhost action and drops a hidden wscript .vbs launcher
+in the Startup folder (visible .cmd windows at logon are banned).
+Mutating.
 """
 
 import argparse
@@ -23,7 +25,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--root", default=r"D:\DevOptimizer")
     parser.add_argument("--task-name", default="DevOptimizer\\BAT-Sync")
-    parser.add_argument("--launcher-name", default="DevOptimizer-BAT-Sync.cmd")
+    parser.add_argument("--launcher-name", default="DevOptimizer-BAT-Sync.vbs")
     parser.add_argument("--dry-run", action="store_true",
                         help="Describe actions without applying them")
     args = parser.parse_args()
@@ -33,17 +35,23 @@ def main() -> None:
 
     ps = (
         f"if (-not (Test-Path '{sync_script}')) {{ Write-Error 'sync script missing'; exit 1 }}; "
-        "$exec = (Get-Command pwsh -ErrorAction SilentlyContinue).Source; "
-        "if (-not $exec) { $exec = (Get-Command powershell -ErrorAction SilentlyContinue).Source }; "
-        "if (-not $exec) { Write-Error 'no powershell'; exit 1 }; "
-        f"$command = '\"' + $exec + '\" -NoProfile -ExecutionPolicy Bypass -File \"{sync_script}\"'; "
+        "$exec = 'D:\\DevOptimizer\\pwsh\\pwsh.exe'; "
+        "if (-not (Test-Path $exec)) { "
+        "  $exec = (Get-Command pwsh -ErrorAction SilentlyContinue).Source; "
+        "  if (-not $exec) { $exec = 'powershell.exe' } "
+        "}; "
+        # headless action (rewrapper skips conhost actions)
+        f"$command = 'conhost.exe --headless \"' + $exec + '\" -NoProfile -ExecutionPolicy Bypass -File \"{sync_script}\"'; "
         f"& schtasks.exe /Delete /TN '{args.task_name}' /F 2>$null | Out-Null; "
         f"& schtasks.exe /Create /TN '{args.task_name}' /TR $command /SC DAILY "
         "/ST 03:00 /RL LIMITED /F; "
         "if ($LASTEXITCODE -ne 0) { Write-Error \"schtasks failed $LASTEXITCODE\"; exit 1 }; "
         "$startup = [Environment]::GetFolderPath('Startup'); "
+        "if (-not (Test-Path $startup)) { Write-Error 'no startup folder'; exit 1 }; "
+        # hidden wscript launcher, same shape as install-startup-launchers.ps1
         f"Set-Content -Path (Join-Path $startup '{args.launcher_name}') "
-        "-Value \"@echo off`r`ncall `\"D:\\DevOptimizer\\portable\\sync-bat-ps1.bat`\"`r`n\" "
+        "-Value \"CreateObject(`\"Wscript.Shell`\").Run `\"`\"`\""
+        "D:\\DevOptimizer\\portable\\sync-bat-ps1.bat`\"`\"`\", 0, False\" "
         "-Encoding ASCII; "
         "Write-Output 'DONE'"
     )
