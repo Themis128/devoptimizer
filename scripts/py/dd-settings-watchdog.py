@@ -45,11 +45,16 @@ def alert(sev, title, msg, eid):
     notify = Path(__file__).resolve().parents[1] / "lib" \
         / "Notify.ps1"
     if notify.exists():
+        env = dict(os.environ,
+                   DEVOPT_ALERT_TITLE=title,
+                   DEVOPT_ALERT_MSG=msg)
         subprocess.run(
             ["powershell", "-NoProfile", "-Command",
              f'. "{notify}"; Send-DevOptAlert -Severity {sev} '
-             f'-Title "{title}" -Message "{msg}" '
-             f"-EventId {eid}"], capture_output=True)
+             '-Title $env:DEVOPT_ALERT_TITLE '
+             '-Message $env:DEVOPT_ALERT_MSG '
+             f"-EventId {eid}"],
+            capture_output=True, env=env)
 
 
 def current_state():

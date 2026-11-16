@@ -46,6 +46,26 @@ def ps_json(cmd):
         return None
 
 
+def parse_boot(raw):
+    """Return uptime timedelta or None.
+
+    Handles ISO strings (pwsh) and /Date(<ms>)/ emitted by
+    Windows PowerShell ConvertTo-Json.
+    """
+    try:
+        text = str(raw)
+        dm = re.search(r"/Date\((-?\d+)\)/", text)
+        if dm:
+            boot = datetime.fromtimestamp(
+                int(dm.group(1)) / 1000)
+            return datetime.now() - boot
+        return (datetime.now()
+                - datetime.fromisoformat(
+                    text.split(".")[0].split("+")[0]))
+    except Exception:
+        return None
+
+
 def get_metrics():
     m = {}
     m["cpu"] = counter(r"\Processor(_Total)\% Processor Time")
@@ -60,13 +80,8 @@ def get_metrics():
             m["mem"] = round((tot - free) / tot * 100, 2)
             m["mem_avail"] = round(free / 2**20, 2)
             m["mem_total"] = round(tot / 2**20, 2)
-        try:
-            boot = datetime.fromisoformat(
-                str(osinfo["LastBootUpTime"])
-                .split(".")[0].split("+")[0])
-            m["uptime"] = datetime.now() - boot
-        except Exception:
-            m["uptime"] = None
+        m["uptime"] = parse_boot(
+            osinfo.get("LastBootUpTime"))
     disk = ps_json(
         "Get-CimInstance Win32_LogicalDisk -Filter "
         "\"DeviceID='C:'\" | Select-Object Size,FreeSpace "
@@ -187,7 +202,31 @@ def main():
     ap.add_argument("-Output", default="performance-report.html")
     a = ap.parse_args()
     if a.Mode == "metrics":
-        print(json.dumps(get_metrics(), indent=2, default=str))
+        m = get_metrics()
+        u = m.get("uptime")
+        out = {
+            "CPU_Usage": m.get("cpu"),
+            "Memory_Usage": m.get("mem"),
+            "Memory_Available": m.get("mem_avail"),
+            "Memory_Total": m.get("mem_total"),
+            "Disk_Usage": m.get("disk"),
+            "Disk_Free": m.get("disk_free"),
+            "Disk_Total": m.get("disk_total"),
+            "Network_Sent": m.get("net_sent"),
+            "Network_Received": m.get("net_recv"),
+            "Process_Count": m.get("processes"),
+            "Thread_Count": m.get("threads"),
+            "Top_Processes": m.get("top"),
+            "Temperature": m.get("temp"),
+            "Uptime": ({
+                "Days": u.days,
+                "Hours": u.seconds // 3600,
+                "Minutes": (u.seconds % 3600) // 60,
+                "Seconds": u.seconds % 60,
+                "TotalSeconds": u.total_seconds(),
+            } if u else None),
+        }
+        print(json.dumps(out, indent=2))
         return 0
     if a.Mode == "report":
         report(a.Output)

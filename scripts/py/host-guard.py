@@ -87,7 +87,10 @@ def avail_mb():
         m.dwLength = ctypes.sizeof(m)
         ctypes.windll.kernel32.GlobalMemoryStatusEx(
             ctypes.byref(m))
-        return int(m.ullAvailPhys // 2**20), int(m.dwMemoryLoad)
+        avail = int(m.ullAvailPhys // 2**20)
+        commit = (int(round(100 * (1 - m.ullAvailPageFile / m.ullTotalPageFile)))
+                  if m.ullTotalPageFile else 0)
+        return avail, commit
     except Exception:
         return -1, -1
 
@@ -262,7 +265,7 @@ def main():
         time.sleep(120)
         names = run(["docker", "ps", "-a", "--filter",
                      "status=exited", "--format", "{{.Names}}"])
-        for c in (names.stdout or "").splitlines():
+        for c in ((names.stdout if names else "") or "").splitlines():
             c = c.strip()
             if not c:
                 continue
