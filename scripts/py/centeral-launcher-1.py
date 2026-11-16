@@ -274,8 +274,7 @@ def main():
     if len(sys.argv) > 1 and \
             sys.argv[1].lower().startswith("admin_"):
         # elevated re-launch: run the selected tool directly
-        execute_with_admin_check(sys.argv[1][6:], True)
-        return
+        return execute_with_admin_check(sys.argv[1][6:], True)
     while True:
         for k in sorted(TOOLS):
             print(f"  [{k:>2}] {TOOLS[k][1]}")
