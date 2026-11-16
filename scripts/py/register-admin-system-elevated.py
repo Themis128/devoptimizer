@@ -62,7 +62,7 @@ def main() -> None:
         sys.exit(result.returncode)
 
     print("SUCCESS: Admin-Cleanup-System task registered "
-          "(SYSTEM account, Highest run level)")
+          "(SYSTEM account, Highest run level)", file=sys.stderr)
     try:
         row = json.loads(result.stdout.strip())
     except json.JSONDecodeError:
