@@ -145,8 +145,23 @@ def show_status(args):
     print(f"{'container':<40} {'tier':<10} {'limit':<6} restart")
     for c in containers():
         t = tier_of(c["name"])
+        try:
+            r = subprocess.run(
+                ["docker", "inspect", "--format",
+                 "{{.HostConfig.Memory}} "
+                 "{{.HostConfig.RestartPolicy.Name}}", c["name"]],
+                capture_output=True, text=True, errors="replace")
+            parts = r.stdout.split()
+            mem = int(parts[0]) if parts else 0
+            actual_mem = (f"{mem // 2**30}g" if mem >= 2**30
+                          else ("unlimited" if mem == 0
+                                else f"{mem}B"))
+            actual_rst = parts[1] if len(parts) > 1 else "?"
+        except (OSError, ValueError):
+            actual_mem = actual_rst = "?"
         print(f"{c['name']:<40} {t:<10} {TIER_LIMITS[t]:<6} "
-              f"{TIER_RESTART[t]}")
+              f"{TIER_RESTART[t]:<13} actual: {actual_mem} / "
+              f"{actual_rst}")
 
 
 def main() -> None:
@@ -175,15 +190,18 @@ def main() -> None:
         elif p["isPressure"]:
             reclaim(args.dry_run)
 
+    did = False
+    if args.apply_limits:
+        apply_limits(args.dry_run)
+        did = True
+    if args.reclaim_memory:
+        reclaim(args.dry_run)
+        did = True
     if args.monitor:
         while True:
             tick()
             time.sleep(args.interval)
-    elif args.apply_limits:
-        apply_limits(args.dry_run)
-    elif args.reclaim_memory:
-        reclaim(args.dry_run)
-    else:
+    elif not did:
         show_status(args)
 
 

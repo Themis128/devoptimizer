@@ -13,6 +13,7 @@ import argparse
 import asyncio
 import ctypes
 import shutil
+import time
 import subprocess
 import sys
 from pathlib import Path
@@ -22,6 +23,7 @@ sys.path.insert(0, str(_REPO_ROOT / "py"))
 
 from devoptimizer_cli.core.winops import run_ps_command  # noqa: E402
 
+# REQUIRES: admin
 # CATEGORY: cleanup
 # TAGS: windows11, elevated, vhdx, dism, sfc, orchestrator
 
@@ -143,7 +145,7 @@ def main() -> None:
             print("[dry-run] Delete-DeliveryOptimizationCache")
         else:
             r = asyncio.run(run_ps_command(
-                "try { Delete-DeliveryOptimizationCache "
+                "try { Delete-DeliveryOptimizationCache -Force "
                 "-ErrorAction Stop; '[3] CLEARED' } "
                 "catch { '[3] SKIPPED (' + "
                 "$_.Exception.Message.Split([char]10)[0] + ')' }",
@@ -171,6 +173,32 @@ def main() -> None:
             print(f"[5] Windows.old removed: -{gb(size)} GB")
         else:
             print("[5] Windows.old: not found")
+
+        print("\n--- [6] WER archives + crash dumps ---")
+        cutoff = time.time() - 30 * 86400
+        freed = 0
+        for dp in (r"C:\ProgramData\Microsoft\Windows\WER"
+                   r"\ReportArchive",
+                   r"C:\ProgramData\Microsoft\Windows\WER"
+                   r"\ReportQueue",
+                   r"C:\Windows\Minidump",
+                   r"C:\Windows\MEMORY.DMP"):
+            p = Path(dp)
+            if dry:
+                print(f"[dry-run] sweep {dp} (>30d)")
+                continue
+            if not p.exists():
+                continue
+            items = [p] if p.is_file() else [
+                f for f in p.rglob("*") if f.is_file()]
+            for f in items:
+                try:
+                    if f.stat().st_mtime < cutoff:
+                        freed += f.stat().st_size
+                        f.unlink()
+                except OSError:
+                    pass
+        print(f"[6] Crash dumps cleared: -{gb(freed)} GB")
 
         after = free_c()
         print("\n=== Admin Cleanup Summary ===")

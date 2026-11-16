@@ -192,7 +192,7 @@ def main() -> None:
             code = int(str(code).strip())
         except ValueError:
             code = 0
-        if code != 200:
+        if not (200 <= code < 400):
             st["deepFails"] = int(st["deepFails"]) + 1
             if st["t2Pending"]:
                 st["postT2Fails"] = int(st["postT2Fails"]) + 1
@@ -200,77 +200,8 @@ def main() -> None:
             log(f"deep FAIL http={code} "
                 f"consecutive={st['deepFails']} "
                 f"postT2={st['postT2Fails']}", "WARN")
-    else:
-        log(f"probe OK tick={st['tick']} "
-            f"deepFails={st['deepFails']} "
-            f"postT2={st['postT2Fails']}")
-
-    df = int(st["deepFails"])
-    if deep_fail and df >= args.t1_after:
-        locked = test_deploy_lock(args)
-        if (df >= args.t1_after and df < args.t2_after
-                and probe is True and not locked
-                and not cooled(st["lastT1"], args.t1_cooldown_min)):
-            log(f"T1 ACTION: in-distro repair {args.t1_repair_cmd} "
-                f"(fail #{df})", "WARN")
-            if not args.dry_run:
-                wsl_run(["bash", "-c", args.t1_repair_cmd],
-                        args.distro, 90)
-                st["lastT1"] = datetime.datetime.now().isoformat()
-        elif df < args.t2_after and probe is not True:
-            log(f"distro unreachable at fail #{df} - T1 skipped "
-                f"(needs reachable distro); T2 arms at fail "
-                f"#{args.t2_after}", "WARN")
-        elif (df >= args.t2_after and not st["t2Pending"]
-              and not locked
-              and not cooled(st["lastT2"], args.t2_cooldown_min)):
-            log(f"T2 ACTION: wsl --terminate {args.distro} "
-                f"(fail #{df})", "WARN")
-            if not args.dry_run:
-                notify(args.ntfy_topic,
-                       "wsl-guardian T2: terminating distro",
-                       f"{args.distro} terminated after {df} "
-                       "sustained failures. Containers recover via "
-                       "restart policies.")
-                wsl_admin(["--terminate", args.distro], 60)
-                import time
-                time.sleep(15)
-                wsl_run(["true"], args.distro, 30)
-                st["lastT2"] = datetime.datetime.now().isoformat()
-                st["deepFails"], st["postT2Fails"] = 0, 0
-                st["t2Pending"] = True
-        elif (st["t2Pending"]
-              and int(st["postT2Fails"]) >= args.t3_after
-              and not locked
-              and not cooled(st["lastT3"], args.t3_cooldown_min)):
-            log(f"T3 ACTION: wsl --shutdown (postT2 "
-                f"#{st['postT2Fails']}, post-T2 unrecovered)", "WARN")
-            if not args.dry_run:
-                notify(args.ntfy_topic, "wsl-guardian T3: VM bounce",
-                       f"wsl --shutdown after {st['postT2Fails']} "
-                       "post-terminate failures (T2 did not recover). "
-                       "Applies pending .wslconfig changes; containers "
-                       "recover via policies.")
-                wsl_admin(["--shutdown"], 120)
-                import time
-                time.sleep(15)
-                wsl_run(["true"], args.distro, 30)
-                time.sleep(30)
-                v = wsl_run(["bash", "-c", args.verify_cmd],
-                            args.distro, 60,
-                            str(STATE_DIR / "verify.txt"))
-                log(f"T3 verify: http={v}")
-                st["lastT3"] = datetime.datetime.now().isoformat()
-                st["deepFails"], st["postT2Fails"] = 0, 0
-                st["t2Pending"] = False
-        elif locked:
-            log(f"action suppressed: FRESH .deploy.lock "
-                f"(fail #{df})", "WARN")
         else:
-            log(f"action suppressed by cooldown (fail #{df})")
-
-    set_state(st)
-
-
-if __name__ == "__main__":
-    main()
+            st["deepFails"] = 0
+            st["postT2Fails"] = 0
+            st["t2Pending"] = False
+            log(f"deep OK http={code} - recovery counters reset")
