@@ -36,12 +36,15 @@ REPLACES = [
     ("Choose scoring mode:",
      "Choose scoring mode (using multi-model consensus analysis):"),
 ]
-HELPER = r'call "%~dp0tools\ollama-batch-helper.bat" -prompt "\1"' \
-    r' -output "\2"'
+def _helper(m):
+    return ('call "%~dp0tools\\ollama-batch-helper.bat" -prompt "'
+            + m.group(1) + '" -output "' + m.group(2) + '"')
+
+
 PATTERNS = [
-    (r'ollama run qwen2\.5-coder:7b "([^"]*)" > "([^"]*)"', HELPER),
-    (r'ollama run qwen2\.5:1\.5b "([^"]*)" > "([^"]*)"', HELPER),
-    (r'ollama run [^"]* "([^"]*)" > "([^"]*)"', HELPER),
+    r'ollama run qwen2\.5-coder:7b "([^"]*)" > "([^"]*)"',
+    r'ollama run qwen2\.5:1\.5b "([^"]*)" > "([^"]*)"',
+    r'ollama run [^"]* "([^"]*)" > "([^"]*)"',
 ]
 
 
@@ -67,8 +70,8 @@ def main():
             content = f.read_text(encoding="utf-8", errors="replace")
             for a, b in REPLACES:
                 content = content.replace(a, b)
-            for pat, rep in PATTERNS:
-                content = re.sub(pat, rep, content)
+            for pat in PATTERNS:
+                content = re.sub(pat, _helper, content)
             if not re.search(r"multi-model|Multi-Model|MULTI-MODEL",
                              content):
                 content = re.sub(

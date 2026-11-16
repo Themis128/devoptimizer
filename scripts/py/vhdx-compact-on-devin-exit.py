@@ -148,7 +148,6 @@ def fsbridge_bad():
 
 
 def main():
-    _ensure_admin()
     compacted_today = flag_today(STAMP)
     recent = []
     if REPAIR_LOG.exists():

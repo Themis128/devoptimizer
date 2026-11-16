@@ -71,7 +71,7 @@ def tailscale_peer():
             or not status.get("Peer"):
         return None, None
     for peer in status["Peer"].values():
-        if re.search(r"galaxy|s22", peer.get("HostName", "")) \
+        if re.search(r"galaxy|s22", peer.get("HostName", ""), re.I) \
                 or (peer.get("DNSName") or "").startswith(
                     "galaxy-s22."):
             return status, peer
@@ -79,7 +79,6 @@ def tailscale_peer():
 
 
 def main():
-    _ensure_admin()
     dry = "--dry-run" in sys.argv
     _, peer = tailscale_peer()
     status, peer = tailscale_peer()
