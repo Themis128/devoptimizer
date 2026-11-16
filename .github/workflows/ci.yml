@@ -95,9 +95,21 @@ jobs:
           $registry = Get-Content config/hub-registry.json -Raw -Encoding UTF8 | ConvertFrom-Json
           $cmdCount = $registry.commands.Count
           $missingDesc = ($registry.commands | Where-Object { -not $_.description -or $_.description.Trim() -eq '' }).Count
-          Write-Host "Commands: $cmdCount (expected 720)"
+<<<<<<< HEAD
+          Write-Host "Commands: $cmdCount (expected 726)"
+||||||| dc9af6d
+          Write-Host "Commands: $cmdCount (expected 726)"
+=======
+          Write-Host "Commands: $cmdCount (expected 726)"
+>>>>>>> devin/1794831933-python-migration-t18
           Write-Host "Missing descriptions: $missingDesc (expected 0)"
-          if ($cmdCount -ne 720) { throw "Command count mismatch: $cmdCount != 720" }
+<<<<<<< HEAD
+          if ($cmdCount -ne 726) { throw "Command count mismatch: $cmdCount != 726" }
+||||||| dc9af6d
+          if ($cmdCount -ne 726) { throw "Command count mismatch: $cmdCount != 726" }
+=======
+          if ($cmdCount -ne 726) { throw "Command count mismatch: $cmdCount != 726" }
+>>>>>>> devin/1794831933-python-migration-t18
           if ($missingDesc -ne 0) { throw "$missingDesc commands missing descriptions" }
 
   security-scan:
