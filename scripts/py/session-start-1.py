@@ -60,7 +60,7 @@ def main():
         r = run([pwsh, "-NoProfile", "-ExecutionPolicy",
                  "Bypass", "-WindowStyle", "Hidden",
                  "-File", str(QM), "-Action",
-                 "send-next"])
+                 "send-next"], timeout=None)
         rc = r.returncode if r else -1
         if rc == 0:
             ctx.append("\n[Queue] Next queued command "

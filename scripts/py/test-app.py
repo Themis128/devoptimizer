@@ -80,6 +80,7 @@ def main():
         "\"App tests: $($res.TotalCount) total, "
         "$($res.PassedCount) passed, "
         "$($res.FailedCount) failed\"; "
+        "if (-not $res) { exit 1 }; "
         "exit $res.FailedCount",
         timeout=3600)
     sys.stdout.write(r.stdout or "")

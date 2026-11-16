@@ -26,10 +26,13 @@ def main():
     msg = (f"Devin session "
            f"{(e or {}).get('session_id')} ended at "
            f"{datetime.now():%Y-%m-%d %H:%M}")
-    Q.mkdir(exist_ok=True)
-    with open(Q / "sessions.log", "a",
-              encoding="utf-8") as f:
-        f.write(msg + "\n")
+    try:
+        Q.mkdir(exist_ok=True)
+        with open(Q / "sessions.log", "a",
+                  encoding="utf-8") as f:
+            f.write(msg + "\n")
+    except OSError:
+        pass
     url = os.environ.get("DEVIN_WEBHOOK_URL")
     if url:
         try:
@@ -52,7 +55,7 @@ def main():
     if state.exists():
         try:
             json.loads(state.read_text(
-                encoding="utf-8"))
+                encoding="utf-8", errors="replace"))
             note = ("[Queue] Queue state verified and "
                     "persisted at session end")
         except Exception:
@@ -62,9 +65,12 @@ def main():
     else:
         note = ("[Queue] No queue state file at "
                 "session end")
-    with open(Q / "sessions.log", "a",
-              encoding="utf-8") as f:
-        f.write(note + "\n")
+    try:
+        with open(Q / "sessions.log", "a",
+                  encoding="utf-8") as f:
+            f.write(note + "\n")
+    except OSError:
+        pass
     return 0
 
 

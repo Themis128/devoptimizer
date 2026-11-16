@@ -7,6 +7,7 @@ key services, vmmemWSL working set, PRI-Driver start
 type.
 """
 
+import ctypes
 import re
 import shutil
 import subprocess
@@ -84,7 +85,10 @@ def main():
     print(f"WU RebootRequired key: {wu}  "
           f"CBS RebootPending key: {cbs}")
 
-    for letter in "CDEFG":
+    bitmask = ctypes.windll.kernel32.GetLogicalDrives()
+    letters = [chr(65 + i) for i in range(26)
+               if bitmask & (1 << i)]
+    for letter in letters:
         try:
             u = shutil.disk_usage(f"{letter}:\\")
             print(f"Drive {letter}: "
