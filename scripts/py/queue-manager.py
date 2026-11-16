@@ -57,19 +57,21 @@ def _write(q: dict) -> None:
     q["updated"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     tmp = QUEUE_FILE.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(q, indent=2), encoding="utf-8")
-    for attempt in range(5):
+    last_err = None
+    for attempt in range(20):
         try:
             os.replace(tmp, QUEUE_FILE)
             break
-        except OSError:
+        except OSError as e:
             # Windows: os.replace fails while a concurrent reader holds
-            # the queue file open; retry briefly before falling back.
-            if attempt == 4:
-                QUEUE_FILE.write_text(tmp.read_text(encoding="utf-8"),
-                                      encoding="utf-8")
-                tmp.unlink(missing_ok=True)
-            else:
-                time.sleep(0.05 * (attempt + 1))
+            # the queue file open. Retry briefly; never fall back to a
+            # non-atomic overwrite (a truncated write reads back as an
+            # empty queue and erases every pending command).
+            last_err = e
+            time.sleep(0.05 * (attempt + 1))
+    else:
+        tmp.unlink(missing_ok=True)
+        raise last_err
 
 
 def enqueue(command: str, working_dir: str, description: str) -> dict:
