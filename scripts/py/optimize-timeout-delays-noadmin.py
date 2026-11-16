@@ -18,6 +18,11 @@ from pathlib import Path
 # TAGS: optimization, batch, rewrite
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+# The original .bat scanned its own directory (tools/Variants).
+# Prefer that repo dir; fall back to the script's own dir.
+VARIANTS_DIR = SCRIPT_DIR.parents[1] / "tools" / "Variants"
+DEFAULT_SCAN_DIR = (VARIANTS_DIR if VARIANTS_DIR.is_dir()
+                    else SCRIPT_DIR)
 LOG_FILE = SCRIPT_DIR / "logs" / "timeout-optimization.log"
 HEADER = ":: Performance Optimized - No Timeout Delays"
 
@@ -54,7 +59,11 @@ def main() -> None:
         description=__doc__.splitlines()[0])
     ap.add_argument("--dry-run", action="store_true",
                     help="scan and report only, no writes")
+    ap.add_argument("--dir", default=str(DEFAULT_SCAN_DIR),
+                    help="directory of .bat files to optimize "
+                    "(default: tools/Variants, else script dir)")
     args = ap.parse_args()
+    scan_dir = Path(args.dir)
 
     print("=" * 64)
     print("                TIMEOUT DELAY OPTIMIZER")
@@ -64,7 +73,7 @@ def main() -> None:
     log("Starting timeout delay optimization")
 
     total = optimized = 0
-    for bat in sorted(SCRIPT_DIR.glob("*.bat")):
+    for bat in sorted(scan_dir.glob("*.bat")):
         total += 1
         try:
             text = bat.read_text(encoding="utf-8", errors="replace")

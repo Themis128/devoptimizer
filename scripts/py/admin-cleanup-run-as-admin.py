@@ -96,7 +96,12 @@ def main() -> None:
     print("\n[5/5] Windows.old folder...")
     wo = Path(r"C:\Windows.old")
     if wo.is_dir():
-        shutil.rmtree(wo, ignore_errors=True)
+        print("Found Windows.old - removing (this may take a "
+              "while)...")
+        run(["takeown", "/f", r"C:\Windows.old", "/r", "/d", "y"])
+        run(["icacls", r"C:\Windows.old", "/grant",
+             "administrators:F", "/t", "/c", "/q"])
+        run(["cmd", "/c", "rd", "/s", "/q", r"C:\Windows.old"])
         print("Windows.old removed." if not wo.is_dir()
               else "Windows.old partially removed (files locked).")
     else:
