@@ -126,3 +126,20 @@ user-requested deviation from the delete-after-port rule.
 | scripts/check-outlook.ps1 | scripts/py/check-outlook.py | processes + AppModel events via shim, crash dumps pure-Python, --json |
 | scripts/register-admin-task-elevated.ps1 | scripts/py/register-admin-task-elevated.py | mutating; --dry-run |
 | scripts/check-store-apps.ps1 | scripts/py/check-store-apps.py | Get-AppxPackage via shim, --json |
+
+## Phase 5 — full migration, tranche 3 (2026-11-16)
+
+| PS original | Python port | Notes |
+|---|---|---|
+| scripts/docker-dashboard-guard.ps1 | scripts/py/docker-dashboard-guard.py | close dashboard windows via shim; --dry-run, --json, appends guard log |
+| scripts/prune-acp.ps1 | scripts/py/prune-acp.py | pure-Python; --days (14), --dry-run |
+| scripts/scan-d-usage.ps1 | scripts/py/scan-d-usage.py | pure-Python D:\ scan; --root, --top, --json |
+| scripts/remove-large-acp.ps1 | scripts/py/remove-large-acp.py | pure-Python; --threshold-mb (50), --dry-run |
+| scripts/docker-window-guard.ps1 | scripts/py/docker-window-guard.py | 3s closer loop; --interval, --max-iterations |
+| scripts/devin/google-calendar-mcp-wrapper.ps1 | scripts/py/google-calendar-mcp-wrapper.py | npx launcher, stderr->log; --dry-run, --npx |
+| scripts/check-all-syntax.ps1 | scripts/py/check-all-syntax.py | PS parser via shim per file; --root, --json |
+| scripts/scan-nuxt-projects.ps1 | scripts/py/scan-nuxt-projects.py | pure-Python; --root, --json |
+| scripts/register-dd-watchdog.ps1 | scripts/py/register-dd-watchdog.py | mutating; --dry-run |
+| scripts/sshd-system-diag.ps1 | scripts/py/sshd-system-diag.py | subprocess sshd -t/-ddd capture; --dry-run |
+| scripts/register-admin-system-elevated.ps1 | scripts/py/register-admin-system-elevated.py | mutating; --dry-run, --json verify row |
+| scripts/check-social-apps.ps1 | scripts/py/check-social-apps.py | pure-Python dir match, --json |
