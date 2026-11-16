@@ -1,1 +1,0 @@
-Get-Process | Where-Object { $_.ProcessName -like '*Devin*' } | Select-Object Id, ProcessName, CPU, WS | Format-Table -AutoSize

@@ -1,6 +1,0 @@
-@echo off
-echo Registering Admin-Cleanup-System task as SYSTEM...
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\DevOptimizer\scripts\register-admin-system-elevated.ps1"
-echo.
-echo Press any key to exit...
-pause >nul

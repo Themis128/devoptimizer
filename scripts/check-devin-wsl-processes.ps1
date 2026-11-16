@@ -1,1 +1,0 @@
-wsl -d Ubuntu-24.04 -- ps aux | grep -i devin | grep -v grep

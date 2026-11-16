@@ -1,1 +1,0 @@
-Get-ChildItem 'C:\ProgramData\DockerDesktop' -Recurse -Filter '*.vhdx' -ErrorAction SilentlyContinue | Select-Object FullName, Length, @{N='SizeGB';E={[math]::Round($_.Length/1GB,2)}}

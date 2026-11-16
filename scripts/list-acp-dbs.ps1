@@ -1,2 +1,0 @@
-$acpDir = Join-Path $env:APPDATA 'devin\User\acp-messages'
-Get-ChildItem -LiteralPath $acpDir -Filter '*.db' -File | Sort-Object LastWriteTime -Descending | Select-Object Name, @{Name='SizeMB';Expression={[math]::Round($_.Length/1MB,1)}}, LastWriteTime | Format-Table -AutoSize
