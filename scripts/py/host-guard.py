@@ -88,8 +88,8 @@ def avail_mb():
         ctypes.windll.kernel32.GlobalMemoryStatusEx(
             ctypes.byref(m))
         avail = int(m.ullAvailPhys // 2**20)
-        commit = (int(round(100 * (1 - m.ullAvailPageFile / m.ullTotalPageFile)))
-                  if m.ullTotalPageFile else 0)
+        commit = (int(round(100 * (1 - m.ullAvailPage / m.ullTotalPage)))
+                  if m.ullTotalPage else 0)
         return avail, commit
     except Exception:
         return -1, -1
