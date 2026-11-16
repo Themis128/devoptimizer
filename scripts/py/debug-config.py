@@ -12,7 +12,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 MODULE = REPO_ROOT / "modules" / "config-loader.ps1"
 
 PROBE = (
@@ -42,8 +42,13 @@ def main():
         [pwsh, "-NoProfile", "-ExecutionPolicy", "Bypass",
          "-Command", PROBE],
         capture_output=True, text=True, cwd=str(REPO_ROOT))
+    # module may emit Write-Log lines before the JSON
+    text = r.stdout.strip()
+    start = text.find("{")
+    end = text.rfind("}")
     try:
-        data = json.loads(r.stdout.strip() or "{}")
+        data = json.loads(
+            text[start:end + 1] if start >= 0 else "{}")
     except json.JSONDecodeError:
         print("Error: could not parse module output")
         print(r.stdout)

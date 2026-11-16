@@ -13,8 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = REPO_ROOT / "scripts"
+SCRIPTS = Path(__file__).resolve().parents[1]
 SELF_PS1 = SCRIPTS / "Insider-Automation.ps1"
 CORE = SCRIPTS / "DevOptimizer-Core.ps1"
 
@@ -85,8 +84,12 @@ def remove_schedules():
     for tn in (TASK_DAILY, TASK_WEEKLY):
         r = subprocess.run(["schtasks", "/delete", "/tn", tn,
                             "/f"], capture_output=True, text=True)
+        err = (r.stderr or r.stdout or "").lower()
         if r.returncode == 0:
             print(f"Removed scheduled task: {tn}")
+        elif "cannot find" in err or "not exist" in err \
+                or "non esiste" in err:
+            print(f"Task not present: {tn}")
         else:
             ok = False
     return ok

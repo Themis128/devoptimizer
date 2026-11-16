@@ -19,7 +19,17 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_DIR = REPO_ROOT / "tools" / "Old-Launchers"
 LOG_DIR = REPO_ROOT / "logs"
 LOG_FILE = LOG_DIR / "centeral-launcher-admin.log"
-CONFIG_JSON = SCRIPT_DIR / "devoptimizer.config.json"
+def _resolve_config():
+    for cand in (SCRIPT_DIR / "devoptimizer.config.json",
+                 REPO_ROOT / "config"
+                 / "devoptimizer.config.json",
+                 REPO_ROOT / "devoptimizer.config.json"):
+        if cand.exists():
+            return cand
+    return SCRIPT_DIR / "devoptimizer.config.json"
+
+
+CONFIG_JSON = _resolve_config()
 
 DEVOPT = os.environ.get("DEVOPT_HOME", "D:\\DevOptimizer")
 
@@ -40,29 +50,38 @@ def log(line):
         pass
 
 
+def _find_tool(script_name, exts):
+    for base in (SCRIPT_DIR, REPO_ROOT / "tools" / "Variants"):
+        for ext in exts:
+            cand = base / f"{script_name}.{ext}"
+            if cand.exists():
+                return cand
+    return None
+
+
 def run_bat(script_name):
-    bat = SCRIPT_DIR / f"{script_name}.bat"
-    if not bat.exists():
-        print(f"  {script_name}.bat not found under {SCRIPT_DIR}")
+    bat = _find_tool(script_name, ("bat",))
+    if not bat:
+        print(f"  {script_name}.bat not found under "
+              f"{SCRIPT_DIR} or tools/Variants")
         log(f"MISS {script_name}.bat")
         return 1
-    log(f"RUN {script_name}.bat")
+    log(f"RUN {bat.name}")
     return subprocess.run(["cmd", "/c", str(bat)],
-                          cwd=str(SCRIPT_DIR)).returncode
-
+                          cwd=str(bat.parent)).returncode
 
 def run_ps(script_name, args=None):
-    ps1 = SCRIPT_DIR / f"{script_name}.ps1"
-    if not ps1.exists():
-        print(f"  {script_name}.ps1 not found under {SCRIPT_DIR}")
+    ps1 = _find_tool(script_name, ("ps1",))
+    if not ps1:
+        print(f"  {script_name}.ps1 not found under "
+              f"{SCRIPT_DIR} or tools/Variants")
         log(f"MISS {script_name}.ps1")
         return 1
-    log(f"RUN {script_name}.ps1")
+    log(f"RUN {ps1.name}")
     pwsh = shutil.which("pwsh") or shutil.which("powershell")
     cmd = [pwsh, "-NoProfile", "-ExecutionPolicy", "Bypass",
            "-File", str(ps1)] + (args or [])
-    return subprocess.run(cmd, cwd=str(SCRIPT_DIR)).returncode
-
+    return subprocess.run(cmd, cwd=str(ps1.parent)).returncode
 
 def execute_with_admin_check(script_name, admin_required):
     if admin_required and not is_admin():
@@ -85,7 +104,7 @@ def execute_with_admin_check(script_name, admin_required):
     if script_name == "config":
         config_menu()
         return 0
-    if (SCRIPT_DIR / f"{script_name}.ps1").exists():
+    if _find_tool(script_name, ("ps1",)):
         return run_ps(script_name)
     return run_bat(script_name)
 
@@ -253,6 +272,11 @@ def main():
     print("  DevOptimizer - Launcher")
     print("=" * 58)
     status_lines()
+    if len(sys.argv) > 1 and \
+            sys.argv[1].lower().startswith("admin_"):
+        # elevated re-launch: run the selected tool directly
+        execute_with_admin_check(sys.argv[1][6:], True)
+        return
     while True:
         for k in sorted(TOOLS):
             print(f"  [{k:>2}] {TOOLS[k][1]}")
