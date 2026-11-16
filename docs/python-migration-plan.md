@@ -41,6 +41,18 @@ before the large orchestration scripts).
 4. Append the tranche to `docs/python-conversion-ledger.md` (status
    **ported-alongside**, since originals are kept this round).
 
+Port conventions (from review findings):
+
+- `New-ScheduledTaskAction` must emit a headless action:
+  `conhost.exe --headless "<shell>" <args>` (python → `pythonw.exe` instead,
+  pwsh → the portable `D:\DevOptimizer\pwsh\pwsh.exe` — the Store stub is
+  broken and `_rewrap-headless-all.ps1` skips already-wrapped actions).
+- Quote action `-Argument` values as a single-quoted PS string containing
+  literal double quotes (`-Argument '--headless pwsh.exe -File "x.ps1"'`);
+  escaped `\"` inside double-quoted strings gets lost through the elevated
+  runner.
+- `--tail 0`-style slice args need an `n <= 0` guard (`[-0:]` is `[0:]`).
+
 ## Out of scope / stays PowerShell
 
 Ledger phase-3 tranche-C: `Optimize-VHD`/`Mount-VHD` scripts, `Add-Type`/
