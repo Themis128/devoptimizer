@@ -498,3 +498,7 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 317 | portable/Cursor-AI-Module.bat | scripts/py/cursor-ai-module-shim.py | pwsh shim |
 | 318 | portable/ml-frameworks-setup.bat | scripts/py/ml-frameworks-setup-shim.py | pwsh shim |
 | 319 | portable/ai-development-tools.bat | scripts/py/ai-development-tools-shim.py | pwsh shim |
+| 320 | scripts/onedrive-repair.ps1 | scripts/py/onedrive-repair.py | landed in t26 PR #76 |
+| 321 | scripts/nvidia-pair-setup.ps1 | scripts/py/nvidia-pair-setup.py | landed in t26 PR #76 |
+| 322 | scripts/ml-frameworks-setup.ps1 | scripts/py/ml-frameworks-setup.py | landed in t26 PR #76 |
+| 323 | scripts/ai-development-tools.ps1 | scripts/py/ai-development-tools.py | landed in t26 PR #76 |
