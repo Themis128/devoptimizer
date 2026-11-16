@@ -223,25 +223,21 @@ def ollama_analysis(prompt, prompt_file, config_file, output_dir,
     try:
         cfg = json.loads(Path(config_file).read_text(
             encoding="utf-8"))
-        if not allowed:
-            allowed = cfg.get("allow") or []
-        if not denied:
-            denied = cfg.get("deny") or []
+        allowed = cfg.get("allow") or allowed
+        denied = cfg.get("deny") or denied
         if concurrency == 3 and cfg.get("concurrency"):
             concurrency = int(cfg["concurrency"])
     except (OSError, json.JSONDecodeError, ValueError):
         pass
-    def _q(v):
-        return "'" + str(v).replace("'", "''") + "'"
-    ps = (f". {_q(utils)}; "
-          f"$r = Invoke-OllamaForAllModels -Prompt {_q(text)} "
-          f"-OutputDir {_q(output_dir)} -Concurrency "
-          f"{int(concurrency)} -TimeoutSeconds {int(timeout)}"
-          + (" -AllowedModels @(" + ",".join(_q(m)
-             for m in allowed) + ")" if allowed else "")
-          + (" -DeniedModels @(" + ",".join(_q(m)
-             for m in denied) + ")" if denied else "")
-          + "; if ($r -and $r.Success -eq $false) { exit 1 }")
+    esc = text.replace("'", "''")
+    ps = (f". '{utils}'; "
+          f"Invoke-OllamaForAllModels -Prompt '{esc}' "
+          f"-OutputDir '{output_dir}' -Concurrency {concurrency} "
+          f"-TimeoutSeconds {timeout}"
+          + (" -AllowedModels @('" + "','".join(allowed) + "')"
+             if allowed else "")
+          + (" -DeniedModels @('" + "','".join(denied) + "')"
+             if denied else ""))
     if dry:
         print("[dry-run]", ps)
         return 0
