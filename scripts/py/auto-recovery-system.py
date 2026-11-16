@@ -112,10 +112,15 @@ def main() -> None:
     fix_batch_issues(script_dir, logf, args.dry_run)
     log(logf, "Repairing file permissions...")
     if args.dry_run:
-        print(f"[dry-run] icacls {script_dir} /reset /t /q")
+        print(f"[dry-run] icacls <top-level *.bat> /reset + grant in "
+              f"{script_dir}")
     else:
-        subprocess.run(["icacls", str(script_dir), "/reset", "/t", "/q"],
-                       capture_output=True)
+        for bat in script_dir.glob("*.bat"):
+            subprocess.run(["icacls", str(bat), "/reset"],
+                           capture_output=True)
+            subprocess.run(["icacls", str(bat), "/grant:r",
+                            f"{os.environ.get('USERNAME','')}:(F)"],
+                           capture_output=True)
     log(logf, "Repairing PowerShell execution...")
     if args.dry_run:
         print("[dry-run] Set-ExecutionPolicy Bypass -Scope CurrentUser")

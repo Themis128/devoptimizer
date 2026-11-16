@@ -390,22 +390,11 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 215 | `tools/Variants/ollama-script-generator-NoAdmin.bat` | `scripts/py/ollama-script-generator.py` | 8-item generator menu -> helper; --choice/--sub/--desc. |
 | 216 | `tools/Variants/ollama-script-generator-Admin.bat` | `scripts/py/ollama-script-generator.py` | Same port with `--admin`. |
 
-## Phase 5 — full migration, tranche 19 (2026-11-16)
+
+## Phase 5 — full migration, tranche 17 (2026-11-16)
+
 | # | Original | Python port | Notes |
 |---|----------|-------------|-------|
-| 217 | `tools/Variants/M365-ACCOUNTS-ENHANCER-Admin.bat` | `scripts/py/m365-accounts-enhancer.py` | 10-item M365 fix menu (services, taskkill, reg, Set-MpPreference); --choice. |
-| 218 | `tools/Variants/M365-ACCOUNTS-ENHANCER-NoAdmin.bat` | `scripts/py/m365-accounts-enhancer.py` | Same port. |
-| 219 | `tools/Variants/AWS-TERRAFORM-ANALYZER-Admin.bat` | `scripts/py/aws-terraform-analyzer.py` | 11-item menu -> terraform cmds to Desktop\DevOptimizer\Terraform-Reports\; choco-shim fallback. |
-| 220 | `tools/Variants/AWS-TERRAFORM-ANALYZER-NoAdmin.bat` | `scripts/py/aws-terraform-analyzer.py` | Same port. |
-| 221 | `tools/Variants/AWS-IAC-MANAGER-NoAdmin.bat` | `scripts/py/aws-iac-manager.py` | Delegates to aws-iac-manager-ascii.py (same menu, UTF-8 variant). |
-| 222 | `tools/Variants/AWS-IAC-MANAGER-Admin.bat` | `scripts/py/aws-iac-manager.py` | Same port with `--admin`. |
-| 223 | `scripts/check-devin-wsl-processes.ps1` | `scripts/py/check-devin-wsl-processes.py` | `wsl -d Ubuntu-24.04 -- ps aux` filtered for devin; --json. |
-| 224 | `scripts/compact-wsl.ps1` | `scripts/py/compact-wsl.py` | Optimize-VHD -Mode Full on ext4.vhdx; --dry-run. |
-| 225 | `scripts/cleanup-orphan-shmwal.ps1` | `scripts/py/cleanup-orphan-shmwal.py` | Deletes .db-shm/.db-wal orphans in acp-messages; --dry-run; --json. |
-| 226 | `scripts/create-admin-cleanup-task.ps1` | `scripts/py/create-admin-cleanup-task.py` | One-shot SYSTEM task ~1min; action wrapped in conhost --headless. |
-| 227 | `scripts/register-admin-cleanup-system.ps1` | `scripts/py/register-admin-cleanup-system.py` | Delegates to register-admin-task-elevated.py (same registration). |
-| 228 | `scripts/register-d-drive-cleanup-task.ps1` | `scripts/py/register-d-drive-cleanup-task.py` | Daily 02:30 SYSTEM task, Priority 7, 3x restart; conhost --headless. |
-## Phase 5 — full migration, tranche 17 (2026-11-16)
 | 193 | `tools/Variants/CREATE-DESKTOP-SHORTCUTS-Admin.bat` | `scripts/py/create-desktop-shortcuts-admin.py` | Admin-gated delegate of create-desktop-shortcuts.py. |
 | 194 | `tools/Variants/00-SETUP-GLOBAL-ACCESS-IMPROVED-NoAdmin.bat` | `scripts/py/setup-global-access-improved.py` | HKLM + user PATH append with confirm; `--admin` = admin variant. |
 | 195 | `tools/Variants/REAL-TIME-MONITOR-NoAdmin.bat` | `scripts/py/real-time-monitor.py` | 5s health loop: critical files, exec policy, admin; logs/real-time-monitor.log. |
@@ -418,3 +407,4 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 202 | `tools/Variants/AWS-IAC-MANAGER-ASCII-NoAdmin.bat` | `scripts/py/aws-iac-manager-ascii.py` | Same port. |
 | 203 | `tools/Variants/AWS-POWERSHELL-MODULES-DOWNLOADER-NoAdmin.bat` | `scripts/py/aws-powershell-modules-downloader.py` | Same port. |
 | 204 | `tools/normalize-bat-files.bat` | `scripts/py/normalize-bat-files.py` | Standard-header rewrite + non-ASCII strip; backup dir; -dry-run. |
+
