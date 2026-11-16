@@ -30,8 +30,11 @@ def main() -> None:
     args = parser.parse_args()
 
     ps = (
-        f"$action = New-ScheduledTaskAction -Execute 'pwsh.exe' -Argument "
-        f"'-NoProfile -ExecutionPolicy Bypass -File \"{SCRIPT}\"'; "
+        # conhost wraps the portable pwsh directly — the Store pwsh.exe stub
+        # is broken and the headless rewrapper skips conhost actions.
+        f"$action = New-ScheduledTaskAction -Execute 'conhost.exe' -Argument "
+        f"'--headless \"D:\\DevOptimizer\\pwsh\\pwsh.exe\" -NoProfile "
+        f"-ExecutionPolicy Bypass -File \"{SCRIPT}\"'; "
         "$trigger1 = New-ScheduledTaskTrigger -AtLogOn; "
         "$trigger2 = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(5) "
         "-RepetitionInterval (New-TimeSpan -Minutes 5) "
