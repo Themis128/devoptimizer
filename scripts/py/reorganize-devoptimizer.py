@@ -25,15 +25,17 @@ def main() -> None:
     home = os.environ.get("DEVOPT_HOME", r"D:\DevOptimizer")
     target = os.path.join(home, TARGET_REL)
     if not os.path.exists(target):
-        print(f"[ERROR] PowerShell script not found: {{target}}",
+        print(f"[ERROR] PowerShell script not found: {target}",
               file=sys.stderr)
         sys.exit(1)
     shell = "pwsh" if shutil.which("pwsh") else "powershell"
     cmd = [shell, "-NoProfile", "-ExecutionPolicy", "Bypass",
            "-File", target, *rest]
-    cwd = str(Path(__file__).resolve().parent)
+    bat_dir = os.path.join(home, "portable")
+    cwd = bat_dir if os.path.isdir(bat_dir) else \
+        str(Path(__file__).resolve().parent)
     if args.dry_run:
-        print(f"[dry-run] (cd {{cwd}}) " + " ".join(cmd))
+        print(f"[dry-run] (cd {cwd}) " + " ".join(cmd))
         return
     sys.exit(subprocess.call(cmd, cwd=cwd))
 
