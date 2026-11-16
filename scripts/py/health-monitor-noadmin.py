@@ -4,6 +4,7 @@ checks, score-100 alerting, auto-repair via AUTO-RECOVERY-SYSTEM.bat
 below 70. Menu: 1 single check, 2 continuous (30s), 3 exit.
 """
 import ctypes
+import os
 import shutil
 import subprocess
 import sys
@@ -15,7 +16,10 @@ LOG_FILE = SCRIPT_DIR / "logs" / "health-monitor.log"
 
 
 def log(kind, msg, alerts):
-    (SCRIPT_DIR / "logs").mkdir(exist_ok=True)
+    try:
+        (SCRIPT_DIR / "logs").mkdir(exist_ok=True)
+    except OSError:
+        pass
     line = time.strftime("[%Y-%m-%d %H:%M:%S] ") + \
         (f"ALERT: {msg}" if kind == "alert" else msg)
     try:
@@ -39,9 +43,9 @@ def cycle():
 
     log("msg", "Checking disk health...", alerts)
     try:
+        sysdrive = os.environ.get("SystemDrive", "C:")
         free_gb = shutil.disk_usage(
-            sys.executable.split(":")[0] + ":\\"
-            if ":" in sys.executable else "/").free // 2**30
+            sysdrive + chr(92)).free // 2**30
         if free_gb < 1:
             alert(f"CRITICAL: Disk space below 1GB"
                   f" ({free_gb} GB free)", 30)
@@ -150,7 +154,10 @@ def cycle():
 
 
 def main():
-    (SCRIPT_DIR / "logs").mkdir(exist_ok=True)
+    try:
+        (SCRIPT_DIR / "logs").mkdir(exist_ok=True)
+    except OSError:
+        pass
     choice = ""
     if sys.stdin.isatty():
         print("\n1. Single health check")

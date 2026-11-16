@@ -32,9 +32,10 @@ def code_info(insiders):
     if not exe:
         return info
     info["installed"] = True
+    info["command"] = exe  # code.cmd can't launch by bare name
     info["install_path"] = str(Path(exe).parent)
     try:
-        r = subprocess.run([cmd, "--version"],
+        r = subprocess.run([exe, "--version"],
                            capture_output=True, text=True,
                            timeout=15)
         lines = r.stdout.splitlines()

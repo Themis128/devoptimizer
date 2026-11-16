@@ -56,7 +56,10 @@ try {
 
 
 def log(kind, msg, errs):
-    (SCRIPT_DIR / "logs").mkdir(exist_ok=True)
+    try:
+        (SCRIPT_DIR / "logs").mkdir(exist_ok=True)
+    except OSError:
+        pass
     prefix = (f"ERROR #{errs[0]}: " if kind == "err" else "")
     try:
         with open(LOG_FILE, "a", encoding="utf-8") as fh:
@@ -67,7 +70,10 @@ def log(kind, msg, errs):
 
 
 def main():
-    (SCRIPT_DIR / "logs").mkdir(exist_ok=True)
+    try:
+        (SCRIPT_DIR / "logs").mkdir(exist_ok=True)
+    except OSError:
+        pass
     errs = [0]
     log("msg", "Starting system health check", errs)
     print("\n" + "=" * 60)
