@@ -1,3 +1,4 @@
+# REQUIRES: admin
 """Port of tools/Variants/UNIVERSAL-LAUNCHER-Admin.bat — same
 universal launcher menu, gated on Administrator privileges.
 Delegates to universal-launcher-noadmin.py after the gate.

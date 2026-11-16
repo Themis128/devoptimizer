@@ -7,7 +7,8 @@ import sys
 import time
 from pathlib import Path
 
-SCRIPT_DIR = Path(__file__).resolve().parent
+SCRIPT_DIR = (Path(__file__).resolve().parents[2]
+            / "tools" / "Variants")
 LOG_FILE = SCRIPT_DIR / "logs" / "quick-optimization.log"
 
 

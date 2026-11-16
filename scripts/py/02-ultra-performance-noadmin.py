@@ -8,7 +8,8 @@ from pathlib import Path
 
 
 def main():
-    script_dir = Path(__file__).resolve().parent
+    script_dir = (Path(__file__).resolve().parents[2]
+                  / "tools" / "Variants")
     target = script_dir / "dev-optimizer-fixed.ps1"
     print("\nRunning 02-Ultra-Performance.bat...\n")
     r = subprocess.run(
