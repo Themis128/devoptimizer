@@ -37,7 +37,7 @@ def log(msg: str, level: str = "INFO") -> None:
     with LOG_FILE.open("a", encoding="ascii", errors="replace") as f:
         f.write(line + "\n")
     if level != "INFO":
-        print(line)
+        print(line, file=sys.stderr)
 
 
 def notify(title: str, body: str) -> None:
