@@ -650,3 +650,15 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 470 | register-daily-cleanup-task.ps1 | scripts/py/register-daily-cleanup-task.py |
 | 471 | register-diskspaceguard-task.ps1 | scripts/py/register-diskspaceguard-task.py |
 | 472 | register-housekeeping-task.ps1 | scripts/py/register-housekeeping-task.py |
+| 473 | check-wsl-system-status.ps1 | scripts/py/check-wsl-system-status.py |
+| 474 | Otter-NotesToggle.ps1 | scripts/py/otter-notestoggle.py |
+| 475 | Build-App.ps1 | scripts/py/build-app.py |
+| 476 | ADVANCED-DIAGNOSTICS.ps1 | scripts/py/advanced-diagnostics.py |
+| 477 | socialauto/Register-SocialAuto-Maintenance.ps1 | scripts/py/register-socialauto-maintenance.py |
+| 478 | devin/Repair-Devin.ps1 | scripts/py/repair-devin.py |
+| 479 | devin/Tune-Windows-For-Devin.ps1 | scripts/py/tune-windows-for-devin.py |
+| 480 | devin/Get-DevinDiagnostics.ps1 | scripts/py/get-devindiagnostics.py |
+| 481 | devin/Invoke-DevinDailyMaintenance.ps1 | scripts/py/invoke-devindailymaintenance.py |
+| 482 | Clean-DDrive.ps1 | scripts/py/clean-ddrive.py |
+| 483 | FIXED-SYSTEM-DEEP-CLEAN.ps1 | scripts/py/fixed-system-deep-clean.py |
+| 484 | Cursor-AI-Module.ps1 | scripts/py/cursor-ai-module-1.py |
