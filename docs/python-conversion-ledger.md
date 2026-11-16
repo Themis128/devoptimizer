@@ -405,3 +405,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 226 | `scripts/create-admin-cleanup-task.ps1` | `scripts/py/create-admin-cleanup-task.py` | One-shot SYSTEM task ~1min; action wrapped in conhost --headless. |
 | 227 | `scripts/register-admin-cleanup-system.ps1` | `scripts/py/register-admin-cleanup-system.py` | Delegates to register-admin-task-elevated.py (same registration). |
 | 228 | `scripts/register-d-drive-cleanup-task.ps1` | `scripts/py/register-d-drive-cleanup-task.py` | Daily 02:30 SYSTEM task, Priority 7, 3x restart; conhost --headless. |
+
+## Phase 5 — full migration, tranche 20 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 229 | `scripts/devin/hook-cleanup-pre.ps1` | `scripts/py/hook-cleanup-pre.py` | WSL reachability gate for devin-doctor ops; --operation; --json. |
+| 230 | `scripts/win11-admin-cleanup-scheduled.ps1` | `scripts/py/win11-admin-cleanup-scheduled.py` | Transcript-wrapped elevated cleanup + gated VHDX compaction; --dry-run. |
+| 231 | `scripts/devin/Register-WSL-PreWarm.ps1` | `scripts/py/register-wsl-prewarm.py` | At-logon +15s prewarm task via conhost --headless; --remove. |
+| 232 | `scripts/wsl-service-doctor-task.ps1` | `scripts/py/wsl-service-doctor-task.py` | 8-service sweep, vmmemWSL/docker gates; service-doctor.log. |
+| 233 | `scripts/wsl-ubuntu-cleanup.ps1` | `scripts/py/wsl-ubuntu-cleanup.ps1`->`scripts/py/wsl-ubuntu-cleanup.py` | apt/journal/uv/gh caches as root; skips when VM down. |
+| 234 | `scripts/daily-full-cleanup.ps1` | `scripts/py/daily-full-cleanup.py` | swap reaper + safe cleanup + recycle bin + docker prune + E: cache; logs C: delta. |
+| 235 | `scripts/clean-extensions.ps1` | `scripts/py/clean-extensions.py` | rm -rf 12 stale vscode-server extensions; --dry-run; --json. |
+| 236 | `scripts/winold-delete-worker2.ps1` | `scripts/py/winold-delete-worker2.py` | one-shot SYSTEM task for rd passes on Windows.old trees; conhost --headless. |
+| 237 | `scripts/optimizer.ps1` | `scripts/py/optimizer.py` | --list / --status launcher inventory; --json. |
+| 238 | `scripts/fix-vscode-wsl-server.ps1` | `scripts/py/fix-vscode-wsl-server.py` | removes ~/.vscode-server per non-docker distro; --dry-run. |
+| 239 | `scripts/devin/devin-cleanup.ps1` | `scripts/py/devin-cleanup.py` | check/report/plan via devin-doctor; prune-acp/cleanup-sessions/daily-maintenance/health -> ps1 wrappers. |
+| 240 | `scripts/register-devoptimizer-tasks.ps1` | `scripts/py/register-devoptimizer-tasks.py` | Extended-Cleanup + DevOptimizer-Elevated-Cleanup + Storage Sense; self-elevating; conhost --headless. |
