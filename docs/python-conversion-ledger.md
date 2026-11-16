@@ -180,3 +180,22 @@ user-requested deviation from the delete-after-port rule.
 Inventory: 15 items marked excluded — 14 already have .py siblings on
 main (user ports at scripts/ root), plus scripts/chrome-ext-remove.ps1
 (UI automation, Add-Type UIA + SendKeys) under the phase-3 rule.
+
+## Phase 5 — full migration, tranche 6 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 61 | `scripts/Register-VhdxCompaction.ps1` | `scripts/py/Register-VhdxCompaction.py` | Self-elevating cmdlet registration, tbaltzakis/Interactive/Highest principal (SYSTEM ghosts on this Insider build); conhost headless action; `--remove`/`--trigger-now`/`--dry-run`; result sentinel preserved. |
+| 62 | `scripts/manage-startup-apps.ps1` | `scripts/py/manage-startup-apps.py` | Run-key (HKCU+HKLM), Startup-folder and StartupTasks (State 2→1) sweep via PS block; mandatory/disable lists ported verbatim; `--dry-run`/`--json`. |
+| 63 | `tools/run-ollama-all.ps1` | `scripts/py/run-ollama-all.py` | Native REST port (`/api/tags`, `/api/generate` stream:false) + ThreadPoolExecutor instead of the ollama-rest/config-loader modules; same exit-code contract (0/1/2/3) and aggregate.md output. |
+| 64 | `tools/create-desktop-shortcut.ps1` | `scripts/py/create-desktop-shortcut.py` | WScript.Shell .lnk pair + red wrapper .bat; `--target`/`--shortcut-name`/`--dry-run`. |
+| 65 | `scripts/cline-verify.ps1` | `scripts/py/cline-verify.py` | Read-only Cline storage/settings/.clineignore/.clinerules audit + NIM checklist; secrets masked; `--json`. |
+| 66 | `tools/simple-dual-version-creator.ps1` | `scripts/py/simple-dual-version-creator.py` | Pure-Python Admin/NoAdmin variant generator; banner-aware admin-check injection; `--force`/`--dry-run`. |
+| 67 | `scripts/devin/Verify-DevinSetup.ps1` | `scripts/py/Verify-DevinSetup.py` | All 9 checks ported (Devin.exe, devin-desktop CLI, WSL distro, devin-server commit, host RAM, credentials.toml, required ps1 files, mcp/hooks/skill config, daily-maintenance task); exit 0/1/2; `--json`. |
+| 68 | `tools/add-script-descriptions.ps1` | `scripts/py/add-script-descriptions.py` | Reads hub-registry for empty descriptions; byte-level BOM/CRLF-preserving insertion; curated table + verbMap heuristic; backups under logs\description-backups\; `--dry-run`/`--json`. |
+| 69 | `tools/normalize-bat-files.ps1` | `scripts/py/normalize-bat-files.py` | CRLF/space/Unicode->ASCII normalization, @echo off + setlocal + cd /d headers, :checkAdmin helpers for *-Admin.bat; backup dir preserved; `--dry-run`. |
+| 70 | `tools/normalize-bat-files-fixed.ps1` | `scripts/py/normalize-bat-files-fixed.py` | Same normalizer as #69 via importlib (original ships both variants); separate hub command. |
+| 71 | `scripts/check-nextcloud-sync.ps1` | `scripts/py/check-nextcloud-sync.py` | Client/journal/logs(gz)/conflict/Defender/cldflt checks + GitHub latest release; `--backup-config` with newest-5 retention; `--json`. |
+| 72 | `scripts/manage-devin-sessions.ps1` | `scripts/py/manage-devin-sessions.py` | CLI sessions SQLite + main-window Desktop processes; embedded-python heredoc replaced with native sqlite3; `--max-concurrent`/`--idle-timeout-hours`/`--dry-run`. |
+
+Excluded this tranche (phase-3 rules): `scripts/power-management.ps1` (function library, no entrypoint), `tools/create-dual-versions.ps1` (dot-sources admin-privilege-manager.ps1 module).
