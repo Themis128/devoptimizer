@@ -143,3 +143,20 @@ user-requested deviation from the delete-after-port rule.
 | scripts/sshd-system-diag.ps1 | scripts/py/sshd-system-diag.py | subprocess sshd -t/-ddd capture; --dry-run |
 | scripts/register-admin-system-elevated.ps1 | scripts/py/register-admin-system-elevated.py | mutating; --dry-run, --json verify row |
 | scripts/check-social-apps.ps1 | scripts/py/check-social-apps.py | pure-Python dir match, --json |
+
+## Phase 5 — full migration, tranche 4 (2026-11-16)
+
+| PS original | Python port | Notes |
+|---|---|---|
+| scripts/devin/hook-session-start.ps1 | scripts/py/hook-session-start.py | WSL ping + CIM mem + Devin version; hook JSON |
+| scripts/devin/hooks/session-end.ps1 | scripts/py/session-end-hook.py | stdin event -> sessions.log, webhook, msg.exe, queue check |
+| scripts/devin/queue/session-end.ps1 | scripts/py/session-end-queue.py | duplicate original; -queue suffix port |
+| scripts/create-priority-shortcut.ps1 | scripts/py/create-priority-shortcut.py | WScript.Shell COM via shim; --force, --dry-run |
+| scripts/devin/hook-pre-devin.ps1 | scripts/py/hook-pre-devin.py | block/approve decision JSON |
+| scripts/register-bat-sync-task.ps1 | scripts/py/register-bat-sync-task.py | mutating; --dry-run |
+| scripts/devin/hooks/session-start.ps1 | scripts/py/session-start-hook.py | git/gh context + queue send-next; hook JSON |
+| scripts/devin/queue/session-start.ps1 | scripts/py/session-start-queue.py | duplicate original; -queue suffix port |
+| scripts/create-cline-mcp.ps1 | scripts/py/create-cline-mcp.py | wsl -d write of cline_mcp_settings.json; --dry-run |
+| scripts/Start-OtterDesktop.ps1 | scripts/py/Start-OtterDesktop.py | CDP :9333 launch; --register/--unregister via shim |
+| scripts/sync-bat-ps1.ps1 | scripts/py/sync-bat-ps1.py | pure-Python .bat launcher generator; --dry-run |
+| scripts/devin/Add-DevinQueue.ps1 | scripts/py/Add-DevinQueue.py | queue-manager enqueue via pwsh subprocess |
