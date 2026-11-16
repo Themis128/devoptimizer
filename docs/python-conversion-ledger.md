@@ -424,6 +424,7 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 ||||||| d04655d
 ||||||| dc9af6d
 ||||||| b00a185
+||||||| e10a697
 ## Phase 5 — full migration, tranche 17 (2026-11-16)
 | 193 | `tools/Variants/CREATE-DESKTOP-SHORTCUTS-Admin.bat` | `scripts/py/create-desktop-shortcuts-admin.py` | Admin-gated delegate of create-desktop-shortcuts.py. |
 | 194 | `tools/Variants/00-SETUP-GLOBAL-ACCESS-IMPROVED-NoAdmin.bat` | `scripts/py/setup-global-access-improved.py` | HKLM + user PATH append with confirm; `--admin` = admin variant. |
