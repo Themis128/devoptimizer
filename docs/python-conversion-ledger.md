@@ -619,3 +619,18 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 439 | dmr-model-manager.ps1 | scripts/py/dmr-model-manager.py |
 | 440 | Verify-CommandMatrix.ps1 | scripts/py/verify-commandmatrix.py |
 | 441 | compact-wsl-vhdx.ps1 | scripts/py/compact-wsl-vhdx.py |
+| 442 | test-elevated.ps1 | scripts/py/test-elevated.py |
+| 443 | devin/hooks/session-end.ps1 | scripts/py/session-end.py |
+| 444 | devin/queue/session-end.ps1 | scripts/py/session-end-1.py |
+| 445 | devin/hooks/session-start.ps1 | scripts/py/session-start.py |
+| 446 | devin/queue/session-start.ps1 | scripts/py/session-start-1.py |
+| 447 | fix-bom.ps1 | scripts/py/fix-bom.py |
+| 448 | check-reboot-status.ps1 | scripts/py/check-reboot-status.py |
+| 449 | compact-vhdx-elevated.ps1 | scripts/py/compact-vhdx-elevated.py |
+| 450 | devin/Install-DevinCLI.ps1 | scripts/py/install-devincli.py |
+| 451 | Test-App.ps1 | scripts/py/test-app.py |
+| 452 | chrome-ext-remove.ps1 | scripts/py/chrome-ext-remove.py |
+| 453 | portable/Test-Dashboard.bat | scripts/py/test-dashboard.py |
+| 454 | portable/test-syntax.bat | scripts/py/test-syntax.py |
+| 455 | portable/TEST-ALL-FILES.bat | scripts/py/test-all-files.py |
+| 456 | - | scripts/check-broken-refs.ps1 | (excluded) |
