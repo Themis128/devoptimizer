@@ -372,6 +372,7 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 191 | `tools/Variants/QUICK-GLOBAL-SETUP-Admin.bat` | `scripts/py/quick-global-setup.py` | Same port (`--admin` label only; actions identical). |
 | 192 | `tools/Variants/CREATE-DESKTOP-SHORTCUTS-NoAdmin.bat` | `scripts/py/create-desktop-shortcuts.py` | 5 WScript.Shell .lnk files via COM. |
 
+
 ## Phase 5 — full migration, tranche 18 (2026-11-16)
 
 | # | Original | Python port | Notes |
@@ -390,7 +391,6 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 216 | `tools/Variants/ollama-script-generator-Admin.bat` | `scripts/py/ollama-script-generator.py` | Same port with `--admin`. |
 
 ## Phase 5 — full migration, tranche 19 (2026-11-16)
-
 | # | Original | Python port | Notes |
 |---|----------|-------------|-------|
 | 217 | `tools/Variants/M365-ACCOUNTS-ENHANCER-Admin.bat` | `scripts/py/m365-accounts-enhancer.py` | 10-item M365 fix menu (services, taskkill, reg, Set-MpPreference); --choice. |
@@ -407,7 +407,6 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 228 | `scripts/register-d-drive-cleanup-task.ps1` | `scripts/py/register-d-drive-cleanup-task.py` | Daily 02:30 SYSTEM task, Priority 7, 3x restart; conhost --headless. |
 
 ## Phase 5 — full migration, tranche 20 (2026-11-16)
-
 | # | Original | Python port | Notes |
 |---|----------|-------------|-------|
 | 229 | `scripts/devin/hook-cleanup-pre.ps1` | `scripts/py/hook-cleanup-pre.py` | WSL reachability gate for devin-doctor ops; --operation; --json. |
@@ -422,3 +421,19 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 238 | `scripts/fix-vscode-wsl-server.ps1` | `scripts/py/fix-vscode-wsl-server.py` | removes ~/.vscode-server per non-docker distro; --dry-run. |
 | 239 | `scripts/devin/devin-cleanup.ps1` | `scripts/py/devin-cleanup.py` | check/report/plan via devin-doctor; prune-acp/cleanup-sessions/daily-maintenance/health -> ps1 wrappers. |
 | 240 | `scripts/register-devoptimizer-tasks.ps1` | `scripts/py/register-devoptimizer-tasks.py` | Extended-Cleanup + DevOptimizer-Elevated-Cleanup + Storage Sense; self-elevating; conhost --headless. |
+||||||| d04655d
+||||||| dc9af6d
+||||||| b00a185
+## Phase 5 — full migration, tranche 17 (2026-11-16)
+| 193 | `tools/Variants/CREATE-DESKTOP-SHORTCUTS-Admin.bat` | `scripts/py/create-desktop-shortcuts-admin.py` | Admin-gated delegate of create-desktop-shortcuts.py. |
+| 194 | `tools/Variants/00-SETUP-GLOBAL-ACCESS-IMPROVED-NoAdmin.bat` | `scripts/py/setup-global-access-improved.py` | HKLM + user PATH append with confirm; `--admin` = admin variant. |
+| 195 | `tools/Variants/REAL-TIME-MONITOR-NoAdmin.bat` | `scripts/py/real-time-monitor.py` | 5s health loop: critical files, exec policy, admin; logs/real-time-monitor.log. |
+| 196 | `tools/Variants/00-SETUP-GLOBAL-ACCESS-IMPROVED-Admin.bat` | `scripts/py/setup-global-access-improved.py` | Same port with `--admin`. |
+| 197 | `tools/Variants/REAL-TIME-MONITOR-Admin.bat` | `scripts/py/real-time-monitor.py` | Same port with `--admin`. |
+| 198 | `tools/Variants/AWS-POWERSHELL-MODULES-DOWNLOADER-Admin.bat` | `scripts/py/aws-powershell-modules-downloader.py` | Sequential Install-Module steps; --dry-run; exit 1 on any failure. |
+| 199 | `tools/Variants/SETUP-GLOBAL-ACCESS-NoAdmin.bat` | `scripts/py/setup-global-access-v2.py` | setx PATH /M (user fallback) + Master Suite desktop shortcut. |
+| 200 | `tools/Variants/AWS-IAC-MANAGER-ASCII-Admin.bat` | `scripts/py/aws-iac-manager-ascii.py` | 14-item menu -> aws CLI table calls; terraform.tfstate print. |
+| 201 | `tools/Variants/SETUP-GLOBAL-ACCESS-Admin.bat` | `scripts/py/setup-global-access-v2.py` | Same port with `--admin`. |
+| 202 | `tools/Variants/AWS-IAC-MANAGER-ASCII-NoAdmin.bat` | `scripts/py/aws-iac-manager-ascii.py` | Same port. |
+| 203 | `tools/Variants/AWS-POWERSHELL-MODULES-DOWNLOADER-NoAdmin.bat` | `scripts/py/aws-powershell-modules-downloader.py` | Same port. |
+| 204 | `tools/normalize-bat-files.bat` | `scripts/py/normalize-bat-files.py` | Standard-header rewrite + non-ASCII strip; backup dir; -dry-run. |
