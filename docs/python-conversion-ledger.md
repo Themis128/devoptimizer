@@ -218,3 +218,20 @@ Excluded this tranche (phase-3 rules): `scripts/power-management.ps1` (function 
 | 84 | `scripts/create-devin-session-task.bat` | `scripts/py/create-devin-session-task.py` | schtasks every-4h HIGHEST task running manage-devin-sessions.ps1 -WhatIf; `--dry-run`. |
 
 Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `tools/ollama-utils.ps1`, `tools/ollama-server-manager.ps1` (module-style libraries / module deps), `tools/ollama-analytics-dashboard.ps1` (interactive console UI + module dep), `scripts/startup-management.ps1` (function library, no entrypoint).
+
+## Phase 5 — full migration, tranche 8 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 85 | `scripts/startup/ntfy-bridge.bat` | `scripts/py/ntfy-bridge.py` | pythonw hidden launch of ntfy-windows-bridge.py; --dry-run. |
+| 86 | `scripts/create-admin-task-final.bat` | `scripts/py/create-admin-task-final.py` | Same registration as create-admin-system-task (original ships 3 variants); delegates via importlib. |
+| 87 | `scripts/register-priority-task.bat` | `scripts/py/register-priority-task.py` | schtasks Devin-Lower-Priority ONSTART SYSTEM/HIGHEST; exit-code semantics preserved; --dry-run. |
+| 88 | `scripts/create-priority-task-admin.bat` | `scripts/py/create-priority-task-admin.py` | Runs create-priority-task.ps1 (admin); --dry-run. |
+| 89 | `scripts/apply-trigger-fixes-20261027.bat` | `scripts/py/apply-trigger-fixes-20261027.py` | RunAs-elevated trigger-fixes-20261027.ps1; --dry-run. |
+| 90 | `portable/check-braces.bat` | `scripts/py/check-braces.py` | DEVOPT_HOME-aware pwsh/powershell shim; arg passthrough; --dry-run. |
+| 91 | `portable/check-syntax.bat` | `scripts/py/check-syntax.py` | Same shim pattern to %DEVOPT_HOME%\check-syntax.ps1. |
+| 92 | `portable/Run-Analysis.bat` | `scripts/py/Run-Analysis.py` | Same shim pattern to %DEVOPT_HOME%\ps\Run-Analysis.ps1. |
+| 93 | `portable/Start-Dashboard.bat` | `scripts/py/Start-Dashboard.py` | Same shim pattern to %DEVOPT_HOME%\Start-Dashboard.ps1. |
+| 94 | `portable/Monitor-Dashboard.bat` | `scripts/py/Monitor-Dashboard.py` | Same shim pattern to %DEVOPT_HOME%\Monitor-Dashboard.ps1. |
+| 95 | `portable/run-ollama-all.bat` | `scripts/py/run-ollama-all-shim.py` | Shim renamed to avoid collision with the t6 run-ollama-all port. |
+| 96 | `portable/vs.bat` | `scripts/py/vs.py` | Same shim pattern to %DEVOPT_HOME%\vs.ps1. |
