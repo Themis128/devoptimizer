@@ -17,7 +17,7 @@ from pathlib import Path
 # CATEGORY: ai-ml
 # TAGS: ai, ollama, optimization, recommendations
 
-SCRIPT_PATH = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def ps(script):
@@ -95,8 +95,8 @@ def get_recommendations(context, verbose):
     except (ValueError, OSError, json.JSONDecodeError, KeyError,
             ZeroDivisionError):
         pass
-    if "False" in ps("(Get-NetFirewallProfile | Where-Object "
-                     "{$_.Enabled -eq $false}).Profile"):
+    if ps("if (Get-NetFirewallProfile | Where-Object "
+          "{$_.Enabled -eq $false}) { 'YES' }") == "YES":
         recs.append({"Priority": "High", "Category": "Security",
                      "Title": "Firewall Disabled",
                      "Description": "Windows Firewall is disabled "
@@ -206,8 +206,9 @@ def troubleshoot(issue):
 
 def ollama_analysis(prompt, prompt_file, config_file, output_dir,
                     concurrency, timeout, models, exclude, dry):
-    """Delegates to tools/ollama-utils.ps1 like the original."""
-    utils = SCRIPT_PATH / "tools" / "ollama-utils.ps1"
+    """Delegates to repo-root tools/ollama-utils.ps1
+    Invoke-OllamaForAllModels (dot-sourced), like the original."""
+    utils = REPO_ROOT / "tools" / "ollama-utils.ps1"
     if not utils.exists():
         print(f"Ollama utilities not found at: {utils}",
               file=sys.stderr)
@@ -218,18 +219,30 @@ def ollama_analysis(prompt, prompt_file, config_file, output_dir,
     if not text:
         print("Missing prompt parameter", file=sys.stderr)
         return 1
-    args = ["powershell", "-NoProfile", "-File", str(utils),
-            "-Prompt", text, "-OutputDir", output_dir,
-            "-Concurrency", str(concurrency),
-            "-TimeoutSeconds", str(timeout)]
-    if models:
-        args += ["-AllowedModels", ",".join(models)]
-    if exclude:
-        args += ["-DeniedModels", ",".join(exclude)]
+    allowed, denied = list(models or []), list(exclude or [])
+    try:
+        cfg = json.loads(Path(config_file).read_text(
+            encoding="utf-8"))
+        allowed = cfg.get("allow") or allowed
+        denied = cfg.get("deny") or denied
+        if concurrency == 3 and cfg.get("concurrency"):
+            concurrency = int(cfg["concurrency"])
+    except (OSError, json.JSONDecodeError, ValueError):
+        pass
+    esc = text.replace("'", "''")
+    ps = (f". '{utils}'; "
+          f"Invoke-OllamaForAllModels -Prompt '{esc}' "
+          f"-OutputDir '{output_dir}' -Concurrency {concurrency} "
+          f"-TimeoutSeconds {timeout}"
+          + (" -AllowedModels @('" + "','".join(allowed) + "')"
+             if allowed else "")
+          + (" -DeniedModels @('" + "','".join(denied) + "')"
+             if denied else ""))
     if dry:
-        print("[dry-run]", " ".join(args))
+        print("[dry-run]", ps)
         return 0
-    return subprocess.run(args).returncode
+    return subprocess.run(
+        ["powershell", "-NoProfile", "-Command", ps]).returncode
 
 
 def summarize():
@@ -264,11 +277,13 @@ def main():
     if args.mode == "recommend":
         get_recommendations(args.context, args.verbose)
     elif args.mode == "optimize":
-        optimize(args.optimization_type, args.dry_run)
+        optimize(args.context if args.context != "system"
+                 else args.optimization_type, args.dry_run)
     elif args.mode == "configure":
         smart_config(args.project_path)
     elif args.mode == "troubleshoot":
-        troubleshoot(args.issue)
+        troubleshoot(args.context if args.context != "system"
+                     else args.issue)
     elif args.mode == "analyze":
         return ollama_analysis(
             args.prompt, args.prompt_file, args.config_file,

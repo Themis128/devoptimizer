@@ -91,7 +91,11 @@ def run(cmd, dry, **kw):
     if dry:
         print("[dry-run]", " ".join(str(c) for c in cmd))
         return 0
-    return subprocess.run(cmd, **kw).returncode
+    try:
+        return subprocess.run(cmd, **kw).returncode
+    except FileNotFoundError:
+        log(f"Tool not found, skipping: {cmd[0]}", "WARNING")
+        return 127
 
 
 def optimize_cursor(dry):
@@ -128,7 +132,8 @@ def optimize_copilot(dry):
 
 def install_local_ai(dry):
     log("Installing local AI models...")
-    if not shutil.which("ollama"):
+    ollama = shutil.which("ollama")
+    if not ollama:
         log("Installing Ollama...", "INFO")
         if dry:
             log(f"[dry-run] download {OLLAMA_URL}")
@@ -136,8 +141,11 @@ def install_local_ai(dry):
             tmp = Path(tempfile.gettempdir()) / "ollama-installer.exe"
             urllib.request.urlretrieve(OLLAMA_URL, tmp)
             subprocess.run([str(tmp)], check=False)
+        ollama = shutil.which("ollama") or str(
+            Path(os.environ.get("LOCALAPPDATA", ""))
+            / "Programs" / "Ollama" / "ollama.exe")
     for m in OLLAMA_MODELS:
-        run(["ollama", "pull", m], dry)
+        run([ollama or "ollama", "pull", m], dry)
 
 
 def main():
