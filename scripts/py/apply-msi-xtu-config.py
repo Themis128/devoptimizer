@@ -25,10 +25,13 @@ def main() -> None:
     home = os.environ.get("DEVOPT_HOME", r"D:\DevOptimizer")
     target = TARGET_PS1.replace("D:\DevOptimizer", home)
     if not os.path.exists(target):
-        print(f"[ERROR] PowerShell script not found: {D:\DevOptimizer\apply-msi-xtu-config.ps1}",
+        print(f"[ERROR] PowerShell script not found: {target}",
               file=sys.stderr)
         sys.exit(1)
     shell = "pwsh" if shutil.which("pwsh") else "powershell"
+    # Forwarded args: GNU-style --name maps to PowerShell -name so the
+    # target's parameters bind (e.g. --root -> -Root).
+    rest = [a[1:] if a.startswith("--") else a for a in rest]
     cmd = [shell, "-NoProfile", "-ExecutionPolicy", "Bypass",
            "-File", target, *rest]
     # The .bat lives in DEVOPT_HOME\portable; cd /d %~dp0 anchored the
