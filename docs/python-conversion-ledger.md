@@ -252,3 +252,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 106 | `portable/nvidia.bat` | `scripts/py/nvidia.py` | Shim -> nvidia.ps1. |
 | 107 | `portable/configure-xtu.bat` | `scripts/py/configure-xtu.py` | Shim -> config\overclocking\configure-xtu.ps1. |
 | 108 | `portable/create-dual-versions.bat` | `scripts/py/create-dual-versions-shim.py` | Renamed: tools\create-dual-versions.ps1 is module-style (excluded); shim kept. |
+
+## Phase 5 — full migration, tranche 10 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 109 | `portable/apply-xtu-cli.bat` | `scripts/py/apply-xtu-cli-shim.py` | Shim -> config\overclocking\apply-xtu-cli.ps1 (-shim: ps1 port exists). |
+| 110 | `portable/configure-msi-xtu-simple.bat` | `scripts/py/configure-msi-xtu-simple-shim.py` | Shim -> configure-msi-xtu-simple.ps1. |
+| 111 | `portable/Start-VSCodeMonitor-PROD.bat` | `scripts/py/Start-VSCodeMonitor-PROD-shim.py` | Shim -> Start-VSCodeMonitor-PROD.ps1. |
+| 112 | `portable/Register-ScheduledTasks.bat` | `scripts/py/Register-ScheduledTasks-shim.py` | Shim -> ps\Register-ScheduledTasks.ps1. |
+| 113 | `portable/apply-overclocking-config.bat` | `scripts/py/apply-overclocking-config-shim.py` | Shim -> apply-overclocking-config.ps1. |
+| 114 | `portable/apply-overclocking-direct.bat` | `scripts/py/apply-overclocking-direct-shim.py` | Shim -> apply-overclocking-direct.ps1. |
+| 115 | `portable/Bootstrap-DevEnvironment.bat` | `scripts/py/Bootstrap-DevEnvironment-shim.py` | Shim -> ps\Bootstrap-DevEnvironment.ps1. |
+| 116 | `portable/verify-settings.bat` | `scripts/py/verify-settings-shim.py` | Shim -> config\overclocking\verify-settings.ps1. |
+| 117 | `portable/create-desktop-shortcut.bat` | `scripts/py/create-desktop-shortcut-shim.py` | Shim -> tools\create-desktop-shortcut.ps1. |
+| 118 | `portable/register-bat-sync-task.bat` | `scripts/py/register-bat-sync-task-shim.py` | Shim -> scripts\register-bat-sync-task.ps1. |
+| 119 | `portable/REMOVE-DUPLICATE-BAT-FILES.bat` | `scripts/py/REMOVE-DUPLICATE-BAT-FILES.py` | Shim -> REMOVE-DUPLICATE-BAT-FILES.ps1. |
+| 120 | `portable/apply-xtu-simple.bat` | `scripts/py/apply-xtu-simple.py` | Shim -> config\overclocking\apply-xtu-simple.ps1. |
