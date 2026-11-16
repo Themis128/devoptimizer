@@ -16,12 +16,25 @@ def main():
     print(f"Creating system restore point: {desc}")
     # SystemRestore.CreateRestorePoint(desc, type, event=100)
     # RestorePointType 0=APPLICATION_INSTALL, 12=MODIFY_SETTINGS
-    r = subprocess.run(
-        ["wmic", "/namespace:\\\\root\\default", "path",
-         "SystemRestore", "call", "CreateRestorePoint",
-         f'"{desc}"', "12", "100"],
-        capture_output=True, text=True)
-    if r.returncode != 0 or "ReturnValue = 0" not in r.stdout:
+    try:
+        r = subprocess.run(
+            ["wmic", "/namespace:\\\\root\\default",
+             "path", "SystemRestore", "call",
+             "CreateRestorePoint",
+             f'"{desc}", 12, 100'],
+            capture_output=True, text=True)
+        ok = "ReturnValue = 0" in r.stdout
+    except FileNotFoundError:
+        ok = False
+    if not ok:
+        # wmic missing/removed -> Checkpoint-Computer
+        r = subprocess.run(
+            ["powershell", "-NoProfile", "-Command",
+             "Checkpoint-Computer -Description "
+             f'"{desc}" -RestorePointType MODIFY_SETTINGS'],
+            capture_output=True, text=True)
+        ok = r.returncode == 0
+    if not ok:
         print("Failed to create restore point: "
               f"{(r.stdout + r.stderr).strip()[:400]}",
               file=sys.stderr)

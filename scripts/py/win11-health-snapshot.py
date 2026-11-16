@@ -49,8 +49,8 @@ def main():
         "$_.HealthStatus,$_.OperationalStatus,($_.Size/1GB) };"
         " Get-Volume | Where-Object DriveLetter | ForEach-Object"
         " { '{0}: {1} free {2}% of {3:N0}GB' -f $_.DriveLetter,"
-        "$_.FileSystem,([math]::Round(100*$_.SizeRemaining/"
-        "$_.Size,0)),($_.Size/1GB) }"))
+        "$_.FileSystem,(if ($_.Size) { [math]::Round(100*$_.SizeRemaining/"
+        "$_.Size,0) } else { 0 }),($_.Size/1GB) }"))
 
     # 2. Pending reboot?
     step(2, "Checking pending reboots...")

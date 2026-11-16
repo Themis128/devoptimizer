@@ -21,12 +21,10 @@ def _step(cmd, outfile):
     DIAG.mkdir(parents=True, exist_ok=True)
     try:
         r = subprocess.run(cmd, capture_output=True,
-                           text=True, timeout=600)
+                           text=True)
         out = r.stdout + r.stderr
     except FileNotFoundError:
         out = f"command not found: {cmd[0]}"
-    except subprocess.TimeoutExpired:
-        out = "command timed out"
     (DIAG / outfile).write_text(out, errors="replace",
                                encoding="utf-8")
 
