@@ -47,7 +47,7 @@ def _read() -> dict:
         return {"queue": [], "version": 1,
                 "updated": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     try:
-        return json.loads(QUEUE_FILE.read_text(encoding="utf-8"))
+        return json.loads(QUEUE_FILE.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError):
         return {"queue": [], "version": 1}
 
@@ -55,7 +55,9 @@ def _read() -> dict:
 def _write(q: dict) -> None:
     QUEUE_FILE.parent.mkdir(parents=True, exist_ok=True)
     q["updated"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
-    QUEUE_FILE.write_text(json.dumps(q, indent=2), encoding="utf-8")
+    tmp = QUEUE_FILE.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(q, indent=2), encoding="utf-8")
+    os.replace(tmp, QUEUE_FILE)
 
 
 def enqueue(command: str, working_dir: str, description: str) -> dict:
@@ -141,7 +143,7 @@ def main() -> None:
     parser.add_argument("action", choices=["enqueue", "dequeue", "peek",
                                            "list", "clear", "send-next"])
     parser.add_argument("--command")
-    parser.add_argument("--working-directory", default="")
+    parser.add_argument("--working-directory", default=os.getcwd())
     parser.add_argument("--description", default="")
     parser.add_argument("--max-retries", type=int, default=3)
     args = parser.parse_args()

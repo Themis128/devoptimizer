@@ -86,7 +86,7 @@ def main() -> None:
         f"$dry = {dry_flag}; "
         f"if ({tune_flag}) {{ "
         "  if (-not $isAdmin) { "
-        f"    Start-Process powershell -Verb RunAs -Wait -ArgumentList @('-NoProfile','-File','{self_ps1}','-ApplySafeTuning'); "
+        f"    Start-Process powershell -Verb RunAs -Wait -ArgumentList @('-NoProfile','-File','{self_ps1}','-ApplySafeTuning',$(if ($dry) {{ '-DryRun' }} else {{ '' }})); "
         "    exit 0 }; "
         "  if (-not $dry) { "
         "    Add-MpPreference -ExclusionPath @($syncRoot,"
@@ -125,7 +125,9 @@ def main() -> None:
     print(f"[3] Sync root: {s.get('top')} top entries; sample {s.get('sample')} "
           f"-> {s.get('local')} local / {s.get('placeholders')} placeholders")
     cd = report.get("cldflt")
-    print(f"[4] cldflt: {cd['status']}/{cd['start'] if cd else 'not present'}")
+    print(f"[4] cldflt: {cd['status'] + '/' + cd['start'] if cd else 'not present'}")
+    if isinstance(report.get("dirs"), dict):
+        report["dirs"] = [report["dirs"]]
     print(f"[5] Autostart: {'registered' if report.get('autostart') else 'NOT registered'}")
     if report.get("admin"):
         print(f"[6] Defender paths: {report.get('exPaths')}")
