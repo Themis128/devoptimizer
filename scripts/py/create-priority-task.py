@@ -29,9 +29,10 @@ def main() -> None:
     args = parser.parse_args()
 
     ps = (
-        "$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "
-        "\"-NoProfile -ExecutionPolicy Bypass -File `\"D:\\DevOptimizer\\scripts"
-        "\\lower-devin-priority.ps1`\" -Loop -Interval 30\"; "
+        "$action = New-ScheduledTaskAction -Execute 'conhost.exe' -Argument "
+        "'--headless powershell.exe -NoProfile -ExecutionPolicy Bypass "
+        "-File \"D:\\DevOptimizer\\scripts\\lower-devin-priority.ps1\" "
+        "-Loop -Interval 30'; "
         "$trigger = New-ScheduledTaskTrigger -AtStartup; "
         "$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries "
         "-DontStopIfGoingOnBatteries -StartWhenAvailable -Hidden "
