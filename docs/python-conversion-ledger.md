@@ -536,3 +536,15 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 345 | scripts/register-docker-prune-task.ps1 | scripts/py/register-docker-prune-task.py | schtasks monthly 1st 04:30 |
 | 346 | scripts/register-vhdx-devin-exit-task.ps1 | scripts/py/register-vhdx-devin-exit-task.py | 5-min limited task via COM |
 | 347 | scripts/install-startup-launchers.ps1 | scripts/py/install-startup-launchers.py | vbs hidden launchers |
+| repair-phone-notifications.ps1 | scripts/py/repair-phone-notifications.py | t30 (via #79) | adb phone watchdog | notification-count restart loop |
+| network-soft-reset.ps1 | scripts/py/network-soft-reset.py | t30 (via #79) | adapter reset | + --register-task lane |
+| check-devinhealth.ps1 | scripts/py/check-devinhealth.py | t30 (via #79) | WSL devin-server health | commit-parse + bundle check |
+| register-daily-cleanup-task.ps1 | scripts/py/register-daily-cleanup-task.py | t30 (via #79) | COM task registrar | \DevOptimizer\ daily 06:30 |
+| register-diskspaceguard-task.ps1 | scripts/py/register-diskspaceguard-task.py | t30 (via #79) | COM task registrar | pythonw hourly |
+| register-housekeeping-task.ps1 | scripts/py/register-housekeeping-task.py | t30 (via #79) | COM task registrar | Sat weekly |
+| register-socialauto-maintenance.ps1 | scripts/py/register-socialauto-maintenance.py | t30 (via #79) | COM task registrar | Interactive IgnoreNew |
+| update-all-ollama-scripts.ps1 | scripts/py/update-all-ollama-scripts.py | t30 | bat rewriter | backup+rollback per file |
+| Tune-Windows-For-Devin.ps1 | scripts/py/tune-windows-for-devin.py | t30 | host tuning | wevtutil + powercfg + eventlog |
+| Check-DevinDoctor.ps1 | scripts/py/check-devindoctor.py | t30 | pipx health check | --skip-install/--json-only |
+| phone-tailnet-watch.ps1 | scripts/py/phone-tailnet-watch.py | t30 | tailnet watchdog | adb endpoint fallback chain |
+| vhdx-compact-on-devin-exit.ps1 | scripts/py/vhdx-compact-on-devin-exit.py | t30 | exit-gate launcher | vsock heal + idle recycle lanes |

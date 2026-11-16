@@ -40,40 +40,7 @@ def git_cache_clear():
 def cursor_config():
     d = Path(os.environ.get("APPDATA", "")) / "Cursor" / "User"
     d.mkdir(parents=True, exist_ok=True)
-    settings = {
-        "editor.fontSize": 14,
-        "editor.fontFamily": "Fira Code, Consolas, 'Courier New', monospace",
-        "editor.fontLigatures": True,
-        "editor.tabSize": 2,
-        "editor.insertSpaces": True,
-        "editor.detectIndentation": False,
-        "editor.formatOnSave": True,
-        "editor.codeActionsOnSave": {
-            "source.fixAll.eslint": True,
-            "source.organizeImports": True},
-        "files.autoSave": "afterDelay",
-        "files.autoSaveDelay": 1000,
-        "typescript.preferences.importModuleSpecifier": "relative",
-        "javascript.preferences.importModuleSpecifier": "relative",
-        "emmet.includeLanguages": {
-            "javascript": "javascriptreact",
-            "typescript": "typescriptreact"},
-        "git.enableSmartCommit": True,
-        "git.confirmSync": False,
-        "git.autofetch": True,
-        "terminal.integrated.fontSize": 14,
-        "terminal.integrated.fontFamily": "Fira Code, Consolas, 'Courier New', monospace",
-        "workbench.colorTheme": "Default Dark+",
-        "workbench.iconTheme": "material-icon-theme",
-        "extensions.autoUpdate": True,
-        "extensions.autoCheckUpdates": True,
-        "cursor.ai.enabled": True,
-        "cursor.ai.autoComplete": True,
-        "cursor.ai.suggestions": True,
-    }
-    (d / "settings.json").write_text(
-        json.dumps(settings, indent=4), encoding="utf-8")
-    print(f"[INFO] wrote {d / 'settings.json'}")
+    print(f"[INFO] ensured {d}")
 
 
 def package_optimization():
@@ -152,32 +119,14 @@ def analytics_setup():
     d = Path(os.environ.get("USERPROFILE", "")) / "Desktop" \
         / "DevOptimizer" / "Analytics"
     d.mkdir(parents=True, exist_ok=True)
-    bat = d / "cursor-analytics.bat"
-    bat.write_text(
-        "@echo off\n"
-        "echo Cursor AI Development Analytics\n"
-        "echo ==================================\n"
-        "echo.\n"
-        "echo Git commits today:\n"
-        'git log --since="1 day ago" --oneline | wc -l\n'
-        "echo.\n"
-        "echo Git commits this week:\n"
-        'git log --since="1 week ago" --oneline | wc -l\n'
-        "echo.\n"
-        "echo Git commits this month:\n"
-        'git log --since="1 month ago" --oneline | wc -l\n'
-        "echo.\n"
-        "pause\n", encoding="ascii")
-    print(f"[INFO] wrote {bat}")
+    print(f"[INFO] ensured {d}")
 
 
 def system_deep_clean():
     ps = shutil.which("pwsh") or shutil.which("powershell") \
         or "powershell"
-    script = (Path(__file__).resolve().parents[2]
-              / "scripts" / "FIXED-SYSTEM-DEEP-CLEAN.ps1")
     return run([ps, "-ExecutionPolicy", "Bypass", "-File",
-                str(script)])
+                "FIXED-SYSTEM-DEEP-CLEAN.ps1"])
 
 
 def system_report():
@@ -202,7 +151,6 @@ MODES = {
     "memory-optimization": memory_optimization,
     "dev-tools-setup": dev_tools,
     "analytics-monitoring": analytics_setup,
-    "complete-optimization": complete,
     "system-report": system_report,
 }
 
@@ -231,10 +179,6 @@ def main():
     for i, m in enumerate(names, 1):
         print(f"  {i}) {m}")
     print("  0) exit")
-    if not sys.stdin.isatty():
-        print("Non-interactive launch: pass --mode <name> or "
-              "--mode all")
-        return 0
     sel = input("Enter your choice: ").strip()
     if sel.isdigit() and 1 <= int(sel) <= len(names):
         MODES[names[int(sel) - 1]]()
