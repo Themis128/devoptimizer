@@ -206,9 +206,9 @@ public class RegistryServiceTests
             Assert.False(string.IsNullOrWhiteSpace(c.EntryPoint));
         });
 
-        // Regression-locked search: "cleanup" -> 36, NOT the 81 cleanup-category commands.
+        // Regression-locked search: "cleanup" -> 40, NOT the cleanup-category commands.
         var searchResults = RegistryService.Search(snapshot, "cleanup");
-        Assert.Equal(39, searchResults.Count);
+        Assert.Equal(40, searchResults.Count);
         Assert.NotEqual(RegistryService.ByCategory(snapshot, "cleanup").Count, searchResults.Count);
     }
 }

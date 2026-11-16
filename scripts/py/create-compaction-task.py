@@ -30,8 +30,9 @@ def main() -> None:
     args = parser.parse_args()
 
     ps = (
-        f"$action = New-ScheduledTaskAction -Execute 'powershell.exe' "
-        f"-Argument '-File {SCRIPT} -ForceAll -Force'; "
+        f"$action = New-ScheduledTaskAction -Execute 'conhost.exe' "
+        f"-Argument '--headless powershell.exe -NoProfile "
+        f"-ExecutionPolicy Bypass -File \"{SCRIPT}\" -ForceAll -Force'; "
         f"$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes({args.minutes}); "
         f"$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -DontStopOnIdleEnd; "
         f"$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' "

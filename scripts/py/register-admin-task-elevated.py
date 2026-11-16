@@ -29,8 +29,9 @@ def main() -> None:
     args = parser.parse_args()
 
     ps = (
-        f"$action = New-ScheduledTaskAction -Execute 'pwsh.exe' -Argument "
-        f"'-NoProfile -ExecutionPolicy Bypass -File \"{SCRIPT}\"'; "
+        f"$action = New-ScheduledTaskAction -Execute 'conhost.exe' -Argument "
+        f"'--headless pwsh.exe -NoProfile -ExecutionPolicy Bypass "
+        f"-File \"{SCRIPT}\"'; "
         "$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 03:00; "
         "$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries "
         "-DontStopIfGoingOnBatteries -StartWhenAvailable -Hidden "
