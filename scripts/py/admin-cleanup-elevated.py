@@ -118,12 +118,14 @@ def main() -> None:
 
         def write(self, data):
             for s in self._streams:
-                s.write(data)
+                if s is not None:
+                    s.write(data)
             return len(data)
 
         def flush(self):
             for s in self._streams:
-                s.flush()
+                if s is not None:
+                    s.flush()
 
     logs_dir = Path(__file__).resolve().parents[2] / "logs"
     logs_dir.mkdir(exist_ok=True)
