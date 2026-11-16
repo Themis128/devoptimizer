@@ -87,3 +87,25 @@ Parity: prerequisites 10/10 Test-* mapping; nuxt3 5/5 function→action mapping 
 
 pytest 82 · xUnit 78/78 · Pester 37/37 · validate-all-scripts 0 errors ·
 Check-Health 270/275 · parity-check OK
+
+## Phase 5 — full migration, tranche 1 (2026-11-16)
+
+New program: port every non-Python hub command, tranches of 12 ordered by
+category size (inventory: `tools/migration-inventory.json`, plan:
+`docs/python-migration-plan.md`). **Originals are kept alongside** for review —
+user-requested deviation from the delete-after-port rule.
+
+| PS original | Python port | Notes |
+|---|---|---|
+| scripts/check-trigger.ps1 | scripts/py/check-trigger.py | trigger object via PS shim, --json |
+| scripts/check-trigger2.ps1 | scripts/py/check-trigger2.py | Repetition block, --json |
+| scripts/check-trigger3.ps1 | scripts/py/check-trigger3.py | CLR type names |
+| scripts/check-devin-processes.ps1 | scripts/py/check-devin-processes.py | Get-Process *Devin* via shim, --json |
+| scripts/check-vhdx.ps1 | scripts/py/check-vhdx.py | pure-Python file stat, --json |
+| scripts/check-mem.ps1 | scripts/py/check-mem.py | Win32_OperatingSystem via CIM shim, --json |
+| scripts/find-vhdx-task.ps1 | scripts/py/find-vhdx-task.py | Get-ScheduledTask via shim, --json |
+| scripts/enable-ip-forwarding.ps1 | scripts/py/enable-ip-forwarding.py | mutating; --dry-run, --interface, elevated shim, stamp file |
+| scripts/find-vhdx.ps1 | scripts/py/find-vhdx.py | pure-Python rglob, --json |
+| scripts/restart-docker.ps1 | scripts/py/restart-docker.py | mutating; --dry-run, --wait |
+| scripts/check-devin.ps1 | scripts/py/check-devin.py | pure-Python log scan, --count, --json |
+| scripts/list-acp-dbs.ps1 | scripts/py/list-acp-dbs.py | pure-Python dir listing, --json |
