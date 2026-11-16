@@ -389,7 +389,6 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 214 | `tools/Variants/ollama-intelligent-monitor-Admin.bat` | `scripts/py/ollama-intelligent-monitor.py` | Same port with `--admin`. |
 | 215 | `tools/Variants/ollama-script-generator-NoAdmin.bat` | `scripts/py/ollama-script-generator.py` | 8-item generator menu -> helper; --choice/--sub/--desc. |
 | 216 | `tools/Variants/ollama-script-generator-Admin.bat` | `scripts/py/ollama-script-generator.py` | Same port with `--admin`. |
-||||||| b00a185
 
 
 ## Phase 5 — full migration, tranche 17 (2026-11-16)

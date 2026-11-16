@@ -108,6 +108,7 @@ def is_admin() -> bool:
 
 def generate(idx: int, out_dir: Path, dry: bool) -> None:
     _label, slug, prompt = PROMPTS[idx - 1]
+    out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / f"{slug}-{random.randint(0, 32767)}.bat"
     cmd = [sys.executable, str(HELPER), "--prompt", prompt,
            "--output", str(out)]
