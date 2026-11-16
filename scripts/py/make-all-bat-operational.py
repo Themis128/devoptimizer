@@ -23,15 +23,36 @@ from devoptimizer_cli.core.winops import run_ps_command  # noqa: E402
 # TAGS: bat, variants, operational
 
 SCRIPT_DIR = Path(r"D:\DevOptimizer")
-PAIRS = [("01-Quick-Optimization.bat", "01-Quick-Optimization-NoAdmin.bat"),
-         ("02-Ultra-Performance.bat", "02-Ultra-Performance-NoAdmin.bat"),
-         ("03-Install-Dev-Tools.bat", "03-Install-Dev-Tools-NoAdmin.bat"),
-         ("06-System-Health-Check.bat", "06-System-Health-Check-NoAdmin.bat"),
-         ("09-System-Deep-Clean.bat", "09-System-Deep-Clean-NoAdmin.bat")]
+NAMES = ["01-Quick-Optimization", "02-Ultra-Performance",
+         "03-Install-Dev-Tools", "06-System-Health-Check",
+         "09-System-Deep-Clean"]
 SELF = {"MAKE-ALL-BAT-OPERATIONAL.bat", "FIX-ALL-BAT-FILES.bat"}
-ADMIN_GATE = re.compile(
-    r"(?im)^\s*(call :checkAdmin|net session|if not \"%?IS_ADMIN)"
-    r".*(\r?\n\s*(pause|exit /b|if not|)[:()\w% ]*){0,3}")
+
+
+def stub(name: str) -> str:
+    """NoAdmin stub the original generator writes (basic system
+    check only — never a stripped copy of the admin source)."""
+    return (
+        "@echo off\r\n"
+        "setlocal EnableExtensions EnableDelayedExpansion\r\n"
+        "set \"SCRIPT_DIR=%~dp0\"\r\n"
+        "set \"SCRIPT_DIR=%SCRIPT_DIR:~0,-1%\"\r\n\r\n"
+        f"title  - Standard Mode- No Admin Required\r\n"
+        "echo.\r\n"
+        f"echo Running {name}-NoAdmin.bat...\r\n"
+        "echo.\r\n"
+        "echo NOTE: This is a non-admin version with limited "
+        "functionality.\r\n"
+        "echo For full functionality, run as Administrator.\r\n"
+        "echo.\r\n"
+        "powershell -ExecutionPolicy Bypass -NoProfile -Command "
+        "\"Write-Host 'Running basic system check...' "
+        "-ForegroundColor Green; Get-ComputerInfo | Select-Object "
+        "WindowsProductName, WindowsVersion, TotalPhysicalMemory | "
+        "Format-Table -AutoSize\"\r\n"
+        "echo.\r\n"
+        "echo Operation completed!\r\n"
+        "pause\r\n")
 
 
 def is_admin() -> bool:
@@ -56,19 +77,15 @@ def main() -> None:
 
     s = Path(args.script_dir)
     created = 0
-    for src_name, dst_name in PAIRS:
-        src, dst = s / src_name, s / dst_name
-        if not src.is_file():
-            print(f"skip (missing): {src_name}", file=sys.stderr)
-            continue
-        text = src.read_text(errors="replace")
-        new = ADMIN_GATE.sub("", text)
+    for name in NAMES:
+        dst = s / f"{name}-NoAdmin.bat"
         if args.dry_run:
-            print(f"[dry-run] write {dst_name}")
+            print(f"[dry-run] write {dst.name}")
         else:
-            dst.write_text(new)
+            s.mkdir(parents=True, exist_ok=True)
+            dst.write_text(stub(name))
         created += 1
-        print(f"created {dst_name}")
+        print(f"created {dst.name}")
 
     print("\n[2/6] Fixing PowerShell execution policy...")
     if args.dry_run:
