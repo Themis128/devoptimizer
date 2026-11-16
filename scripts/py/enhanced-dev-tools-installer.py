@@ -47,7 +47,7 @@ def run(cmd, dry, tag):
 
 
 def os_name_cmd(cmd):
-    return cmd[0] in {"choco", "npm", "pnpm", "code", "node"}
+    return cmd[0] in {"choco", "npm", "pnpm"}
 
 
 def main() -> None:
@@ -78,10 +78,7 @@ def main() -> None:
                 except OSError:
                     pass
             if paths:
-                merged = os.pathsep.join(paths)
-                merged = os.pathsep.join(
-                    os.path.expandvars(e) for e in merged.split(os.pathsep))
-                os.environ["PATH"] = merged
+                os.environ["PATH"] = os.pathsep.join(paths)
         except ImportError:
             pass  # non-Windows
 
