@@ -46,3 +46,10 @@ before the large orchestration scripts).
 Ledger phase-3 tranche-C: `Optimize-VHD`/`Mount-VHD` scripts, `Add-Type`/
 WinForms UI, `DevOptimizer-AppCore.psm1` and other PS modules, platform
 tooling that only exists as PowerShell cmdlets.
+
+Inventory exclusion rule (`"excluded": true`, `"tranche": null`): the hub's
+own tooling (`Build-App`, `Test-App`, `Hub-Registry`, `Discover-Scripts`,
+`Build-Registry`, validate/test-syntax scripts), one-off test/debug
+launchers, `scripts/lib/` and `modules/` support modules, and `app/` code.
+24 commands excluded in tranche 1's inventory; the rule applies to later
+tranches too.
