@@ -42,6 +42,13 @@ def svc_status():
         return None
 
 
+def svc_running(svc):
+    # Windows PS serializes ServiceControllerStatus numerically
+    # (4=Running); PS7 emits the name string.
+    return svc is not None and str(svc.get("Status")) in \
+        ("Running", "4")
+
+
 def ps(cmd):
     return subprocess.run(["powershell", "-NoProfile", "-Command",
                            cmd], capture_output=True, text=True)
@@ -180,7 +187,7 @@ def main():
 
     # 4. start + verify
     svc2 = svc_status()
-    if svc2 and svc2.get("Status") != "Running":
+    if svc2 and not svc_running(svc2):
         if elev and not dry:
             ps("Start-Service sshd -ErrorAction SilentlyContinue")
             time.sleep(2)
@@ -188,7 +195,7 @@ def main():
             log(f"[start] sshd is {svc2.get('Status')} - need"
                 " elevation to start (or wait for SCM)")
     svc2 = svc_status()
-    if svc2 and svc2.get("Status") != "Running" and elev and not dry:
+    if svc2 and not svc_running(svc2) and elev and not dry:
         if logs_path.exists():
             bak = str(logs_path) + ".bak-" \
                 + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -202,7 +209,7 @@ def main():
                 svc2 = svc_status()
             except OSError as e:
                 log(f"[escalate] logs-dir move failed: {e}")
-    if svc2 and svc2.get("Status") == "Running":
+    if svc_running(svc2):
         r = subprocess.run(["netstat", "-ano"], capture_output=True,
                            text=True)
         listening = bool(re.search(r":22\s+.*LISTENING", r.stdout))

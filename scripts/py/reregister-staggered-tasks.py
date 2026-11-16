@@ -93,6 +93,7 @@ def main():
                 + SCRIPT_ROOT + chr(92) + script_file + "\""
                 + (" " + extra if extra else ""))
 
+    failures = []
     for (name, script, sched, at, days, limit_h, user, ignore_new,
          desc) in TASKS:
         arg = headless(script)
@@ -127,6 +128,7 @@ def main():
             if r.returncode == 0 and not r.stderr.strip():
                 print(f"  [OK] {name}")
             else:
+                failures.append(name)
                 print(f"  [FAIL] {name}:"
                       f" {r.stderr.strip()[:200]}")
 
@@ -151,9 +153,14 @@ def main():
         " swap pressure monitor every 30 min (10 min timeout).'"
         " -Force | Out-Null")
     if not dry:
-        ps(cmd)
-        print("  [OK] WSL-Memory-Watchdog (every 30 min,"
-              " 10 min timeout)")
+        r = ps(cmd)
+        if r.returncode == 0 and not r.stderr.strip():
+            print("  [OK] WSL-Memory-Watchdog (every 30 min,"
+                  " 10 min timeout)")
+        else:
+            failures.append("WSL-Memory-Watchdog")
+            print("  [FAIL] WSL-Memory-Watchdog:"
+                  f" {r.stderr.strip()[:200]}")
 
     # Docker-WSL-Sync daily 04:45
     arg = headless("sync-docker-wsl.ps1")
@@ -173,8 +180,14 @@ def main():
         " Docker-WSL sync (04:45): verify bind mounts, restart"
         " on-demand containers.' -Force | Out-Null")
     if not dry:
-        ps(cmd)
-        print("  [OK] Docker-WSL-Sync (daily 04:45, 30 min timeout)")
+        r = ps(cmd)
+        if r.returncode == 0 and not r.stderr.strip():
+            print("  [OK] Docker-WSL-Sync (daily 04:45,"
+                  " 30 min timeout)")
+        else:
+            failures.append("Docker-WSL-Sync")
+            print("  [FAIL] Docker-WSL-Sync:"
+                  f" {r.stderr.strip()[:200]}")
 
     if not dry:
         ps("Get-ScheduledTask -TaskPath '\\DevOptimizer\\'"
@@ -198,6 +211,10 @@ def main():
     else:
         print("[DRY RUN] No tasks were actually registered")
     print("\n=== Registration complete ===")
+    if failures:
+        print(f"FAILED: {len(failures)} task(s) did not register:"
+              f" {', '.join(failures)}")
+        return len(failures)
     return 0
 
 

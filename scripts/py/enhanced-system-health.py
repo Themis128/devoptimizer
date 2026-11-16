@@ -95,7 +95,7 @@ def main():
         "$a = (Get-Counter '\\Memory\\Available MBytes')"
         ".CounterSamples[0].CookedValue; "
         "@{Total=$t; AvailMB=$a}")
-    if mem:
+    if mem and mem.get("Total") and mem.get("AvailMB") is not None:
         total_gb = round(mem["Total"] / 1e9, 2)
         avail_gb = round(mem["AvailMB"] / 1024, 2)
         used = total_gb - avail_gb
@@ -121,7 +121,7 @@ def main():
         " -SampleInterval 2 -MaxSamples 3; "
         "@{Avg=($c.CounterSamples | Measure-Object CookedValue"
         " -Average).Average}")
-    if cpu:
+    if cpu and cpu.get("Avg") is not None:
         avg = round(cpu["Avg"], 2)
         if avg > 90:
             print(f"   CPU Usage: CRITICAL - {avg}% average")

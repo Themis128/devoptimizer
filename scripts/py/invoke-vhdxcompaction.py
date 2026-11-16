@@ -117,13 +117,15 @@ def main():
         return "no-targets", details, 0, 0
 
     try:
-        state = json.loads(STATE.read_text(encoding="utf-8")) \
+        state = json.loads(STATE.read_text(encoding="utf-8-sig")) \
             if STATE.exists() else {}
     except ValueError:
         state = {}
     to_compact = []
     for t in targets:
-        size_gb = round(Path(t).stat().st_size / 1e9, 2)
+        # GiB (2^30) matches the units previous PowerShell runs
+        # recorded into the state file.
+        size_gb = round(Path(t).stat().st_size / 2**30, 2)
         prev = state.get(t)
         if force_all or not prev \
                 or (size_gb - prev.get("lastSizeAfterGB", 0)) \
