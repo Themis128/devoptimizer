@@ -85,7 +85,17 @@ WSL_COMMANDS = [
      "--filter 'label!=com.docker.desktop.service=model-runner' "
      "--filter 'label!=com.docker.model-runner.role=model-storage' "
      "2>/dev/null", "docker system prune"),
+    ("npm cache clean --force 2>/dev/null", "npm cache"),
+    ("pip cache purge 2>/dev/null", "pip cache"),
+    ("yarn cache clean 2>/dev/null", "yarn cache"),
     ("pnpm store prune 2>/dev/null", "pnpm store"),
+    ("cargo clean 2>/dev/null", "cargo cache"),
+    ("go clean -cache 2>/dev/null", "go cache"),
+    ("flatpak uninstall --unused -y 2>/dev/null", "flatpak unused"),
+    ("snap list --all 2>/dev/null | "
+     "awk '/disabled/{print $1}' | "
+     "xargs -r snap remove 2>/dev/null",
+     "snap disabled revisions"),
     ("rm -rf /home/*/.cache/pip /home/*/.cache/pipx 2>/dev/null",
      "pip user cache"),
     ("rm -rf /home/*/.cache/yarn /home/*/.cache/pnpm 2>/dev/null",
@@ -236,8 +246,10 @@ def main() -> None:
                     ws = int(p[2].strip('"').strip() or 0)
                 except ValueError:
                     ws = 0
-                found.setdefault((proc_name, desc),
-                                 []).append((p[0].strip('"'), ws))
+                pid_s = p[0].strip('"')
+                if pid_s != str(os.getpid()):
+                    found.setdefault((proc_name, desc),
+                                     []).append((pid_s, ws))
     for (proc_name, desc), procs in found.items():
         total_mb = sum(ws for _, ws in procs) / MB
         print(f"  {desc:<35} count={len(procs)} "
@@ -259,12 +271,13 @@ def main() -> None:
             if needs_admin and not is_admin():
                 print(f"  [WARN] Skipping {desc} (requires Admin)")
                 continue
-            parent = pattern.rsplit("*", 1)[0].rstrip("\\/")
-            if not Path(parent).is_dir():
+            matches = [m for m in glob.glob(pattern)
+                       if Path(m).exists()]
+            if not matches:
                 continue
-            size = dir_size_mb(parent)
+            size = sum(dir_size_mb(m) for m in matches)
             if size > 0:
-                for match in glob.glob(pattern):
+                for match in matches:
                     clear_children(match, dry)
                     if Path(match).is_file() and not dry:
                         try:
@@ -339,10 +352,15 @@ def main() -> None:
 
     # ─── WSL cleanup ───
     header("WSL (Ubuntu) Cleanup")
-    r = subprocess.run(["wsl", "-l", "-q"], capture_output=True,
-                       text=True, errors="replace")
-    distros = [d.replace("\0", "").strip()
-               for d in r.stdout.splitlines()]
+    try:
+        r = subprocess.run(["wsl", "-l", "-q"],
+                           capture_output=True, text=True,
+                           errors="replace")
+    except OSError:
+        r = None
+    distros = [] if r is None else [
+        d.replace("\0", "").strip()
+        for d in r.stdout.splitlines()]
     distros = [d for d in distros if d and d != "docker-desktop"
                and "data" not in d]
     if distros:

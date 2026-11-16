@@ -12,6 +12,7 @@ ntfy on failures. Requires admin. Mutating; --dry-run.
 """
 
 import argparse
+import io
 import asyncio
 import ctypes
 import os
@@ -111,6 +112,25 @@ def main() -> None:
     args = ap.parse_args()
     dry = args.dry_run
 
+    class _Tee(io.TextIOBase):
+        def __init__(self, *streams):
+            self._streams = streams
+
+        def write(self, data):
+            for s in self._streams:
+                s.write(data)
+            return len(data)
+
+        def flush(self):
+            for s in self._streams:
+                s.flush()
+
+    logs_dir = Path(__file__).resolve().parents[2] / "logs"
+    logs_dir.mkdir(exist_ok=True)
+    log_path = logs_dir / "admin-cleanup-elevated.log"
+    log_file = open(log_path, "a", encoding="utf-8")
+    sys.stdout = _Tee(sys.__stdout__, log_file)
+
     print("=" * 64)
     print("           ADMIN CLEANUP (Elevated)")
     print("=" * 64)
@@ -124,13 +144,15 @@ def main() -> None:
         print("[dry-run] New-NetFirewallRule docker backend")
     else:
         asyncio.run(run_ps_command(
-            "if (-not (Get-NetFirewallRule -DisplayName "
-            "'DevOptimizer-DockerBackend' -ErrorAction "
-            "SilentlyContinue)) { New-NetFirewallRule -DisplayName "
-            "'DevOptimizer-DockerBackend' -Direction Inbound "
-            "-Action Allow -Protocol TCP -Program "
-            "'C:\\Program Files\\Docker\\Docker\\com.docker."
-            "backend.exe' | Out-Null; 'created' } else { 'exists' }",
+            "$b = \"$env:LOCALAPPDATA\\Programs\\DockerDesktop\\"
+            "resources\\com.docker.backend.exe\"; "
+            "if ((Test-Path $b) -and -not (Get-NetFirewallRule "
+            "-DisplayName 'Docker Desktop Backend (user path)' "
+            "-ErrorAction SilentlyContinue)) { New-NetFirewallRule "
+            "-DisplayName 'Docker Desktop Backend (user path)' "
+            "-Direction Inbound -Action Allow -Program $b "
+            "-Profile Any -Enabled True | Out-Null; 'created' } "
+            "else { 'exists-or-missing' }",
             timeout=60))
 
     print("\n--- [1] DISM Component Store Cleanup ---")
@@ -158,15 +180,17 @@ def main() -> None:
         print("[2] Windows Update cache: path not found")
 
     print("\n--- [3] Delivery Optimization Cache ---")
+    do_dir = Path(os.environ.get("LOCALAPPDATA", "")) / \
+        "Microsoft" / "Windows" / "DeliveryOptimization"
     if dry:
-        print("[dry-run] Delete-DeliveryOptimizationCache")
+        print("[dry-run] Remove-Item DO cache folder")
+    elif do_dir.is_dir():
+        size = dir_size(do_dir)
+        shutil.rmtree(do_dir, ignore_errors=True)
+        print(f"[3] Delivery Optimization cache: CLEARED "
+              f"(-{gb(size)} GB)")
     else:
-        r = asyncio.run(run_ps_command(
-            "try { Delete-DeliveryOptimizationCache -ErrorAction "
-            "Stop; 'CLEARED' } catch { 'SKIPPED (' + "
-            "$_.Exception.Message.Split([char]10)[0] + ')' }",
-            timeout=600))
-        print(f"[3] {r.stdout.strip() or 'done'}")
+        print("[3] Delivery Optimization cache: not found")
 
     print("\n--- [4] System Restore Points (oldest only) ---")
     run(["vssadmin", "delete", "shadows", "/for=c:", "/oldest",
