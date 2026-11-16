@@ -320,3 +320,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 154 | `portable/apply-overclock-programmatic.bat` | `scripts/py/apply-overclock-programmatic.py` | Shim -> config\overclocking\apply-overclock-programmatic.ps1. |
 | 155 | `portable/ollama-server-manager.bat` | `scripts/py/ollama-server-manager-shim.py` | Shim -> tools\ollama-server-manager.ps1 (module excluded). |
 | 156 | `portable/overclocking-manager.bat` | `scripts/py/overclocking-manager-shim.py` | Shim -> scripts\overclocking-manager.ps1 (t7 port exists). |
+
+## Phase 5 — full migration, tranche 14 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 157 | `portable/SIMPLE-PROGRESS-DEMO.bat` | `scripts/py/SIMPLE-PROGRESS-DEMO.py` | Shim -> Testing\SIMPLE-PROGRESS-DEMO.ps1. |
+| 158 | `portable/admin-privilege-manager.bat` | `scripts/py/admin-privilege-manager-shim.py` | Shim -> tools\admin-privilege-manager.ps1 (module excluded). |
+| 159 | `portable/WORKING-PROGRESS-FIXED.bat` | `scripts/py/WORKING-PROGRESS-FIXED.py` | Shim -> Testing\WORKING-PROGRESS-FIXED.ps1. |
+| 160 | `portable/configure-intel-xtu-programmatic.bat` | `scripts/py/configure-intel-xtu-programmatic.py` | Shim -> config\overclocking\configure-intel-xtu-programmatic.ps1. |
+| 161 | `portable/FIXED-ENCODING-PROGRESS.bat` | `scripts/py/FIXED-ENCODING-PROGRESS.py` | Shim -> Testing\FIXED-ENCODING-PROGRESS.ps1. |
+| 162 | `portable/auto-configure-msi.bat` | `scripts/py/auto-configure-msi.py` | Shim -> config\overclocking\auto-configure-msi.ps1. |
+| 163 | `portable/auto-configure-xtu.bat` | `scripts/py/auto-configure-xtu.py` | Shim -> config\overclocking\auto-configure-xtu.ps1. |
+| 164 | `portable/normalize-bat-files-fixed.bat` | `scripts/py/normalize-bat-files-fixed-shim.py` | Shim -> tools\normalize-bat-files-fixed.ps1 (t6 port exists). |
+| 165 | `portable/auto-create-profile.bat` | `scripts/py/auto-create-profile.py` | Shim -> config\overclocking\auto-create-profile.ps1. |
+| 166 | `portable/next-steps-complete.bat` | `scripts/py/next-steps-complete.py` | Shim -> config\overclocking\next-steps-complete.ps1. |
+| 167 | `portable/ollama-analytics-dashboard.bat` | `scripts/py/ollama-analytics-dashboard-shim.py` | Shim -> tools\ollama-analytics-dashboard.ps1 (module excluded). |
+| 168 | `portable/PowerShell-Progress-Fixer.bat` | `scripts/py/PowerShell-Progress-Fixer.py` | Shim -> Testing\PowerShell-Progress-Fixer.ps1. |
