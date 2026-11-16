@@ -12,6 +12,7 @@ from pathlib import Path
 
 # CATEGORY: cleanup
 # TAGS: windows11, admin, delegate
+# REQUIRES: admin
 
 _IMPL = (Path(__file__).resolve().parent /
          "win11-admin-cleanup-elevated-fixed.py")
