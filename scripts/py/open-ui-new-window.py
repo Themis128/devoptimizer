@@ -37,37 +37,54 @@ def is_admin() -> bool:
 
 def launch(cmd, title):
     if os.name == "nt":
-        subprocess.Popen(["cmd", "/c", "start", f'"{title}"', *cmd])
+        line = 'start "{}" {}'.format(
+            title.replace('"', ''),
+            " ".join('"{}"'.format(a) if " " in a else a for a in cmd))
+        subprocess.Popen(line, shell=True)
     else:
         print("start " + " ".join(cmd))
 
 
-def menu() -> None:
+def apply_choice(choice: str) -> bool:
+    if choice == "6" or not choice:
+        return True
+    if choice in ("1", "2", "3", "4"):
+        _name, title, cmd = OPTIONS[int(choice) - 1]
+        print(f"Opening {title} in new window...")
+        launch(cmd, title)
+        return True
+    if choice == "5":
+        for _name, title, cmd in OPTIONS:
+            launch(cmd, title)
+        return True
+    print("Invalid choice.")
+    return False
+
+
+def menu(choice: str = "") -> None:
     print("Choose how to open the UI:\n")
     for i, (name, *_rest) in enumerate(OPTIONS, 1):
         print(f"{i}. {name} (New Window)")
     print("5. All Options (Multiple Windows)")
     print("6. Exit\n")
-    while True:
-        choice = input("Select (1-6): ").strip()
-        if choice == "6" or not choice:
-            return
-        if choice in ("1", "2", "3", "4"):
-            _name, title, cmd = OPTIONS[int(choice) - 1]
-            print(f"Opening {title} in new window...")
-            launch(cmd, title)
-            return
-        if choice == "5":
-            for _name, title, cmd in OPTIONS:
-                launch(cmd, title)
-            return
-        print("Invalid choice.")
+    if choice:
+        apply_choice(choice)
+        return
+    if not sys.stdin.isatty():
+        # hidden runner (hub/app): no console to read from — print
+        # the menu and exit so the caller can pass --choice.
+        print("(non-interactive: pass --choice N)", file=sys.stderr)
+        return
+    while not apply_choice(input("Select (1-6): ").strip()):
+        pass
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--admin", action="store_true",
                         help="admin variant: require elevation")
+    parser.add_argument("--choice", default="",
+                        help="menu choice 1-6 for non-interactive runs")
     args = parser.parse_args()
 
     if args.admin and not is_admin():
@@ -78,7 +95,7 @@ def main() -> None:
         print("[INFO] Running in standard mode without Administrator "
               "privileges\n[INFO] Some system-level features may be "
               "limited\n")
-    menu()
+    menu(args.choice)
 
 
 if __name__ == "__main__":

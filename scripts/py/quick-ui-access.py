@@ -23,6 +23,8 @@ _spec.loader.exec_module(_mod)
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--admin", action="store_true")
+    parser.add_argument("--choice", default="",
+                        help="menu choice 1-6 for non-interactive runs")
     args = parser.parse_args()
 
     print("\n" + "=" * 64 + "\n                     QUICK UI ACCESS\n"
@@ -31,7 +33,7 @@ def main() -> None:
         print("[ERROR] This script requires Administrator privileges.",
               file=sys.stderr)
         sys.exit(1)
-    _mod.menu()
+    _mod.menu(args.choice)
 
 
 if __name__ == "__main__":

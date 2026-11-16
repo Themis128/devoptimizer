@@ -20,7 +20,7 @@ from devoptimizer_cli.core.winops import run_ps_command  # noqa: E402
 # TAGS: setup, path, system, elevated
 
 ADDITION = r"D:\DevOptimizer"
-HKLM_PATH = (r"HKLM\SYSTEM\CurrentControlSet\Control"
+HKLM_PATH = (r"SYSTEM\CurrentControlSet\Control"
              r"\Session Manager\Environment")
 
 
