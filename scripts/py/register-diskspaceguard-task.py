@@ -29,11 +29,21 @@ def main():
     r = subprocess.run(
         ["schtasks", "/create", "/f", "/tn",
          TASK_PATH + TASK_NAME, "/tr", ACTION,
-         "/ru", user, *SCHED],
+         "/ru", user, "/it", *SCHED],
         capture_output=True, text=True)
     if r.returncode != 0:
         print(f"Register failed: {r.stderr or r.stdout}")
         return 1
+    settings = (
+        "Set-ScheduledTask -TaskName '" + TASK_NAME +
+        "' -TaskPath '" + TASK_PATH +
+        "' -Settings (New-ScheduledTaskSettingsSet "
+        "-AllowStartIfOnBatteries "
+        "-DontStopIfGoingOnBatteries "
+        "-StartWhenAvailable)")
+    subprocess.run(["powershell", "-NoProfile",
+                    "-Command", settings],
+                   capture_output=True, text=True)
     print(f"Registered {TASK_PATH}{TASK_NAME}")
     return 0
 

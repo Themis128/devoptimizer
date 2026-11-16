@@ -11,7 +11,11 @@ import sys
 
 TASK_NAME = "Daily-Full-Cleanup"
 TASK_PATH = "\\DevOptimizer\\"
-ACTION = '"C:\\Windows\\System32\\conhost.exe" --headless "D:\\DevOptimizer\\pwsh\\pwsh.exe" -NoProfile -ExecutionPolicy Bypass -File "D:\\DevOptimizer\\scripts\\daily-full-cleanup.ps1"'
+PWSH = ("D:\\DevOptimizer\\pwsh\\pwsh.exe"
+        if os.path.exists(
+            r"D:\DevOptimizer\pwsh\pwsh.exe")
+        else "pwsh.exe")
+ACTION = '"C:\\Windows\\System32\\conhost.exe" --headless "' + PWSH + '" -NoProfile -ExecutionPolicy Bypass -File "D:\\DevOptimizer\\scripts\\daily-full-cleanup.ps1"'
 SCHED = ["/sc", "daily", "/st", "06:30", "/rl", "LIMITED"]
 
 
@@ -29,11 +33,21 @@ def main():
     r = subprocess.run(
         ["schtasks", "/create", "/f", "/tn",
          TASK_PATH + TASK_NAME, "/tr", ACTION,
-         "/ru", user, *SCHED],
+         "/ru", user, "/it", *SCHED],
         capture_output=True, text=True)
     if r.returncode != 0:
         print(f"Register failed: {r.stderr or r.stdout}")
         return 1
+    settings = (
+        "Set-ScheduledTask -TaskName '" + TASK_NAME +
+        "' -TaskPath '" + TASK_PATH +
+        "' -Settings (New-ScheduledTaskSettingsSet "
+        "-AllowStartIfOnBatteries "
+        "-DontStopIfGoingOnBatteries "
+        "-StartWhenAvailable)")
+    subprocess.run(["powershell", "-NoProfile",
+                    "-Command", settings],
+                   capture_output=True, text=True)
     print(f"Registered {TASK_PATH}{TASK_NAME}")
     return 0
 
