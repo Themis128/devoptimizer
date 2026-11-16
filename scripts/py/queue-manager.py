@@ -57,7 +57,19 @@ def _write(q: dict) -> None:
     q["updated"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     tmp = QUEUE_FILE.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(q, indent=2), encoding="utf-8")
-    os.replace(tmp, QUEUE_FILE)
+    for attempt in range(5):
+        try:
+            os.replace(tmp, QUEUE_FILE)
+            break
+        except OSError:
+            # Windows: os.replace fails while a concurrent reader holds
+            # the queue file open; retry briefly before falling back.
+            if attempt == 4:
+                QUEUE_FILE.write_text(tmp.read_text(encoding="utf-8"),
+                                      encoding="utf-8")
+                tmp.unlink(missing_ok=True)
+            else:
+                time.sleep(0.05 * (attempt + 1))
 
 
 def enqueue(command: str, working_dir: str, description: str) -> dict:
