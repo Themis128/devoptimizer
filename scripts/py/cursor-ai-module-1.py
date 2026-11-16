@@ -19,8 +19,16 @@ def main():
     if not PS1.exists():
         print(f"[ERROR] not found: {PS1}")
         return 1
-    ps = shutil.which("powershell") or shutil.which(
-        "pwsh")
+    try:
+        needs7 = any(t in PS1.read_text(
+            encoding="utf-8", errors="replace")
+            for t in ("-AsHashtable", "??", ".Where("))
+    except OSError:
+        needs7 = False
+    order = ("pwsh", "powershell") if needs7 \
+        else ("powershell", "pwsh")
+    ps = next((shutil.which(h) for h in order
+               if shutil.which(h)), None)
     if not ps:
         print("[ERROR] no PowerShell host")
         return 1

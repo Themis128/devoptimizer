@@ -115,7 +115,16 @@ def analytics_setup():
 
 
 def system_deep_clean():
-    ps = shutil.which("pwsh") or shutil.which("powershell") \
+    try:
+        needs7 = any(t in PS1.read_text(
+            encoding="utf-8", errors="replace")
+            for t in ("-AsHashtable", "??", ".Where("))
+    except OSError:
+        needs7 = False
+    order = ("pwsh", "powershell") if needs7 \
+        else ("powershell", "pwsh")
+    ps = next((shutil.which(h) for h in order
+               if shutil.which(h)), None) \
         or "powershell"
     return run([ps, "-ExecutionPolicy", "Bypass", "-File",
                 "FIXED-SYSTEM-DEEP-CLEAN.ps1"])

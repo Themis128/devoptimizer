@@ -16,7 +16,16 @@ def main():
         print(f"[ERROR] PowerShell script not found: {target}",
               file=sys.stderr)
         return 1
-    ps = shutil.which("pwsh") or shutil.which("powershell")
+    try:
+        needs7 = any(t in PS1.read_text(
+            encoding="utf-8", errors="replace")
+            for t in ("-AsHashtable", "??", ".Where("))
+    except OSError:
+        needs7 = False
+    order = ("pwsh", "powershell") if needs7 \
+        else ("powershell", "pwsh")
+    ps = next((shutil.which(h) for h in order
+               if shutil.which(h)), None)
     r = subprocess.run([ps, "-NoProfile", "-ExecutionPolicy",
                         "Bypass", "-File", str(target)]
                        + sys.argv[1:])
