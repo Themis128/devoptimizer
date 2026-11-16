@@ -35,10 +35,11 @@ def log(m):
         pass
 
 
-def run(cmd, timeout=120):
+def run(cmd, timeout=120, env=None):
     try:
         return subprocess.run(cmd, capture_output=True,
-                              text=True, timeout=timeout)
+                              text=True, timeout=timeout,
+                              env=env)
     except Exception:
         return None
 
@@ -52,7 +53,7 @@ def alert(sev, title, msg, tags):
          "-Title $env:DEVOPT_ALERT_TITLE "
          "-Message $env:DEVOPT_ALERT_MSG "
          f"-Tags {tags} -ErrorAction SilentlyContinue"],
-        timeout=60)
+        timeout=60, env=env)
 
 
 def elevated():

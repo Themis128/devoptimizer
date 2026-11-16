@@ -20,8 +20,10 @@ def main():
     if not BAT.exists():
         print(f"[ERROR] not found: {BAT}")
         return 1
+    flags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
     r = subprocess.run(["cmd.exe", "/c", str(BAT),
-                        *sys.argv[1:]])
+                        *sys.argv[1:]],
+                       creationflags=flags)
     return r.returncode
 
 

@@ -18,6 +18,7 @@ from datetime import datetime
 from pathlib import Path
 
 LOG = Path(r"D:\DevOptimizer\logs\phone-notify-watchdog.log")
+ROOT = Path("D:/DevOptimizer")
 
 
 def log(msg):
@@ -63,8 +64,12 @@ def main():
                     default="com.nextcloud.client")
     ap.add_argument("-Threshold", type=int, default=40)
     ap.add_argument("-AdbPath", default="")
+    ap.add_argument("-Root", default=r"D:\DevOptimizer")
     ap.add_argument("-DryRun", action="store_true")
     a = ap.parse_args()
+
+    global LOG
+    LOG = Path(a.Root) / "logs" / "phone-notify-watchdog.log"
 
     adb = find_adb(a.AdbPath)
     if not adb:
