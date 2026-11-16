@@ -548,3 +548,15 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | Check-DevinDoctor.ps1 | scripts/py/check-devindoctor.py | t30 | pipx health check | --skip-install/--json-only |
 | phone-tailnet-watch.ps1 | scripts/py/phone-tailnet-watch.py | t30 | tailnet watchdog | adb endpoint fallback chain |
 | vhdx-compact-on-devin-exit.ps1 | scripts/py/vhdx-compact-on-devin-exit.py | t30 | exit-gate launcher | vsock heal + idle recycle lanes |
+| portable/advanced-script-updater.bat | scripts/py/advanced-script-updater.py | t32 | pwsh shim | DEVOPT_HOME target |
+| portable/enhanced-system-health.bat | scripts/py/enhanced-system-health-1.py | t32 | pwsh shim | scripts/ target |
+| tools/update-ollama-scripts.bat | scripts/py/update-ollama-scripts.py | t32 | ollama-*.bat rewriter | .backup + helper routing |
+| tools/Variants/launcher-NoAdmin.bat | scripts/py/launcher-noadmin.py | t32 | 00-LAUNCHER delegate | full-path call |
+| tools/Variants/launcher-Admin.bat | scripts/py/launcher-admin.py | t32 | 00-LAUNCHER delegate | full-path call |
+| tools/Variants/HEALTH-MONITOR-NoAdmin.bat | scripts/py/health-monitor-noadmin.py | t32 | 6-check score monitor | 30s loop, auto-repair <70 |
+| tools/Variants/HEALTH-MONITOR-Admin.bat | scripts/py/health-monitor-admin.py | t32 | health monitor | admin gate + delegate |
+| tools/Variants/06-System-Health-Check-NoAdmin.bat | scripts/py/06-system-health-check-noadmin.py | t32 | inline-PS CIM report | 3x retry, exit=errors |
+| tools/Variants/06-System-Health-Check-Admin.bat | scripts/py/06-system-health-check-admin.py | t32 | health check | admin gate + delegate |
+| scripts/vscode-optimization.ps1 | scripts/py/vscode-optimization.py | t32 | settings+extensions | Stable/Insiders |
+| scripts/CENTERAL-LAUNCHER.ps1 | scripts/py/centeral-launcher.py | t32 | 30-entry menu | --quick/--status/--help |
+| scripts/UNIFIED-LAUNCHER.ps1 | scripts/py/unified-launcher.py | t32 | logged 30-entry menu | config/help sub-menus |
