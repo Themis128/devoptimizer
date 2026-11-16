@@ -90,6 +90,21 @@ def last_ts(val) -> float:
     return val / 1000 if val and val > 1e12 else (val or 0)
 
 
+def proc_start_s(p: dict, default: float) -> float:
+    """Parse a Devin process StartTime (ISO or /Date(ms)/ wire format)."""
+    raw = str(p.get("StartTime", "") or "")
+    if raw.startswith("/Date("):
+        try:
+            return int(raw[6:].rstrip(")/")) / 1000
+        except (ValueError, IndexError):
+            return default
+    try:
+        return datetime.datetime.fromisoformat(
+            raw.replace("Z", "+00:00")).timestamp()
+    except (ValueError, TypeError):
+        return default
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--max-concurrent", type=int, default=2)
@@ -124,12 +139,7 @@ def main() -> None:
 
     # close every idle Desktop process (main windows only)
     for p in procs:
-        try:
-            start = datetime.datetime.fromisoformat(
-                str(p.get("StartTime", "")).replace("Z", "+00:00"))
-            start_s = start.timestamp()
-        except (ValueError, TypeError):
-            start_s = now
+        start_s = proc_start_s(p, now)
         idle_h = (now - start_s) / 3600
         if start_s < cutoff:
             actions.append({"kind": "close-desktop", "pid": p["Id"],
@@ -163,10 +173,8 @@ def main() -> None:
                 excess -= 1
         idle_procs = sorted(
             (p for p in remaining_procs
-             if p.get("StartTime") and
-             datetime.datetime.fromisoformat(
-                 str(p["StartTime"]).replace("Z", "+00:00")).timestamp() < cutoff),
-            key=lambda p: p["StartTime"])
+             if proc_start_s(p, now) < cutoff),
+            key=lambda p: proc_start_s(p, now))
         for p in idle_procs:
             if excess <= 0:
                 break
