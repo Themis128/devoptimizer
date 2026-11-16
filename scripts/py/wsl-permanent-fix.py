@@ -141,6 +141,10 @@ def harden():
         if not f.exists():
             continue
         try:
+            if f.stat().st_size > 0 and not read_json(f):
+                out(f"  WARN: {f.name} unreadable - "
+                    "skipping (would lose config)")
+                continue
             s = read_json(f)
             s.update(keys)
             write_json(f, s)

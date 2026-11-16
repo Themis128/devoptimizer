@@ -66,6 +66,8 @@ def ps_parse_and_params(path):
             ["powershell", "-NoProfile", "-Command", ps],
             capture_output=True, text=True, timeout=60)
     except Exception:
+        add("WARN", str(path), "parse-probe",
+            "powershell probe failed/timed out")
         return False, [], set()
     out = (r.stdout or "").strip()
     if out.startswith("PARSE_ERR|"):
@@ -124,7 +126,8 @@ def main():
             encoding="utf-8-sig",
             errors="replace").splitlines()[:30]
         has_runas = any(re.search(
-            r"#Requires\s+-RunAsAdministrator", h)
+            r"#Requires\s+-RunAsAdministrator", h,
+            re.IGNORECASE)
             for h in head)
         if c.get("requiresAdmin") and not has_runas:
             add("WARN", name, "admin-flag",

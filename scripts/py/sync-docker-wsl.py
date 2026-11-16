@@ -67,8 +67,10 @@ def docker(*args):
 
 
 def proc_alive(name):
-    r = run(["tasklist", "/FI", f"IMAGENAME eq {name}"])
-    return bool(r and name in r.stdout)
+    img = name if name.lower().endswith(".exe") \
+        else name + ".exe"
+    r = run(["tasklist", "/FI", f"IMAGENAME eq {img}"])
+    return bool(r and img.lower() in r.stdout.lower())
 
 
 def probe(port, path, timeout, from_windows=True,

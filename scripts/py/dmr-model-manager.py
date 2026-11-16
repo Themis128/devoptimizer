@@ -96,6 +96,20 @@ def get_models(container):
                      int(m.get("size") or 0)})
         except Exception:
             pass
+    if not models:
+        # fallback: recover loaded models from docker-log load events
+        lr = run(["docker", "logs", "--tail", "500",
+                  container], 30)
+        for line in ((lr.stdout if lr else "").splitlines()):
+            m = re.search(
+                r'(?:loading|loaded|load)\s+(?:model\s+)?'
+                r'["\']?([\w./:-]+)', line, re.IGNORECASE)
+            if m and not any(x["Id"] == m.group(1)
+                             for x in models):
+                models.append({"Id": m.group(1),
+                               "OwnedBy": "docker.ai",
+                               "Created": None,
+                               "SizeBytes": 0})
     return models
 
 

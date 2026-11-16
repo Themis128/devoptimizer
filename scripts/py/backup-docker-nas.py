@@ -12,6 +12,7 @@ import csv
 import hashlib
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 import time
@@ -66,14 +67,23 @@ def gzip_magic(p):
         return False
 
 
+def nas_remote(path):
+    # keep ~ expandable on the remote side
+    return ("$HOME" + path[1:] if path.startswith("~")
+            else path)
+
+
 def scp_to_nas(local, tier):
-    target = f"{NAS_HOST}:{NAS_DIR}/{tier}/"
+    rdir = nas_remote(f"{NAS_DIR}/{tier}")
+    run(["ssh", NAS_HOST,
+         f"mkdir -p {shlex.quote(rdir)}"], timeout=60)
+    target = f"{NAS_HOST}:{rdir}/"
     for attempt in range(1, 4):
         r = run(["scp", "-o", "ConnectTimeout=30",
                  str(local), target], timeout=3600)
         if r and r.returncode == 0:
             chk = run(["ssh", NAS_HOST,
-                       f"ls -la {shlex.quote(NAS_DIR + '/' + tier + '/' + local.name)}"],
+                       f"ls -la {shlex.quote(rdir + '/' + local.name)}"],
                       timeout=60)
             if chk and chk.returncode == 0 and local.name in chk.stdout:
                 out(f"  transferred {local.name} -> "
@@ -130,13 +140,15 @@ def pg_dump(user, container, dst):
          "-U", user],
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL)
-    gz = subprocess.Popen(["gzip.exe", "-c"],
+    gzexe = shutil.which("gzip.exe") or (
+        r"C:\Program Files\Git\usr\bin\gzip.exe")
+    gz = subprocess.Popen([gzexe, "-c"],
                           stdin=pipe.stdout,
                           stdout=open(dst, "wb"))
     pipe.stdout.close()
     gz.wait()
     pipe.wait()
-    if gzip_magic(dst):
+    if pipe.returncode == 0 and gzip_magic(dst):
         out(f"  pg_dumpall {container} -> {dst.name} OK")
         return True
     out(f"  pg_dumpall {container} FAILED (bad gzip)")
@@ -147,7 +159,7 @@ def pg_dump(user, container, dst):
 def tar_volume(vol, dst):
     r = run(["docker", "run", "--rm",
              "-v", f"{vol}:/data:ro",
-             "-v", f"{STAGING}:/backup",
+             "-v", f"{dst.parent}:/backup",
              "alpine",
              "tar", "czf",
              f"/backup/{dst.name}", "-C", "/data", "."],
@@ -157,10 +169,13 @@ def tar_volume(vol, dst):
 
 
 def wsl_tar(src, dst, excludes):
-    cmd = (f"tar czf /mnt/d/{dst.relative_to('D:')} "
-           f"-C {src} ."
-           + "".join(f" --exclude={e}"
-                     for e in excludes))
+    rel = dst.as_posix()
+    if rel.startswith("D:/"):
+        rel = "/mnt/d/" + rel[3:]
+    cmd = (f"tar czf {shlex.quote(rel)} "
+           + "".join(f" --exclude={shlex.quote(e)}"
+                     for e in excludes)
+           + f" -C {shlex.quote(src)} .")
     r = run(["wsl.exe", "-d", "Ubuntu-24.04",
              "-e", "bash", "-c", cmd], timeout=7200)
     return bool(r and r.returncode == 0
@@ -188,7 +203,7 @@ def main():
     stamp = STAGING / ts
     stamp.mkdir(parents=True, exist_ok=True)
     out(f"=== Backup Docker -> NAS ({ts}) ===")
-    manifest = stamp / "manifest.csv"
+    manifest = stamp / f"manifest-{ts}.csv"
     mrows = []
 
     today = datetime.now()
@@ -238,12 +253,24 @@ def main():
                 out(f"  volume {vol} tar FAILED")
 
     # WSL layer tars (monthly/weekly/config only)
-    if tier != "nightly":
+    tw = run(["tasklist", "/FI",
+              "IMAGENAME eq vmmemWSL"])
+    wsl_up = bool(tw and "vmmemWSL" in tw.stdout)
+    if tier != "nightly" and wsl_up:
         wsl_layers = [
             ("/home/tbaltzakis/devoptimizer",
              "wsl-devoptimizer",
              ["node_modules", ".git/objects"]),
+            ("/home/tbaltzakis/cloudless.gr",
+             "wsl-cloudless", ["node_modules", ".git"]),
             ("/etc", "wsl-etc", [])]
+        if tier == "monthly":
+            wsl_layers += [
+                ("/var/lib/docker", "wsl-docker-root",
+                 ["overlay2/tmp"]),
+                ("/home/tbaltzakis", "wsl-home",
+                 ["node_modules", ".git", ".cache",
+                  "Downloads"])]
         for src, name, excl in wsl_layers:
             dst = stamp / f"{name}-{ts}.tar.gz"
             if a.DryRun:
@@ -269,13 +296,14 @@ def main():
         return 0
     flush_retries()
     for f in stamp.iterdir():
-        if f.name == "manifest.csv":
+        if f.name == manifest.name:
             continue
         t = next((r[3] for r in mrows
                   if r[0] == f.name), tier)
         if not scp_to_nas(f, t):
             enqueue_retry(f, t)
-    scp_to_nas(manifest, tier)
+    if not scp_to_nas(manifest, tier):
+        enqueue_retry(manifest, tier)
 
     # retention: nightly 7, weekly 28, monthly 180
     for t, d in (("nightly", 7), ("weekly", 28),

@@ -23,9 +23,12 @@ def git(*args):
 
 
 def gh(*args):
-    r = subprocess.run(["gh"] + list(args),
-                       capture_output=True, text=True,
-                       cwd=REPO_ROOT)
+    try:
+        r = subprocess.run(["gh"] + list(args),
+                           capture_output=True, text=True,
+                           cwd=REPO_ROOT)
+    except (OSError, FileNotFoundError):
+        return []
     if r.returncode != 0:
         return []
     try:
