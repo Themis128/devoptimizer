@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 
 # CATEGORY: utilities
+# TAGS: devin, acp, database
 
 
 def main() -> None:

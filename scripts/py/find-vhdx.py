@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 # CATEGORY: utilities
+# TAGS: vhdx, docker, storage
 
 ROOT = Path(r"C:\ProgramData\DockerDesktop")
 

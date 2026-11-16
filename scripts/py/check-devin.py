@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 
 # CATEGORY: utilities
+# TAGS: devin, logs
 
 
 def main() -> None:

@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 # CATEGORY: utilities
+# TAGS: vhdx, docker, storage
 
 VHDX_PATH = Path(r"C:\ProgramData\DockerDesktop\vm-data\docker_data.vhdx")
 

@@ -16,6 +16,7 @@ sys.path.insert(0, str(_REPO_ROOT / "py"))
 from devoptimizer_cli.core.winops import run_ps_command  # noqa: E402
 
 # CATEGORY: utilities
+# TAGS: scheduled-task, trigger
 
 
 def main() -> None:

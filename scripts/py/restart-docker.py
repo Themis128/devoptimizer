@@ -16,6 +16,7 @@ sys.path.insert(0, str(_REPO_ROOT / "py"))
 from devoptimizer_cli.core.executor import run_command  # noqa: E402
 
 # CATEGORY: utilities
+# TAGS: docker, restart, admin
 
 DOCKER_DESKTOP = r"C:\Program Files\Docker\Docker\Docker Desktop.exe"
 PROCESSES = ("com.docker.backend", "Docker Desktop")
