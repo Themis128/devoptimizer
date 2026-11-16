@@ -421,10 +421,6 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 238 | `scripts/fix-vscode-wsl-server.ps1` | `scripts/py/fix-vscode-wsl-server.py` | removes ~/.vscode-server per non-docker distro; --dry-run. |
 | 239 | `scripts/devin/devin-cleanup.ps1` | `scripts/py/devin-cleanup.py` | check/report/plan via devin-doctor; prune-acp/cleanup-sessions/daily-maintenance/health -> ps1 wrappers. |
 | 240 | `scripts/register-devoptimizer-tasks.ps1` | `scripts/py/register-devoptimizer-tasks.py` | Extended-Cleanup + DevOptimizer-Elevated-Cleanup + Storage Sense; self-elevating; conhost --headless. |
-||||||| d04655d
-||||||| dc9af6d
-||||||| b00a185
-||||||| e10a697
 ## Phase 5 — full migration, tranche 17 (2026-11-16)
 | 193 | `tools/Variants/CREATE-DESKTOP-SHORTCUTS-Admin.bat` | `scripts/py/create-desktop-shortcuts-admin.py` | Admin-gated delegate of create-desktop-shortcuts.py. |
 | 194 | `tools/Variants/00-SETUP-GLOBAL-ACCESS-IMPROVED-NoAdmin.bat` | `scripts/py/setup-global-access-improved.py` | HKLM + user PATH append with confirm; `--admin` = admin variant. |
