@@ -155,6 +155,10 @@ def main() -> None:
                    "Microsoft\\Windows\\CurrentVersion\\"
                    "AppModelUnlock' -Name "
                    "'AllowDevelopmentWithoutDevLicense' -Value 1; "
+                   "Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\"
+                   "Microsoft\\Windows\\CurrentVersion\\"
+                   "AppModelUnlock' -Name 'AllowAllTrustedApps' "
+                   "-Value 1; "
                    "Write-Host 'DeveloperMode=1'", dry)
             disable([x for k in dis for x in DISABLE_MAP[k]], dry)
         print("NOTE: some changes may require a restart.")
