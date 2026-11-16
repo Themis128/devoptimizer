@@ -6,6 +6,7 @@ All arguments forwarded; exit code preserved.
 """
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -18,14 +19,19 @@ def main():
     if not PS1.exists():
         print(f"[ERROR] not found: {PS1}")
         return 1
-    ps = shutil.which("pwsh") or shutil.which(
-        "powershell")
+    ps = shutil.which("powershell") or shutil.which(
+        "pwsh")
     if not ps:
         print("[ERROR] no PowerShell host")
         return 1
     r = subprocess.run(
         [ps, "-NoProfile", "-ExecutionPolicy", "Bypass",
-         "-File", str(PS1), *sys.argv[1:]])
+         "-File", str(PS1),
+         *[re.sub(r"^-{1,2}([a-z0-9]+)(?:-([a-z0-9]+))*",
+                  lambda m: "-" + "".join(
+                      w.capitalize() for w in
+                      m.group(0).lstrip("-").split("-")),
+                  a) for a in sys.argv[1:]]])
     return r.returncode
 
 

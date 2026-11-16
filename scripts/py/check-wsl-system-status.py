@@ -67,6 +67,21 @@ def main():
                 f = line.split()
                 print(f"WSL {f[0]:<10} total {f[1]} MB, "
                       f"used {f[2]} MB")
+                try:
+                    pct = (100 * int(f[2]) / int(f[1])
+                           if int(f[1]) else 0)
+                except ValueError:
+                    pct = 0
+                if f[0] == "Swap:" and pct >= 80:
+                    print(f"  [WARN] WSL swap {pct:.0f}% - "
+                          "vsock wedge risk")
+                elif f[0] == "Swap:" and pct >= 60:
+                    print(f"  [WARN] WSL swap {pct:.0f}% "
+                          "- elevated pressure")
+        r = run(["wsl", "-e", "docker", "system", "df"])
+        print("\nDocker disk usage:")
+        print(r.stdout if r and r.stdout
+              else "  (docker df unavailable)")
         r = run(["wsl", "-e", "docker", "ps", "-a",
                  "--format",
                  "{{.Names}} {{.Status}}"])

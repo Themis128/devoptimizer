@@ -21,8 +21,8 @@ def main():
         print(f"[ERROR] PowerShell script not found: "
               f"{TARGET_PS1}")
         return 1
-    ps = shutil.which("pwsh") or shutil.which(
-        "powershell")
+    ps = shutil.which("powershell") or shutil.which(
+        "pwsh")
     if not ps:
         print("[ERROR] no PowerShell host found")
         return 1

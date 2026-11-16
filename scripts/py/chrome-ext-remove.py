@@ -31,8 +31,8 @@ def main():
         print(f"original script not found: {PS1}")
         return 1
     import shutil
-    ps = shutil.which("pwsh") or shutil.which(
-        "powershell")
+    ps = shutil.which("powershell") or shutil.which(
+        "pwsh")
     r = subprocess.run(
         [ps, "-NoProfile", "-ExecutionPolicy",
          "Bypass", "-File", str(PS1),
