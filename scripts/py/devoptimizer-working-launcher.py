@@ -63,9 +63,29 @@ def quick_status():
     print()
 
 
+
+def find_tool(name):
+    """Locate a sibling .bat the launcher menu points at.
+
+    In the deployed flat layout every .bat sits beside the launcher;
+    in the repo they are spread across categories/*, tools/*, root.
+    """
+    cands = [LAUNCH_DIR]
+    root = SCRIPT_DIR.parents[1]
+    cands += [root, root / "categories", root / "tools",
+              root / "tools" / "Variants", root / "portable"]
+    for base in cands:
+        p = base / name
+        if p.exists():
+            return p
+    # recursive category search as last resort
+    hits = list(root.rglob(name))
+    return hits[0] if hits else None
+
+
 def dispatch(target, dry):
-    path = LAUNCH_DIR / target
-    if not path.exists() and not dry:
+    path = find_tool(target)
+    if path is None and not dry:
         print(f"[ERROR] tool not found: {target}")
         return 1
     cmd = ["cmd", "/c", str(path)]

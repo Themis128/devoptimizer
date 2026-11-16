@@ -83,7 +83,11 @@ def auto_recovery(kind):
     log_recovery(f"Starting recovery for: {kind}")
     if kind == "disk_cleanup":
         print("Performing disk cleanup...")
-        for d in [os.environ.get("TEMP"), os.environ.get("WINDIR")]:
+        tmp_dirs = [os.environ.get("TEMP")]
+        windir = os.environ.get("WINDIR")
+        if windir:
+            tmp_dirs.append(str(Path(windir) / "Temp"))
+        for d in tmp_dirs:
             if d:
                 for p in Path(d).rglob("*"):
                     try:

@@ -24,7 +24,7 @@ VARIANTS_DIR = (SCRIPT_DIR.parents[1] / "tools" / "Variants"
                 if (SCRIPT_DIR.parents[1] / "tools" / "Variants").is_dir()
                 else SCRIPT_DIR)
 BAT_HUB = VARIANTS_DIR
-HELPER = VARIANTS_DIR / "tools" / "ollama-batch-helper.bat"
+HELPER = VARIANTS_DIR.parent / "ollama-batch-helper.bat"
 LAUNCHER = VARIANTS_DIR.parent / "DEVOPTIMIZER-LAUNCHER.bat"
 OUT_DIR = BAT_HUB / "ai-analysis"
 
