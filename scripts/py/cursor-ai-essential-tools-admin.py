@@ -45,6 +45,9 @@ WORKSPACE = {
         "emmet.includeLanguages": {
             "javascript": "javascriptreact",
             "typescript": "typescriptreact"},
+        "git.enableSmartCommit": True,
+        "git.confirmSync": False,
+        "git.autofetch": True,
     },
 }
 
@@ -73,6 +76,11 @@ def main():
     run(["wsl", "--install"], args.dry_run)
     run(["wsl", "--set-default-version", "2"], args.dry_run)
     run(["git", "lfs", "install"], args.dry_run)
+    if sys.stdin.isatty() or args.dry_run:
+        run(["gh", "auth", "login"], args.dry_run)
+    else:
+        print("[INFO] skipping interactive `gh auth login` "
+              "headless")
     base = Path(os.environ.get("USERPROFILE", "")) / "Desktop" \
         / "DevOptimizer" / "CursorAI"
     if args.dry_run:

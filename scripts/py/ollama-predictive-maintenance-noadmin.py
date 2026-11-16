@@ -174,6 +174,10 @@ def main():
         print("Modes:")
         for i, m in enumerate(PROMPTS, 1):
             print(f"  {i}) {m}")
+        if not sys.stdin.isatty():
+            print("Non-interactive launch: pass a mode, e.g. "
+                  "`ollama-predictive-maintenance-noadmin.py health-scan`")
+            return 0
         sel = input("Enter your choice (0-7): ").strip()
         if sel == "0" or not sel.isdigit() \
                 or not 1 <= int(sel) <= 7:
