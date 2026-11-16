@@ -5,14 +5,9 @@ Runs create-priority-task.ps1 (needs admin). Mutating; --dry-run.
 """
 
 import argparse
-import asyncio
+import subprocess
 import sys
 from pathlib import Path
-
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_REPO_ROOT / "py"))
-
-from devoptimizer_cli.core.winops import run_ps_command  # noqa: E402
 
 # CATEGORY: utilities
 # TAGS: scheduled-task, devin, elevated
@@ -31,7 +26,9 @@ def main() -> None:
         print(f"[dry-run] run {SCRIPT}")
         return
 
-    r = asyncio.run(run_ps_command(f"& '{SCRIPT}'"))
+    r = subprocess.run(
+        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+         "-File", SCRIPT], capture_output=True, text=True)
     if r.stdout.strip():
         print(r.stdout.strip())
     if r.returncode != 0:
