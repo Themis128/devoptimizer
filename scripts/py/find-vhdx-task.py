@@ -16,6 +16,7 @@ sys.path.insert(0, str(_REPO_ROOT / "py"))
 from devoptimizer_cli.core.winops import run_ps_command  # noqa: E402
 
 # CATEGORY: utilities
+# TAGS: vhdx, scheduled-task
 
 
 def main() -> None:
@@ -26,7 +27,8 @@ def main() -> None:
     script = (
         "Get-ScheduledTask -TaskPath '\\DevOptimizer\\' -ErrorAction SilentlyContinue | "
         "Where-Object { $_.TaskName -like '*Vhdx*' } | "
-        "Select-Object TaskName, State | ConvertTo-Json -Compress"
+        "Select-Object TaskName, @{N='State';E={$_.State.ToString()}} | "
+        "ConvertTo-Json -Compress"
     )
     result = asyncio.run(run_ps_command(script))
     if result.returncode != 0:
