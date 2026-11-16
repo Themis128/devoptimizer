@@ -454,3 +454,17 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 273 | `portable/optimize-wsl-memory.bat` | `scripts/py/optimize-wsl-memory.py` | DEVOPT_HOME/pwsh shim launcher. |
 | 274 | `portable/wsl-reset-and-setup.bat` | `scripts/py/wsl-reset-and-setup.py` | DEVOPT_HOME/pwsh shim launcher. |
 | 275 | `portable/playwright-optimizer.bat` | `scripts/py/playwright-optimizer.py` | DEVOPT_HOME/pwsh shim launcher. |
+
+## Phase 5 — full migration, tranche 24
+| 276 | `portable/windows-features.bat` | `scripts/py/windows-features-shim.py` | DEVOPT_HOME/pwsh shim (suffix — t22 native port owns the base name). |
+| 277 | `portable/DevOptimizer-Core.bat` | `scripts/py/devoptimizer-core.py` | DEVOPT_HOME/pwsh shim launcher. |
+| 278 | `portable/configure-hardware-optimized.bat` | `scripts/py/configure-hardware-optimized.py` | DEVOPT_HOME/pwsh shim (config/overclocking target). |
+| 279 | `portable/monitor-temperatures-enhanced.bat` | `scripts/py/monitor-temperatures-enhanced.py` | DEVOPT_HOME/pwsh shim. |
+| 280 | `portable/VS-Code-Cleanup-Launcher.bat` | `scripts/py/vs-code-cleanup-launcher.py` | DEVOPT_HOME/pwsh shim. |
+| 281 | `portable/FIXED-SYSTEM-DEEP-CLEAN.bat` | `scripts/py/fixed-system-deep-clean-shim.py` | DEVOPT_HOME/pwsh shim (t22 native port owns base name). |
+| 282 | `portable/VSCode-AutoMonitor-Optimized.bat` | `scripts/py/vscode-automonitor-optimized.py` | DEVOPT_HOME/pwsh shim. |
+| 283 | `portable/devoptimizer-backend.bat` | `scripts/py/devoptimizer-backend.py` | DEVOPT_HOME/pwsh shim (system-scripts/backend target). |
+| 284 | `scripts/admin-cleanup-run-as-admin.bat` | `scripts/py/admin-cleanup-run-as-admin.py` | Interactive 5-step admin clean (DISM, WU cache, DO, shadow, Windows.old); requires admin. |
+| 285 | `tools/Variants/error-handling-template-NoAdmin.bat` | `scripts/py/error-handling-template-noadmin.py` | Error-logging scaffold, standard mode. |
+| 286 | `tools/Variants/error-handling-template-Admin.bat` | `scripts/py/error-handling-template-admin.py` | Error-logging scaffold, admin gate. |
+| 287 | `tools/Variants/OPTIMIZE-TIMEOUT-DELAYS-NoAdmin.bat` | `scripts/py/optimize-timeout-delays-noadmin.py` | Rewrites `timeout /t N` -> `ping -n 2` in sibling .bat files with .backup. |
