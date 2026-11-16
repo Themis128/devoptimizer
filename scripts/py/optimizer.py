@@ -1,57 +1,43 @@
-"""DevOptimizer global launcher (port of scripts/optimizer.ps1).
+"""PS1 shim wrapper (Python port of portable/optimizer.bat).
 
---list (bat + ps1 inventory), --status (dir/launcher/PATH checks),
---help. Read-only.
+Resolves DEVOPT_HOME (default D:\DevOptimizer), prefers pwsh over
+powershell, forwards all CLI args to the target .ps1.
 """
 
 import argparse
-import json
 import os
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
 # CATEGORY: utilities
-# TAGS: launcher, status, inventory
+# TAGS: shim, wrapper
 
-ROOT = Path(r"D:\DevOptimizer")
-LAUNCHER = ROOT / "00-LAUNCHER.bat"
+TARGET_REL = r"scripts\optimizer.ps1"
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    p.add_argument("--list", action="store_true")
-    p.add_argument("--status", action="store_true")
-    p.add_argument("--json", action="store_true")
-    args = p.parse_args()
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--dry-run", action="store_true")
+    args, rest = parser.parse_known_args()
 
-    bats = sorted(f.name for f in ROOT.glob("*.bat")
-                  if not f.name.startswith("00-SETUP"))
-    ps1s = sorted(f.name for f in ROOT.glob("*.ps1"))
-
-    if args.status:
-        on_path = str(ROOT) in os.environ.get("PATH", "")
-        status = {"root_exists": ROOT.is_dir(),
-                  "launcher_exists": LAUNCHER.is_file(),
-                  "bat_count": len(bats), "ps1_count": len(ps1s),
-                  "on_path": on_path}
-        if args.json:
-            print(json.dumps(status))
-        else:
-            for k, v in status.items():
-                print(f"{k}: {v}")
+    home = os.environ.get("DEVOPT_HOME", r"D:\DevOptimizer")
+    target = os.path.join(home, TARGET_REL)
+    if not os.path.exists(target):
+        print(f"[ERROR] PowerShell script not found: {target}",
+              file=sys.stderr)
+        sys.exit(1)
+    shell = "pwsh" if shutil.which("pwsh") else "powershell"
+    cmd = [shell, "-NoProfile", "-ExecutionPolicy", "Bypass",
+           "-File", target, *rest]
+    bat_dir = os.path.join(home, "portable")
+    cwd = bat_dir if os.path.isdir(bat_dir) else \
+        str(Path(__file__).resolve().parent)
+    if args.dry_run:
+        print(f"[dry-run] (cd {cwd}) " + " ".join(cmd))
         return
-    if args.list:
-        if args.json:
-            print(json.dumps({"bat": bats, "ps1": ps1s}))
-        else:
-            print("Batch Files:")
-            for b in bats:
-                print(f"  {b}")
-            print("PowerShell Scripts:")
-            for s in ps1s:
-                print(f"  {s}")
-        return
-    p.print_help()
+    sys.exit(subprocess.call(cmd, cwd=cwd))
 
 
 if __name__ == "__main__":
