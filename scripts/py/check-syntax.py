@@ -9,6 +9,7 @@ import os
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 # CATEGORY: utilities
 # TAGS: shim, wrapper
@@ -30,10 +31,16 @@ def main() -> None:
     shell = "pwsh" if shutil.which("pwsh") else "powershell"
     cmd = [shell, "-NoProfile", "-ExecutionPolicy", "Bypass",
            "-File", target, *rest]
+    # The .bat lives in DEVOPT_HOME\portable; cd /d %~dp0 anchored the
+    # spawned ps1 there (cwd-relative defaults like tools/run-ollama-all's
+    # config + logs resolve under it).
+    portable = Path(home) / "portable"
+    cwd = str(portable if portable.is_dir()
+              else Path(__file__).resolve().parent)
     if args.dry_run:
-        print("[dry-run] " + " ".join(cmd))
+        print(f"[dry-run] (cd {cwd}) " + " ".join(cmd))
         return
-    sys.exit(subprocess.call(cmd))
+    sys.exit(subprocess.call(cmd, cwd=cwd))
 
 
 if __name__ == "__main__":

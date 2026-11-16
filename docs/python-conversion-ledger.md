@@ -235,3 +235,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 94 | `portable/Monitor-Dashboard.bat` | `scripts/py/Monitor-Dashboard.py` | Same shim pattern to %DEVOPT_HOME%\Monitor-Dashboard.ps1. |
 | 95 | `portable/run-ollama-all.bat` | `scripts/py/run-ollama-all-shim.py` | Shim renamed to avoid collision with the t6 run-ollama-all port. |
 | 96 | `portable/vs.bat` | `scripts/py/vs.py` | Same shim pattern to %DEVOPT_HOME%\vs.ps1. |
+
+## Phase 5 — full migration, tranche 9 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 97 | `portable/check-locked-files.bat` | `scripts/py/check-locked-files.py` | DEVOPT_HOME shim -> check-locked-files.ps1. |
+| 98 | `portable/Rollback-Changes.bat` | `scripts/py/Rollback-Changes.py` | Shim -> ps\Rollback-Changes.ps1. |
+| 99 | `portable/Start-Dashboard-PRO.bat` | `scripts/py/Start-Dashboard-PRO.py` | Shim -> Start-Dashboard-PRO.ps1. |
+| 100 | `portable/kill.bat` | `scripts/py/kill.py` | Shim -> kill.ps1. |
+| 101 | `portable/Verify-CygwinConfig.bat` | `scripts/py/Verify-CygwinConfig.py` | Shim -> Verify-CygwinConfig.ps1. |
+| 102 | `portable/Check-Monitor-Status.bat` | `scripts/py/Check-Monitor-Status.py` | Shim -> Check-Monitor-Status.ps1. |
+| 103 | `portable/apply-msi-xtu-config.bat` | `scripts/py/apply-msi-xtu-config.py` | Shim -> apply-msi-xtu-config.ps1. |
+| 104 | `portable/Monitor-Dashboard-PRO.bat` | `scripts/py/Monitor-Dashboard-PRO.py` | Shim -> Monitor-Dashboard-PRO.ps1. |
+| 105 | `portable/Verify-Installation.bat` | `scripts/py/Verify-Installation.py` | Shim -> ps\Verify-Installation.ps1. |
+| 106 | `portable/nvidia.bat` | `scripts/py/nvidia.py` | Shim -> nvidia.ps1. |
+| 107 | `portable/configure-xtu.bat` | `scripts/py/configure-xtu.py` | Shim -> config\overclocking\configure-xtu.ps1. |
+| 108 | `portable/create-dual-versions.bat` | `scripts/py/create-dual-versions-shim.py` | Renamed: tools\create-dual-versions.ps1 is module-style (excluded); shim kept. |
