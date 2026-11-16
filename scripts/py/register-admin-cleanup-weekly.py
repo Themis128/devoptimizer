@@ -36,8 +36,8 @@ def main():
     descr = ("Weekly elevated Windows admin cleanup (DISM component "
              "store + RestoreHealth + SFC + WU cache). Sundays 03:00.")
     ps = (
-        "$action   = New-ScheduledTaskAction -Execute 'powershell.exe'"
-        " -Argument '-NoProfile -ExecutionPolicy Bypass -File "
+        "$action   = New-ScheduledTaskAction -Execute 'C:\\Windows\\System32\\conhost.exe'"
+        " -Argument '--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File "
         "\"D:\\DevOptimizer\\scripts"
         "\\win11-admin-cleanup-scheduled.ps1\"'\n"
         "$trigger  = New-ScheduledTaskTrigger -Weekly -DaysOfWeek "

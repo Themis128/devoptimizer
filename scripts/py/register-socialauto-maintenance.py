@@ -22,7 +22,6 @@ SCRIPT = "D:" + chr(92) + "DevOptimizer" + chr(92) + "scripts" \
 
 
 def main():
-    _ensure_admin()
     if "--remove" in sys.argv or "--unregister" in sys.argv:
         subprocess.run(
             ["powershell", "-NoProfile", "-Command",
@@ -38,7 +37,7 @@ def main():
     arg = ("-NoProfile -ExecutionPolicy Bypass -File " + chr(34)
            + SCRIPT + chr(34))
     ps = (
-        "$action = New-ScheduledTaskAction -Execute 'powershell.exe'"
+        "$action = New-ScheduledTaskAction -Execute 'C:\\Windows\\System32\\conhost.exe'"
         " -Argument '" + arg + "'\n"
         "$trigger = New-ScheduledTaskTrigger -Daily -At '04:00'\n"
         "$settings = New-ScheduledTaskSettingsSet "

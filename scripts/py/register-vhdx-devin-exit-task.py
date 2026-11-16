@@ -29,8 +29,8 @@ def main():
         print("Unregistered", TASK_PATH + TASK)
         return 0
     ps = (
-        "$action   = New-ScheduledTaskAction -Execute 'powershell.exe'"
-        " -Argument '-NoProfile -ExecutionPolicy Bypass "
+        "$action   = New-ScheduledTaskAction -Execute 'C:\\Windows\\System32\\conhost.exe'"
+        " -Argument '--headless powershell.exe -NoProfile -ExecutionPolicy Bypass "
         "-WindowStyle Hidden -File "
         "\"D:\\DevOptimizer\\scripts\\vhdx-compact-on-devin-exit.ps1\"'"
         "\n"

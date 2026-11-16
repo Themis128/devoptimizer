@@ -22,7 +22,6 @@ SCRIPT = "devoptimizer-housekeeping.ps1"
 
 
 def main():
-    _ensure_admin()
     if "--unregister" in sys.argv:
         subprocess.run(
             ["powershell", "-NoProfile", "-Command",
@@ -58,6 +57,8 @@ def main():
         "Register-ScheduledTask -TaskName '" + TASK + "' -TaskPath '"
         + TASK_PATH + "' -Action $action -Trigger $trigger -Settings "
         "$settings -Principal $principal -Force | Out-Null\n"
+        "Get-ScheduledTask -TaskName '" + TASK + "' -TaskPath '"
+        + TASK_PATH + "' -ErrorAction Stop | Out-Null\n"
         "Write-Output ('next run: ' + $at.ToString('yyyy-MM-dd HH:mm'))"
         "\n")
     r = subprocess.run(

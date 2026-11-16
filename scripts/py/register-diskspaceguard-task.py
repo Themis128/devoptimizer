@@ -21,7 +21,6 @@ SCRIPT = "D:" + chr(92) + "DevOptimizer" + chr(92) + "scripts" \
 
 
 def main():
-    _ensure_admin()
     if "--unregister" in sys.argv:
         subprocess.run(
             ["powershell", "-NoProfile", "-Command",

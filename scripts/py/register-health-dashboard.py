@@ -30,8 +30,8 @@ def main():
         print("Unregistered", TASK_PATH + TASK)
         return 0
     ps = (
-        "$action   = New-ScheduledTaskAction -Execute 'pwsh.exe'"
-        " -Argument '-NoProfile -ExecutionPolicy Bypass -File "
+        "$action   = New-ScheduledTaskAction -Execute 'C:\\Windows\\System32\\conhost.exe'"
+        " -Argument '--headless pwsh.exe -NoProfile -ExecutionPolicy Bypass -File "
         "\"D:\\DevOptimizer\\scripts\\health-dashboard.ps1\"'\n"
         "$trigger1 = New-ScheduledTaskTrigger -AtLogOn\n"
         "$trigger2 = New-ScheduledTaskTrigger -Once -At "

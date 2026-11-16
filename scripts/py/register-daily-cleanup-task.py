@@ -20,7 +20,6 @@ TASK_PATH = "\\DevOptimizer\\"
 
 
 def main():
-    _ensure_admin()
     if "--unregister" in sys.argv:
         subprocess.run(
             ["powershell", "-NoProfile", "-Command",
