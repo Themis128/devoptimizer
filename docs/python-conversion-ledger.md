@@ -199,3 +199,22 @@ main (user ports at scripts/ root), plus scripts/chrome-ext-remove.ps1
 | 72 | `scripts/manage-devin-sessions.ps1` | `scripts/py/manage-devin-sessions.py` | CLI sessions SQLite + main-window Desktop processes; embedded-python heredoc replaced with native sqlite3; `--max-concurrent`/`--idle-timeout-hours`/`--dry-run`. |
 
 Excluded this tranche (phase-3 rules): `scripts/power-management.ps1` (function library, no entrypoint), `tools/create-dual-versions.ps1` (dot-sources admin-privilege-manager.ps1 module).
+
+## Phase 5 — full migration, tranche 7 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 73 | `scripts/fine-tune-nextcloud.ps1` | `scripts/py/fine-tune-nextcloud.py` | Read-only integration health + `--apply-safe-tuning` self-elevates (Defender exclusions, cldflt auto-start); secrets filtered; `--json`. |
+| 74 | `scripts/devin/queue/queue-manager.ps1` | `scripts/py/queue-manager.py` | Native file-queue + atomic O_EXCL lock; enqueue/dequeue/peek/list/clear/send-next via `devin -p` (cmd wrapper variant). |
+| 75 | `scripts/devin/hooks/queue-manager.ps1` | `scripts/py/queue-manager-hooks.py` | Same queue; send-next uses direct argv invocation like the hooks original. |
+| 76 | `scripts/automation-module.ps1` | `scripts/py/automation-module.py` | setup/create/list/remove/run/update modes; predefined task table; conhost headless + pwsh fallback registration. |
+| 77 | `scripts/enhanced-event-log-checker.ps1` | `scripts/py/enhanced-event-log-checker.py` | System/App/Security window analysis via Get-WinEvent; `--detailed` samples, `--export-report` HTML, `--json`. |
+| 78 | `scripts/overclocking-manager.ps1` | `scripts/py/overclocking-manager.py` | `--status` CPU/GPU/software/power-plan/registry; `--recommend` laptop-aware guidance; `--remove` OC registry keys; `--dry-run`. |
+| 79 | `scripts/run-dism-admin.bat` | `scripts/py/run-dism-admin.py` | DISM StartComponentCleanup /NoRestart; `--dry-run`. |
+| 80 | `scripts/run-compaction-elevated.bat` | `scripts/py/run-compaction-elevated.py` | RunAs-elevated compact-wsl-vhdx.ps1 -ForceAll -Force via Start-Process; `--dry-run`. |
+| 81 | `scripts/create-admin-system-task.bat` | `scripts/py/create-admin-system-task.py` | schtasks weekly SUN 03:00 SYSTEM/HIGHEST registration; `--dry-run`. |
+| 82 | `scripts/run-register-admin.bat` | `scripts/py/run-register-admin.py` | Runs register-admin-system-elevated.ps1; `--dry-run`. |
+| 83 | `scripts/create-admin-task.bat` | `scripts/py/create-admin-task.py` | Same registration as create-admin-system-task (original ships both); delegates via importlib. |
+| 84 | `scripts/create-devin-session-task.bat` | `scripts/py/create-devin-session-task.py` | schtasks every-4h HIGHEST task running manage-devin-sessions.ps1 -WhatIf; `--dry-run`. |
+
+Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `tools/ollama-utils.ps1`, `tools/ollama-server-manager.ps1` (module-style libraries / module deps), `tools/ollama-analytics-dashboard.ps1` (interactive console UI + module dep), `scripts/startup-management.ps1` (function library, no entrypoint).
