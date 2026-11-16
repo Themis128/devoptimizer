@@ -269,3 +269,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 118 | `portable/register-bat-sync-task.bat` | `scripts/py/register-bat-sync-task-shim.py` | Shim -> scripts\register-bat-sync-task.ps1. |
 | 119 | `portable/REMOVE-DUPLICATE-BAT-FILES.bat` | `scripts/py/REMOVE-DUPLICATE-BAT-FILES.py` | Shim -> REMOVE-DUPLICATE-BAT-FILES.ps1. |
 | 120 | `portable/apply-xtu-simple.bat` | `scripts/py/apply-xtu-simple.py` | Shim -> config\overclocking\apply-xtu-simple.ps1. |
+
+## Phase 5 — full migration, tranche 11 (2026-11-16)
+
+| # | Original | Python port | Notes |
+|---|----------|-------------|-------|
+| 121 | `portable/apply-msi-profile.bat` | `scripts/py/apply-msi-profile.py` | Shim -> config\overclocking\apply-msi-profile.ps1. |
+| 122 | `portable/configure-overclocking-tools.bat` | `scripts/py/configure-overclocking-tools.py` | Shim -> configure-overclocking-tools.ps1. |
+| 123 | `portable/create-msi-profile.bat` | `scripts/py/create-msi-profile.py` | Shim -> config\overclocking\create-msi-profile.ps1. |
+| 124 | `portable/configure-overclocking-values.bat` | `scripts/py/configure-overclocking-values.py` | Shim -> configure-overclocking-values.ps1. |
+| 125 | `portable/apply-msi-overclock.bat` | `scripts/py/apply-msi-overclock.py` | Shim -> config\overclocking\apply-msi-overclock.ps1. |
+| 126 | `portable/apply-xtu-overclock.bat` | `scripts/py/apply-xtu-overclock.py` | Shim -> config\overclocking\apply-xtu-overclock.ps1. |
+| 127 | `portable/switch-profile.bat` | `scripts/py/switch-profile.py` | Shim -> switch-profile.ps1. |
+| 128 | `portable/CREATE-DESKTOP-SHORTCUT-OLLAMA.bat` | `scripts/py/CREATE-DESKTOP-SHORTCUT-OLLAMA.py` | Shim -> CREATE-DESKTOP-SHORTCUT-OLLAMA.ps1. |
+| 129 | `portable/Start-VSCodeMonitor-AGGRESSIVE.bat` | `scripts/py/Start-VSCodeMonitor-AGGRESSIVE.py` | Shim -> Start-VSCodeMonitor-AGGRESSIVE.ps1. |
+| 130 | `portable/copy-to-desktop.bat` | `scripts/py/copy-to-desktop.py` | Shim -> copy-to-desktop.ps1. |
+| 131 | `portable/ollama-rest.bat` | `scripts/py/ollama-rest-shim.py` | Shim -> modules\ollama-rest.ps1 (module excluded from migration). |
+| 132 | `portable/ollama-utils.bat` | `scripts/py/ollama-utils-shim.py` | Shim -> tools\ollama-utils.ps1 (module excluded). |
