@@ -485,3 +485,16 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 297 | `tools/Old-Launchers/DEVOPTIMIZER-WORKING-LAUNCHER.bat` | `scripts/py/devoptimizer-working-launcher.py` | Status check + 15-option menu to Old-Launchers .bat tools. |
 | 298 | `tools/Old-Launchers/DEVOPTIMIZER-UNIFIED-LAUNCHER.bat` | `scripts/py/devoptimizer-unified-launcher.py` | Admin/standard dual-mode menu launcher. |
 | 299 | `tools/ai-ml/install-dmr-gpu.ps1` | `scripts/py/install-dmr-gpu.py` | `docker model install-runner --backend llama.cpp --gpu cuda` + pass-through args. |
+
+### Tranche 27 — ai-ml/config (PR #77)
+
+| # | Original | Port | Notes |
+|---|----------|------|-------|
+| 312 | scripts/Cursor-AI-Module.ps1 | scripts/py/cursor-ai-module.py | 7 ops; 38-key config + profiles |
+| 313 | scripts/ai-integration-module.ps1 | scripts/py/ai-integration-module.py | 6 modes; landed in t26 |
+| 314 | portable/maintenance.bat | scripts/py/maintenance-shim.py | pwsh shim |
+| 315 | portable/nvidia-pair.bat | scripts/py/nvidia-pair-shim.py | pwsh shim |
+| 316 | portable/onedrive-repair.bat | scripts/py/onedrive-repair-shim.py | pwsh shim |
+| 317 | portable/Cursor-AI-Module.bat | scripts/py/cursor-ai-module-shim.py | pwsh shim |
+| 318 | portable/ml-frameworks-setup.bat | scripts/py/ml-frameworks-setup-shim.py | pwsh shim |
+| 319 | portable/ai-development-tools.bat | scripts/py/ai-development-tools-shim.py | pwsh shim |
