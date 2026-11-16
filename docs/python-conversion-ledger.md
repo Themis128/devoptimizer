@@ -408,3 +408,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 203 | `tools/Variants/AWS-POWERSHELL-MODULES-DOWNLOADER-NoAdmin.bat` | `scripts/py/aws-powershell-modules-downloader.py` | Same port. |
 | 204 | `tools/normalize-bat-files.bat` | `scripts/py/normalize-bat-files.py` | Standard-header rewrite + non-ASCII strip; backup dir; -dry-run. |
 
+
+## Phase 5 — full migration, tranche 21
+
+| # | Original | Port | Notes |
+|---|----------|------|-------|
+| 241 | `scripts/wsl-vsock-watchdog.ps1` | `scripts/py/wsl-vsock-watchdog.py` | State json, 5-fail threshold, 25-min cooldown, probe+bounce. |
+| 242 | `scripts/migrate-folders-to-wsl.ps1` | `scripts/py/migrate-folders-to-wsl.py` | rsync via wsl. |
+| 243 | `scripts/win11-admin-cleanup.ps1` | `scripts/py/win11-admin-cleanup.py` | DISM + WU/DO cache + Windows.old rd. |
+| 244 | `scripts/win11-os-deep-cleanup.ps1` | `scripts/py/win11-os-deep-cleanup.py` | Windows.old passes, upgrade dirs, hibernation, DISM, >30d logs, WU cache. |
+| 245 | `scripts/win11-admin-cleanup-elevated.ps1` | `scripts/py/win11-admin-cleanup-elevated.py` | Delegates to -fixed port (originals identical). |
+| 246 | `scripts/win11-admin-cleanup-elevated-fixed.ps1` | `scripts/py/win11-admin-cleanup-elevated-fixed.py` | DISM+RestoreHealth+SFC, WU/DO cache, oldest shadow, Windows.old. |
+| 247 | `scripts/wsl-deep-clean.ps1` | `scripts/py/wsl-deep-clean.py` | 34 standard + 3 aggressive wsl commands; --no-aggressive. |
+| 248 | `scripts/win11-safe-cleanup.ps1` | `scripts/py/win11-safe-cleanup.py` | Non-admin temp/caches/bin/docker-safe subset. |
+| 249 | `scripts/Clean-DDrive.ps1` | `scripts/py/clean-ddrive.py` | Stale-target deletion + Nuxt Projects; --months-inactive/--force. |
+| 250 | `scripts/admin-cleanup-elevated-robust.ps1` | `scripts/py/admin-cleanup-elevated-robust.py` | 9-section robust suite, continues on failure. |
+| 251 | `scripts/admin-cleanup-system.ps1` | `scripts/py/admin-cleanup-system.py` | SYSTEM variant; Send-DevOptAlert on failures. |
+| 252 | `scripts/mcp-devoptimizer-server.ps1` | `scripts/py/mcp-devoptimizer-server.py` | Stdio JSON-RPC MCP 2024-11-05; 7 devin_* tools. |
