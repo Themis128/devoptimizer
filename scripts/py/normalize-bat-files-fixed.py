@@ -18,6 +18,4 @@ _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 
 if __name__ == "__main__":
-    if "--flat" not in sys.argv:
-        sys.argv.append("--flat")
     _mod.main()
