@@ -174,30 +174,75 @@ if ((Test-Path $wslOut) -and ((Get-Item $wslOut).Length -gt 1KB)) { $files += $w
 else { NoteFail 'wsl layer tar empty' }
 
 # --- [6] Manifest + transfer ------------------------------------------------------
+# Carry-over: files that failed scp on a previous run are moved to _carry/ so a
+# later run re-ships them (weekly/monthly artifacts would otherwise wait a full
+# cadence for regeneration). index.csv records the NAS tier each file belongs to.
+$carryDir = Join-Path $StagingRoot '_carry'
+$carryIndex = Join-Path $carryDir 'index.csv'
+$carryMap = [ordered]@{}
+if (Test-Path $carryIndex) {
+    foreach ($line in (Get-Content $carryIndex)) {
+        $p = $line -split ',', 2
+        if ($p.Count -eq 2 -and (Test-Path $p[0].Trim())) { $carryMap[$p[0].Trim()] = $p[1].Trim() }
+    }
+}
 $manifest = Join-Path $nightlyDir ("manifest-{0}.csv" -f $dateTag)
 "file,bytes,sha256" | Set-Content $manifest -Encoding ASCII
-foreach ($f in $files) {
+foreach ($f in ($files + @($carryMap.Keys))) {
     $h = (Get-FileHash $f -Algorithm SHA256).Hash
     Add-Content $manifest ("{0},{1},{2}" -f (Split-Path $f -Leaf), (Get-Item $f).Length, $h) -Encoding ASCII
 }
 $tier = if ($monthly) { 'monthly' } elseif ($weekly) { 'weekly' } else { 'nightly' }
-ssh -o BatchMode=yes omv ("mkdir -p {0}/{1}" -f $NasDir, $tier) 2>$null | Out-Null
+$transferJobs = @()
+foreach ($f in ($files + $manifest)) { $transferJobs += [pscustomobject]@{ Path = $f; Tier = $tier; Carry = $false } }
+foreach ($cf in $carryMap.Keys) { $transferJobs += [pscustomobject]@{ Path = $cf; Tier = $carryMap[$cf]; Carry = $true } }
+foreach ($t in ($transferJobs | ForEach-Object { $_.Tier } | Sort-Object -Unique)) {
+    ssh -o BatchMode=yes omv ("mkdir -p {0}/{1}" -f $NasDir, $t) 2>$null | Out-Null
+}
 $okCount = 0
+$sentCurrent = 0
 $scpFails = 0
-foreach ($f in ($files + $manifest)) {
+# desired end-state of the carry queue: path -> tier
+$carryState = [ordered]@{}
+foreach ($k in $carryMap.Keys) { $carryState[$k] = $carryMap[$k] }
+foreach ($job in $transferJobs) {
+    $f = $job.Path
     $sent = $false
     foreach ($attempt in 1..3) {
-        scp -o BatchMode=yes -o ConnectTimeout=15 -q $f ("omv:{0}/{1}/" -f $NasDir, $tier) 2>$null
+        scp -o BatchMode=yes -o ConnectTimeout=15 -q $f ("omv:{0}/{1}/" -f $NasDir, $job.Tier) 2>$null
         if ($LASTEXITCODE -eq 0) { $sent = $true; break }
         # if the NAS link died mid-run, don't burn retries on every file
         ssh -o BatchMode=yes -o ConnectTimeout=8 omv 'echo nas-ok' 2>$null | Out-Null
         if ($LASTEXITCODE -ne 0) { break }
         Start-Sleep -Seconds (5 * $attempt)
     }
-    if ($sent) { $okCount++ } else { $scpFails++; NoteFail ("scp failed: {0}" -f (Split-Path $f -Leaf)) }
+    if ($sent) {
+        $okCount++
+        if (-not $job.Carry) { $sentCurrent++ }
+        if ($job.Carry) {
+            $carryState.Remove($f)
+            Remove-Item -LiteralPath $f -Force -ErrorAction SilentlyContinue
+        }
+    } elseif ($job.Carry) {
+        # still queued under its original tier
+    } else {
+        $scpFails++
+        NoteFail ("scp failed: {0}" -f (Split-Path $f -Leaf))
+        New-Item -Path $carryDir -ItemType Directory -Force | Out-Null
+        $dest = Join-Path $carryDir (Split-Path $f -Leaf)
+        Move-Item -LiteralPath $f -Destination $dest -Force -ErrorAction SilentlyContinue
+        if (Test-Path $dest) { $carryState[$dest] = $tier }
+    }
 }
 if ($scpFails -gt 0 -and $okCount -eq 0) { NoteFail 'NAS transfer: all files failed (link down mid-run?)' }
-Log ("transferred {0}/{1} file(s) to omv:{2}/{3}" -f $okCount, ($files.Count + 1), $NasDir, $tier)
+# rewrite carry index from the end-state; drop orphaned files no longer queued
+if ($carryState.Count) {
+    $carryState.GetEnumerator() | ForEach-Object { "{0},{1}" -f $_.Key, $_.Value } | Set-Content $carryIndex -Encoding ASCII
+} else { Remove-Item $carryIndex -Force -ErrorAction SilentlyContinue }
+Get-ChildItem $carryDir -File -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -ne 'index.csv' -and -not $carryState.Contains($_.FullName) } |
+    Remove-Item -Force -ErrorAction SilentlyContinue
+Log ("transferred {0}/{1} file(s) to omv (tier={2}, carry-queued={3})" -f $okCount, $transferJobs.Count, $tier, $carryState.Count)
 
 # --- [7] Retention -----------------------------------------------------------------
 # Retention is date-based (mtime), not file-count: a single run ships ~35
@@ -211,11 +256,12 @@ ssh -o BatchMode=yes omv ("find {0}/monthly -type f -mtime +{1} -delete" -f $Nas
 # retry, and never retain more than 2 older runs regardless. Two weekly
 # stagings can hold 45+ GB (DMR models volume + WSL monthly layer), which
 # filled D: to 0 bytes free on 2026-11-01.
-if ($okCount -eq ($files.Count + 1)) {
+if ($sentCurrent -eq ($files.Count + 1)) {
     Remove-Item -LiteralPath $nightlyDir -Recurse -Force -ErrorAction SilentlyContinue
     Log ("staging purged after full transfer: {0}" -f (Split-Path $nightlyDir -Leaf))
 }
-Get-ChildItem $StagingRoot -Directory | Sort-Object Name -Descending | Select-Object -Skip 2 | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+Get-ChildItem $StagingRoot -Directory | Where-Object { $_.Name -ne '_carry' } |
+    Sort-Object Name -Descending | Select-Object -Skip 2 | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 
 Log ("--- nas-backup run complete: tier={0}, files={1} ---" -f $tier, $okCount)
 exit 0
