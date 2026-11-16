@@ -29,9 +29,12 @@ def main() -> None:
     args = parser.parse_args()
 
     ps = (
+        # conhost wraps the portable pwsh directly: the Store pwsh.exe stub
+        # is broken on this host and _rewrap-headless-all.ps1 skips actions
+        # that already contain 'conhost' (portable path = its own repair).
         f"$action = New-ScheduledTaskAction -Execute 'conhost.exe' -Argument "
-        f"'--headless pwsh.exe -NoProfile -ExecutionPolicy Bypass "
-        f"-File \"{SCRIPT}\"'; "
+        f"'--headless \"D:\\DevOptimizer\\pwsh\\pwsh.exe\" -NoProfile "
+        f"-ExecutionPolicy Bypass -File \"{SCRIPT}\"'; "
         "$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 03:00; "
         "$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries "
         "-DontStopIfGoingOnBatteries -StartWhenAvailable -Hidden "
