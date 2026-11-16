@@ -51,10 +51,9 @@ def main() -> None:
         "$out.dockerVhdxGB = if ($vhdx) { "
         "  [math]::Round($vhdx.Length/1GB,1) } else { $null }; "
         "$out.nextRuns = @(Get-ScheduledTask -TaskPath '\\DevOptimizer\\' | "
-        "  Select-Object TaskName, NextRunTime | "
-        "  Sort-Object NextRunTime | "
-        "  ForEach-Object { @{ task=$_.TaskName; "
-        "    next=($_.NextRunTime.ToString('s')) } }); "
+        "  ForEach-Object { $i = $_ | Get-ScheduledTaskInfo; "
+        "    @{ task=$_.TaskName; next=($i.NextRunTime.ToString('s')) } } | "
+        "  Sort-Object next); "
         "$out | ConvertTo-Json -Compress -Depth 4"
     )
 
