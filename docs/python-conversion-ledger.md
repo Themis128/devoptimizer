@@ -519,3 +519,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 333 | tools/Variants/ollama-predictive-maintenance-NoAdmin.bat | scripts/py/ollama-predictive-maintenance-noadmin.py | 7-mode menu |
 | 334 | tools/Variants/ollama-predictive-maintenance-Admin.bat | scripts/py/ollama-predictive-maintenance-admin.py | derived, admin gate |
 | 335 | portable/ai-integration-module.bat | scripts/py/ai-integration-module-shim.py | pwsh shim |
+
+### Tranche 29 — Cursor optimizer menus + scheduled-task registrars (PR #79)
+
+| # | Original | Port | Notes |
+|---|----------|------|-------|
+| 336 | tools/Variants/CURSOR-AI-OPTIMIZATION-SUITE-NoAdmin.bat | scripts/py/cursor-ai-optimization-suite-noadmin.py | 10-mode menu, tty-guarded |
+| 337 | tools/Variants/CURSOR-AI-OPTIMIZATION-SUITE-Admin.bat | scripts/py/cursor-ai-optimization-suite-admin.py | derived, admin gate |
+| 338 | tools/Variants/CURSOR-AI-COMPLETE-OPTIMIZER-NoAdmin.bat | scripts/py/cursor-ai-complete-optimizer-noadmin.py | deep-clean 1st item |
+| 339 | tools/Variants/CURSOR-AI-COMPLETE-OPTIMIZER-Admin.bat | scripts/py/cursor-ai-complete-optimizer-admin.py | derived, admin gate |
+| 340 | scripts/check-updates.ps1 | scripts/py/check-updates.py | COM update search via PS call, --json |
+| 341 | scripts/register-health-dashboard.ps1 | scripts/py/register-health-dashboard.py | logon + 2-min task via COM |
+| 342 | scripts/register-phone-watchdog-task.ps1 | scripts/py/register-phone-watchdog-task.py | schtasks /SC MINUTE /MO 15 |
+| 343 | scripts/register-wsl-repair-task.ps1 | scripts/py/register-wsl-repair-task.py | schtasks /SC MINUTE /MO 30 |
+| 344 | scripts/register-admin-cleanup-weekly.ps1 | scripts/py/register-admin-cleanup-weekly.py | Sunday 03:00 elevated + log |
+| 345 | scripts/register-docker-prune-task.ps1 | scripts/py/register-docker-prune-task.py | schtasks monthly 1st 04:30 |
+| 346 | scripts/register-vhdx-devin-exit-task.ps1 | scripts/py/register-vhdx-devin-exit-task.py | 5-min limited task via COM |
+| 347 | scripts/install-startup-launchers.ps1 | scripts/py/install-startup-launchers.py | vbs hidden launchers |
