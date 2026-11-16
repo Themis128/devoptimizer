@@ -634,3 +634,19 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 454 | portable/test-syntax.bat | scripts/py/test-syntax.py |
 | 455 | portable/TEST-ALL-FILES.bat | scripts/py/test-all-files.py |
 | 456 | - | scripts/check-broken-refs.ps1 | (excluded) |
+| 457 | portable/Start-VSCodeMonitor-PROD.bat | scripts/py/start-vscodemonitor-prod.py |
+| 458 | portable/Start-VSCodeMonitor-TEST.bat | scripts/py/start-vscodemonitor-test.py |
+| 459 | portable/Register-ScheduledTasks.bat | scripts/py/register-scheduledtasks-1.py |
+| 460 | portable/Bootstrap-DevEnvironment.bat | scripts/py/bootstrap-devenv-1.py |
+| 461 | portable/run-stability-test.bat | scripts/py/run-stability-test.py |
+| 462 | portable/Hub-Registry.bat | scripts/py/hub-registry-1.py |
+| 463 | portable/validate-system.bat | scripts/py/validate-system-1.py |
+| 464 | portable/wsl.bat | scripts/py/wsl-1.py |
+| 465 | portable/CONFIG-DEMO.bat | scripts/py/config-demo-1.py |
+| 466 | portable/config-loader.bat | scripts/py/config-loader-1.py |
+| 467 | portable/validate-all-scripts.bat | scripts/py/validate-all-scripts.py |
+| 468 | portable/copy-menu-to-desktop-now.bat | scripts/py/copy-menu-to-desktop-now.py |
+| 469 | check-disks.ps1 | scripts/py/check-disks.py |
+| 470 | register-daily-cleanup-task.ps1 | scripts/py/register-daily-cleanup-task.py |
+| 471 | register-diskspaceguard-task.ps1 | scripts/py/register-diskspaceguard-task.py |
+| 472 | register-housekeeping-task.ps1 | scripts/py/register-housekeeping-task.py |
