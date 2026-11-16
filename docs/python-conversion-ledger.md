@@ -502,3 +502,20 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 321 | scripts/nvidia-pair-setup.ps1 | scripts/py/nvidia-pair-setup.py | landed in t26 PR #76 |
 | 322 | scripts/ml-frameworks-setup.ps1 | scripts/py/ml-frameworks-setup.py | landed in t26 PR #76 |
 | 323 | scripts/ai-development-tools.ps1 | scripts/py/ai-development-tools.py | landed in t26 PR #76 |
+
+### Tranche 28 — Variants ai-ml launchers (PR #78)
+
+| # | Original | Port | Notes |
+|---|----------|------|-------|
+| 324 | tools/Variants/RUN-OLLAMA-ALL-MODELS-Admin.bat | scripts/py/run-ollama-all-models-admin.py | shim, REQUIRES admin |
+| 325 | tools/Variants/CURSOR-AI-GIT-CACHE-CLEAR-NoAdmin.bat | scripts/py/cursor-ai-git-cache-clear-noadmin.py | 8 git steps + user caches |
+| 326 | tools/Variants/CURSOR-AI-GIT-CACHE-CLEAR-Admin.bat | scripts/py/cursor-ai-git-cache-clear-admin.py | + npm/yarn/TEMP/Chrome clears |
+| 327 | tools/Variants/ollama-ai-analyzer-NoAdmin.bat | scripts/py/ollama-ai-analyzer-noadmin.py | 4 metrics + 4 prompts |
+| 328 | tools/Variants/ollama-ai-analyzer-Admin.bat | scripts/py/ollama-ai-analyzer-admin.py | derived, admin gate |
+| 329 | tools/Variants/OLLAMA-MULTI-MODEL-SYSTEM-STATUS-NoAdmin.bat | scripts/py/ollama-multi-model-system-status-noadmin.py | status report |
+| 330 | tools/Variants/OLLAMA-MULTI-MODEL-SYSTEM-STATUS-Admin.bat | scripts/py/ollama-multi-model-system-status-admin.py | derived, admin gate |
+| 331 | tools/Variants/CURSOR-AI-ESSENTIAL-TOOLS-NoAdmin.bat | scripts/py/cursor-ai-essential-tools-noadmin.py | choco installs + workspace |
+| 332 | tools/Variants/CURSOR-AI-ESSENTIAL-TOOLS-Admin.bat | scripts/py/cursor-ai-essential-tools-admin.py | derived, admin gate |
+| 333 | tools/Variants/ollama-predictive-maintenance-NoAdmin.bat | scripts/py/ollama-predictive-maintenance-noadmin.py | 7-mode menu |
+| 334 | tools/Variants/ollama-predictive-maintenance-Admin.bat | scripts/py/ollama-predictive-maintenance-admin.py | derived, admin gate |
+| 335 | portable/ai-integration-module.bat | scripts/py/ai-integration-module-shim.py | pwsh shim |
