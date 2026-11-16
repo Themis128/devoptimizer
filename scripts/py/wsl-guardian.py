@@ -237,13 +237,16 @@ def main() -> None:
                        f"{args.distro} terminated after {df} "
                        "sustained failures. Containers recover via "
                        "restart policies.")
-                wsl_admin(["--terminate", args.distro], 60)
-                import time
-                time.sleep(15)
-                wsl_run(["true"], args.distro, 30)
-                st["lastT2"] = datetime.datetime.now().isoformat()
-                st["deepFails"], st["postT2Fails"] = 0, 0
-                st["t2Pending"] = True
+                if wsl_admin(["--terminate", args.distro], 60):
+                    import time
+                    time.sleep(15)
+                    wsl_run(["true"], args.distro, 30)
+                    st["lastT2"] = datetime.datetime.now().isoformat()
+                    st["deepFails"], st["postT2Fails"] = 0, 0
+                    st["t2Pending"] = True
+                else:
+                    log("T2 wsl --terminate FAILED - counters kept; "
+                        "retry next tick", "WARN")
         elif (st["t2Pending"]
               and int(st["postT2Fails"]) >= args.t3_after
               and not locked

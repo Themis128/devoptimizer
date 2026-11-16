@@ -275,9 +275,13 @@ def main() -> None:
                        if Path(m).exists()]
             if not matches:
                 continue
-            size = sum(dir_size_mb(m) if Path(m).is_dir()
-                       else m.stat().st_size / MB
-                       for m in matches for m in [Path(m)])
+            size = 0.0
+            for m in [Path(m) for m in matches]:
+                try:
+                    size += (dir_size_mb(m) if m.is_dir()
+                             else m.stat().st_size / MB)
+                except OSError:
+                    continue
             if size > 0:
                 for match in matches:
                     clear_children(match, dry)
