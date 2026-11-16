@@ -28,7 +28,7 @@ def main() -> None:
     task_path = "\\DevOptimizer\\"
     script = r"D:\DevOptimizer\scripts\raise-devin-priority.ps1"
 
-    guard = "" if args.force else "if ($existing) { Write-Error 'exists'; exit 2 }; "
+    guard = "" if args.force else "if ($existing) { Write-Output 'exists - use --force to update'; exit 0 }; "
     ps = (
         "$ErrorActionPreference = 'Stop'; "
         f"if (-not (Test-Path '{script}')) {{ Write-Error 'script missing'; exit 1 }}; "
