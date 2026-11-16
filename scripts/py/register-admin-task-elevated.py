@@ -1,61 +1,91 @@
-"""Register the weekly Admin-Cleanup-System task (Python port of register-admin-task-elevated.ps1).
+"""Register Admin-Cleanup-System as SYSTEM task
+(port of scripts/register-admin-task-elevated.bat).
 
-Registers \\DevOptimizer\\Admin-Cleanup-System: admin-cleanup-system.ps1,
-Sundays 03:00, SYSTEM account, highest run level. Mutating, requires admin.
+Weekly SUN 03:00, SYSTEM/HIGHEST, 72h limit, hidden — action wrapped in
+conhost --headless per the repo's headless-action rule. Self-elevates
+when not already admin (the hub doesn't auto-elevate .py entries).
+Mutating; --dry-run.
 """
 
 import argparse
 import asyncio
 import sys
+import tempfile
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO_ROOT / "py"))
 
-from devoptimizer_cli.core.winops import run_ps_command_elevated  # noqa: E402
+from devoptimizer_cli.core.winops import run_ps_command  # noqa: E402
 
 # CATEGORY: utilities
-# TAGS: scheduled-task, cleanup, admin
+# TAGS: scheduled-task, cleanup, system, elevated
 
-TASK_NAME = "Admin-Cleanup-System"
-TASK_PATH = "\\DevOptimizer\\"
 SCRIPT = r"D:\DevOptimizer\scripts\admin-cleanup-system.ps1"
+
+PS_BODY = (
+    "$ErrorActionPreference = 'Stop'; "
+    "$action = New-ScheduledTaskAction -Execute 'conhost.exe' "
+    f"-Argument ('--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"{SCRIPT}\"'); "
+    "$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 03:00; "
+    "$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries "
+    "-DontStopIfGoingOnBatteries -StartWhenAvailable -Hidden "
+    "-ExecutionTimeLimit (New-TimeSpan -Hours 72) -Compatibility Win8; "
+    "$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' "
+    "-LogonType ServiceAccount -RunLevel Highest; "
+    "Register-ScheduledTask -TaskName 'Admin-Cleanup-System' "
+    "-TaskPath '\\DevOptimizer\\' -Action $action -Trigger $trigger "
+    "-Settings $settings -Principal $principal -Force; "
+    "Write-Host 'Registered Admin-Cleanup-System task (SYSTEM account)'"
+)
+
+
+def is_admin() -> bool:
+    try:
+        import ctypes
+        return bool(ctypes.windll.shell32.IsUserAnAdmin())
+    except Exception:
+        return False
+
+
+async def elevate(ps_body: str) -> int:
+    with tempfile.NamedTemporaryFile(
+            "w", suffix=".ps1", delete=False) as f:
+        f.write(ps_body)
+        tmp = f.name
+    try:
+        esc = tmp.replace("'", "''")
+        # quote the -File path: ArgumentList items join with spaces, so a
+        # spaced %TEMP% path would be split without embedded quotes.
+        r = await run_ps_command(
+            "$p = Start-Process powershell -Verb RunAs -Wait -PassThru "
+            "-ArgumentList '-NoProfile','-ExecutionPolicy','Bypass',"
+            f"'-File','\"{esc}\"'; "
+            "exit $p.ExitCode")
+        return r.returncode
+    finally:
+        Path(tmp).unlink(missing_ok=True)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Print the Register-ScheduledTask script without running it")
+    parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    ps = (
-        # conhost wraps the portable pwsh directly: the Store pwsh.exe stub
-        # is broken on this host and _rewrap-headless-all.ps1 skips actions
-        # that already contain 'conhost' (portable path = its own repair).
-        f"$action = New-ScheduledTaskAction -Execute 'conhost.exe' -Argument "
-        f"'--headless \"D:\\DevOptimizer\\pwsh\\pwsh.exe\" -NoProfile "
-        f"-ExecutionPolicy Bypass -File \"{SCRIPT}\"'; "
-        "$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 03:00; "
-        "$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries "
-        "-DontStopIfGoingOnBatteries -StartWhenAvailable -Hidden "
-        "-ExecutionTimeLimit (New-TimeSpan -Hours 72) -Compatibility Win8; "
-        "$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' "
-        "-LogonType ServiceAccount -RunLevel Highest; "
-        f"Register-ScheduledTask -TaskName '{TASK_NAME}' -TaskPath '{TASK_PATH}' "
-        "-Action $action -Trigger $trigger -Settings $settings "
-        "-Principal $principal -Force"
-    )
-
     if args.dry_run:
-        print(f"[dry-run] would register task '{TASK_PATH}{TASK_NAME}':")
-        print(ps)
+        print("[dry-run] " + PS_BODY)
         return
 
-    result = asyncio.run(run_ps_command_elevated(ps))
-    if result.returncode != 0:
-        print(result.stderr.strip() or "Register-ScheduledTask failed", file=sys.stderr)
-        sys.exit(result.returncode)
-    print("Registered Admin-Cleanup-System task (SYSTEM account)")
+    if not is_admin():
+        print("elevating via UAC...", file=sys.stderr)
+        sys.exit(asyncio.run(elevate(PS_BODY)))
+
+    r = asyncio.run(run_ps_command(PS_BODY))
+    if r.stdout.strip():
+        print(r.stdout.strip())
+    if r.returncode != 0:
+        print(r.stderr.strip() or "registration failed", file=sys.stderr)
+    sys.exit(r.returncode)
 
 
 if __name__ == "__main__":
