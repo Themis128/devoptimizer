@@ -141,7 +141,7 @@ def harden():
         if not f.exists():
             continue
         try:
-            s = read_json(f)
+            s = read_json(f) or {}
             if f.stat().st_size > 0 and s is None:
                 out(f"  WARN: {f.name} unreadable - "
                     "skipping (would lose config)")
@@ -373,7 +373,7 @@ def uninstall():
 def test(gate_timeout):
     out("[Test] Layer 4 - Docker Desktop config check:")
     for f in (DD_SETTINGS, DD_STORE):
-        s = read_json(f)
+        s = read_json(f) or {}
         out(f"  {f.name}: "
             f"disableWSLIntegrationAutoConfig="
             f"{s.get('disableWSLIntegrationAutoConfig')}"

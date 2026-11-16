@@ -104,7 +104,7 @@ def get_models(container):
             if not re.search(r"\bload", line, re.IGNORECASE):
                 continue
             m = re.search(
-                r'model\s*[:="\']+\s*([\w./-]+)',
+                r'model\s*[:="\']?\s*([\w./-]+)',
                 line, re.IGNORECASE)
             if m and not any(x["Id"] == m.group(1)
                              for x in models):
