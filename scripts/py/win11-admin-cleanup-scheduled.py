@@ -37,7 +37,8 @@ def main() -> None:
     if args.dry_run:
         print("[dry-run] " + ps)
         return
-    r = asyncio.run(run_ps_command(ps))
+    # DISM repair can take 10-30 min — cap at 1h like the task itself.
+    r = asyncio.run(run_ps_command(ps, timeout=3600))
     if r.stdout.strip():
         print(r.stdout.strip())
     if r.returncode != 0:

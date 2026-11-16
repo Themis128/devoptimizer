@@ -39,14 +39,14 @@ def main() -> None:
             "$action = New-ScheduledTaskAction -Execute 'conhost.exe' "
             "-Argument '--headless wsl.exe -d Ubuntu-24.04 --exec true'; "
             "$trigger = New-ScheduledTaskTrigger -AtLogOn -User "
-            "'$env:USERDOMAIN\\$env:USERNAME'; "
+            '"$env:USERDOMAIN\\$env:USERNAME"; '
             "$trigger.Delay = 'PT15S'; "
             "$settings = New-ScheduledTaskSettingsSet "
             "-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries "
             "-ExecutionTimeLimit (New-TimeSpan -Minutes 2) "
             "-MultipleInstances IgnoreNew; "
             "$principal = New-ScheduledTaskPrincipal -UserId "
-            "'$env:USERDOMAIN\\$env:USERNAME' -LogonType Interactive; "
+            '"$env:USERDOMAIN\\$env:USERNAME" -LogonType Interactive; '
             "Register-ScheduledTask -TaskPath '\\DevOptimizer\\' "
             f"-TaskName '{TASK_NAME}' -Action $action "
             "-Trigger $trigger -Settings $settings "

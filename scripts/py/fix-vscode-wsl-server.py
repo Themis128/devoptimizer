@@ -39,18 +39,23 @@ def main() -> None:
     args = p.parse_args()
 
     print("=== Fix VS Code Server in WSL ===")
+    targets = ("~/.vscode-server/bin",
+               "~/.vscode-server/data/CachedData",
+               "~/.vscode-server/data/User/workspaceStorage",
+               "~/.vscode-server/data/logs",
+               "~/.vscode-server/extensionsCache",
+               "~/.vscode-server/data/Machine")
+    rm = "; ".join(f"rm -rf {t}/* 2>/dev/null" for t in targets)
     if args.dry_run:
         for d in distros():
-            print(f"[dry-run] {d}: rm -rf ~/.vscode-server "
-                  "~/.vscode-remote")
+            print(f"[dry-run] {d}: {rm}")
         return
     for d in distros():
         print(f"-- {d}")
-        r = wsl(["-d", d, "--", "bash", "-c",
-                 "rm -rf ~/.vscode-server ~/.vscode-remote; "
-                 "echo cleaned"])
+        r = wsl(["-d", d, "--", "bash", "-c", f"{rm}; echo cleaned"])
         if r.returncode == 0:
-            print("   cleaned")
+            print("   cleaned (server bins + caches only; "
+                  "extensions/settings kept)")
         else:
             print(f"   failed: {r.stderr.strip()}", file=sys.stderr)
     print("Reconnect VS Code to WSL — it reinstalls the server.")

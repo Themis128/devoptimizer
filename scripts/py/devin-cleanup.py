@@ -38,7 +38,7 @@ def main() -> None:
                                        "prune-acp", "cleanup-sessions",
                                        "daily-maintenance", "health"],
                    nargs="?", default="check")
-    p.add_argument("--days", type=int, default=7)
+    p.add_argument("--days", type=int, default=14)
     p.add_argument("--dry-run", action="store_true")
     args = p.parse_args()
 

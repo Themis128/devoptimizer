@@ -7,12 +7,18 @@ logs/service-doctor.log. --dry-run; --json.
 """
 
 import argparse
+import asyncio
 import datetime
 import json
 import os
 import subprocess
 import sys
 from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO_ROOT / "py"))
+
+from devoptimizer_cli.core.winops import run_ps_command  # noqa: E402
 
 # CATEGORY: maintenance
 # TAGS: wsl, docker, services, watchdog
@@ -75,6 +81,13 @@ def main() -> None:
         results[s] = out.strip()
         findings += sum(1 for l in out.splitlines()
                         if "WARN" in l or "FAIL" in l or "DRIFT" in l)
+    if findings and not args.dry_run:
+        asyncio.run(run_ps_command(
+            "Write-EventLog -LogName 'DevOptimizer' "
+            "-Source 'DevOptimizer' -EventId 1004 -EntryType Warning "
+            "-Message \"service-doctor sweep found " + str(findings) +
+            " issue(s) in WSL stack - see " + args.log + "\" "
+            "-ErrorAction SilentlyContinue"))
     if args.json:
         print(json.dumps({"findings": findings, "services": results}))
     else:

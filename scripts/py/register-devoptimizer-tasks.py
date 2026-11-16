@@ -44,7 +44,12 @@ PS_BODY = (
     "Write-Host '[OK] \\DevOptimizer\\DevOptimizer-Elevated-Cleanup'; "
     "$sp = 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\StorageSense\\Parameters\\StoragePolicy'; "
     "New-Item -Path $sp -Force | Out-Null; "
-    "Set-ItemProperty -Path $sp -Name '01' -Type DWord -Value 1")
+    "Set-ItemProperty -Path $sp -Name '01'   -Type DWord -Value 1; "
+    "Set-ItemProperty -Path $sp -Name '04'   -Type DWord -Value 1; "
+    "Set-ItemProperty -Path $sp -Name '08'   -Type DWord -Value 1; "
+    "Set-ItemProperty -Path $sp -Name '256'  -Type DWord -Value 14; "
+    "Set-ItemProperty -Path $sp -Name '32'   -Type DWord -Value 0; "
+    "Set-ItemProperty -Path $sp -Name '2048' -Type DWord -Value 7")
 
 
 async def elevate(tmp: Path, ps_body: str):
