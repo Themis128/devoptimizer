@@ -168,14 +168,14 @@ public class RegistryServiceTests
         var livePath = Path.Combine(repoRoot!, "config", "hub-registry.json");
         var snapshot = new RegistryService().LoadSnapshot(livePath);
 
-        Assert.Equal(761, snapshot.Commands.Count);
+        Assert.Equal(772, snapshot.Commands.Count);
 
         var expectedCounts = new Dictionary<string, int>
         {
             ["ai"] = 2,
             ["ai-ml"] = 43,
             ["backup-restore"] = 5,
-            ["cleanup"] = 119,
+            ["cleanup"] = 130,
             ["development"] = 12,
             ["diagnostics"] = 1,
             ["docker"] = 3,
@@ -208,7 +208,7 @@ public class RegistryServiceTests
 
         // Regression-locked search: "cleanup" -> 50, NOT the cleanup-category commands.
         var searchResults = RegistryService.Search(snapshot, "cleanup");
-        Assert.Equal(78, searchResults.Count);
+        Assert.Equal(81, searchResults.Count);
         Assert.NotEqual(RegistryService.ByCategory(snapshot, "cleanup").Count, searchResults.Count);
     }
 }
