@@ -572,3 +572,15 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | tools/Variants/02-Ultra-Performance-NoAdmin.bat | scripts/py/02-ultra-performance-noadmin.py | t33 | dev-optimizer -Mode Basic | exit 1 on fail |
 | tools/Variants/02-Ultra-Performance-Admin.bat | scripts/py/02-ultra-performance-admin.py | t33 | dev-optimizer -Mode Basic | checkAdmin never invoked in original |
 | tools/Variants/01-Quick-Optimization-NoAdmin.bat | scripts/py/01-quick-optimization-noadmin.py | t33 | dev-optimizer -Mode Basic | exit = error count |
+| 396 | `tools/Variants/01-Quick-Optimization-Admin.bat` | `scripts/py/01-quick-optimization-admin.py` | t34 | `python3 scripts/py/01-quick-optimization-admin.py` | Admin gate + delegate to noadmin sibling |
+| 397 | `tools/Old-Launchers/UNIFIED-LAUNCHER.bat` | `scripts/py/unified-launcher-1.py` | t34 | `python3 scripts/py/unified-launcher-1.py` | 30-entry menu + config/help submenus |
+| 398 | `tools/Variants/ollama-performance-scorer-NoAdmin.bat` | `scripts/py/ollama-performance-scorer-noadmin.py` | t34 | `python3 scripts/py/ollama-performance-scorer-noadmin.py` | 10 scoring modes; mode 1 collects counter JSON to ai-analysis/ |
+| 399 | `tools/Variants/ollama-performance-scorer-Admin.bat` | `scripts/py/ollama-performance-scorer-admin.py` | t34 | `python3 scripts/py/ollama-performance-scorer-admin.py` | Admin gate + delegate |
+| 400 | `tools/Old-Launchers/UNIFIED-LAUNCHER-NoAdmin.bat` | `scripts/py/unified-launcher-noadmin.py` | t34 | `python3 scripts/py/unified-launcher-noadmin.py` | 30-entry menu, U-variant entries 21/22 |
+| 401 | `tools/Old-Launchers/UNIFIED-LAUNCHER-Admin.bat` | `scripts/py/unified-launcher-admin.py` | t34 | `python3 scripts/py/unified-launcher-admin.py` | Admin gate; REQUIRES: admin marker |
+| 402 | `tools/Old-Launchers/CENTERAL-LAUNCHER-1.bat` | `scripts/py/centeral-launcher-1.py` | t34 | `python3 scripts/py/centeral-launcher-1.py` | Same 30-entry menu, C-variant entries |
+| 403 | `tools/Old-Launchers/CENTERAL-LAUNCHER-NoAdmin.bat` | `scripts/py/centeral-launcher-noadmin.py` | t34 | `python3 scripts/py/centeral-launcher-noadmin.py` | Canonical template for launcher family |
+| 404 | `tools/Old-Launchers/CENTERAL-LAUNCHER-Admin.bat` | `scripts/py/centeral-launcher-admin.py` | t34 | `python3 scripts/py/centeral-launcher-admin.py` | Admin gate; REQUIRES: admin marker |
+| 405 | `scripts/debug-config.ps1` | `scripts/py/debug-config.py` | t34 | `python3 scripts/py/debug-config.py` | Invokes config-loader module via pwsh, prints ollama section |
+| 406 | `scripts/update-compose-override.ps1` | `scripts/py/update-compose-override.py` | t34 | `python3 scripts/py/update-compose-override.py` | restart=no for 6 cu130-slim containers via wsl |
+| 407 | `scripts/Insider-Automation.ps1` | `scripts/py/insider-automation.py` | t34 | `python3 scripts/py/insider-automation.py -Operation dailyhealth` | Module ops delegate to DevOptimizer-Core via ps1; tasks via schtasks |
