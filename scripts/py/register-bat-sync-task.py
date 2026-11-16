@@ -48,6 +48,9 @@ def main() -> None:
         "if ($LASTEXITCODE -ne 0) { Write-Error \"schtasks failed $LASTEXITCODE\"; exit 1 }; "
         "$startup = [Environment]::GetFolderPath('Startup'); "
         "if (-not (Test-Path $startup)) { Write-Error 'no startup folder'; exit 1 }; "
+        # remove any stale visible .cmd launcher before writing the hidden one
+        "Remove-Item (Join-Path $startup 'DevOptimizer-BAT-Sync.cmd') "
+        "  -Force -ErrorAction SilentlyContinue; "
         # hidden wscript launcher, same shape as install-startup-launchers.ps1
         f"Set-Content -Path (Join-Path $startup '{args.launcher_name}') "
         "-Value \"CreateObject(`\"Wscript.Shell`\").Run `\"`\"`\""
