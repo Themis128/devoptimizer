@@ -1,16 +1,14 @@
 """Manage Devin sessions (Python port of manage-devin-sessions.ps1).
 
-Reads the Devin CLI sessions SQLite DB plus Devin Desktop processes:
-max 2 concurrent, auto-close CLI sessions idle >4h, never touch recently
-started Desktop processes (main-window processes only). Mutating;
---dry-run reports only.
+Reads the Devin CLI sessions SQLite DB plus Devin Desktop main-window
+processes: closes CLI sessions and Desktop windows idle >4h, then enforces
+the max-concurrent limit against whatever idle entries remain (active work
+is never killed). Mutating; --dry-run reports only.
 """
 
 import argparse
-import ctypes
 import datetime
 import json
-import os
 import sqlite3
 import subprocess
 import sys
@@ -66,15 +64,30 @@ def devin_procs() -> list[dict]:
     return data if isinstance(data, list) else [data]
 
 
-def last_input_age_min() -> float:
-    class LASTINPUTINFO(ctypes.Structure):
-        _fields_ = [("cbSize", ctypes.c_uint), ("dwTime", ctypes.c_ulong)]
-    lii = LASTINPUTINFO()
-    lii.cbSize = ctypes.sizeof(lii)
-    if not ctypes.windll.user32.GetLastInputInfo(ctypes.byref(lii)):
-        return 0.0
-    tick = ctypes.windll.kernel32.GetTickCount()
-    return (tick - lii.dwTime) / 60000.0
+def close_cli_session(session_id: str) -> bool:
+    r = subprocess.run([str(CLI_PATH), "rm", "--force", session_id],
+                       capture_output=True, text=True, timeout=60)
+    if r.returncode == 0:
+        log(f"Closed CLI session: {session_id}")
+        return True
+    log(f"Failed to close CLI session {session_id}: "
+        f"{r.stdout}{r.stderr}", "ERROR")
+    return False
+
+
+def close_desktop_proc(pid: int) -> bool:
+    r = subprocess.run(["powershell", "-NoProfile", "-Command",
+                        f"Stop-Process -Id {pid} -Force"],
+                       capture_output=True, text=True, timeout=30)
+    if r.returncode == 0:
+        log(f"Closed Desktop process: {pid}")
+        return True
+    log(f"Failed to close Desktop process {pid}: {r.stderr}", "ERROR")
+    return False
+
+
+def last_ts(val) -> float:
+    return val / 1000 if val and val > 1e12 else (val or 0)
 
 
 def main() -> None:
@@ -85,49 +98,94 @@ def main() -> None:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
-    log("=== session manager run ===")
+    log("=== Devin Session Manager Started ===")
     sessions = cli_sessions()
     procs = devin_procs()
     now = time.time()
     cutoff = now - args.idle_timeout_hours * 3600
-    idle_age = last_input_age_min()
+    log(f"Found {len(sessions)} active CLI sessions, "
+        f"{len(procs)} Desktop processes")
 
+    closed_sessions: list[str] = []
+    closed_procs: list[int] = []
     actions = []
 
-    # CLI sessions: close ones idle past the timeout (keep max-concurrent newest)
-    for s in sessions[args.max_concurrent:]:
-        last = s["last_activity_at"] or 0
-        # timestamps are epoch seconds or ms
-        last_s = last / 1000 if last > 1e12 else last
-        if last_s < cutoff:
-            actions.append({
-                "kind": "close-cli-session", "id": s["id"],
-                "title": s["title"],
-                "reason": f"idle > {args.idle_timeout_hours}h"})
+    # close every idle CLI session
+    for s in sessions:
+        idle_h = (now - last_ts(s["last_activity_at"])) / 3600
+        if last_ts(s["last_activity_at"]) < cutoff:
+            actions.append({"kind": "close-cli", "id": s["id"],
+                            "idleH": round(idle_h, 1)})
+            log(f"CLI session {s['id']} idle {idle_h:.1f}h - closing")
+            if not args.dry_run and close_cli_session(s["id"]):
+                closed_sessions.append(s["id"])
+        else:
+            log(f"CLI session {s['id']} active (idle {idle_h:.1f}h)")
 
-    # Desktop processes: report only (never kill active main windows)
+    # close every idle Desktop process (main windows only)
     for p in procs:
-        actions.append({"kind": "desktop-process", "id": p["Id"],
-                        "title": p.get("MainWindowTitle", ""),
-                        "reason": "observed (not managed)"})
+        try:
+            start = datetime.datetime.fromisoformat(
+                str(p.get("StartTime", "")).replace("Z", "+00:00"))
+            start_s = start.timestamp()
+        except (ValueError, TypeError):
+            start_s = now
+        idle_h = (now - start_s) / 3600
+        if start_s < cutoff:
+            actions.append({"kind": "close-desktop", "pid": p["Id"],
+                            "idleH": round(idle_h, 1)})
+            log(f"Desktop process {p['Id']} idle {idle_h:.1f}h - closing")
+            if not args.dry_run and close_desktop_proc(p["Id"]):
+                closed_procs.append(p["Id"])
+        else:
+            log(f"Desktop process {p['Id']} active (running {idle_h:.1f}h)")
 
-    log(f"sessions={len(sessions)} procs={len(procs)} "
-        f"user_idle={idle_age:.0f}min actions={sum(1 for a in actions if a['kind']=='close-cli-session')}")
+    # enforce max-concurrent on whatever remains, idle entries only
+    remaining_cli = [s for s in cli_sessions()
+                     if s["id"] not in closed_sessions]
+    remaining_procs = [p for p in devin_procs()
+                       if p["Id"] not in closed_procs]
+    total = len(remaining_cli) + len(remaining_procs)
+    if total > args.max_concurrent:
+        excess = total - args.max_concurrent
+        log(f"Exceeded max concurrent ({args.max_concurrent}), need to close "
+            f"{excess} idle session(s)", "WARN")
+        idle_cli = sorted(
+            (s for s in remaining_cli
+             if last_ts(s["last_activity_at"]) < cutoff),
+            key=lambda s: last_ts(s["last_activity_at"]))
+        for s in idle_cli:
+            if excess <= 0:
+                break
+            log(f"Closing excess idle CLI session: {s['id']}")
+            actions.append({"kind": "close-cli-excess", "id": s["id"]})
+            if not args.dry_run and close_cli_session(s["id"]):
+                excess -= 1
+        idle_procs = sorted(
+            (p for p in remaining_procs
+             if p.get("StartTime") and
+             datetime.datetime.fromisoformat(
+                 str(p["StartTime"]).replace("Z", "+00:00")).timestamp() < cutoff),
+            key=lambda p: p["StartTime"])
+        for p in idle_procs:
+            if excess <= 0:
+                break
+            log(f"Closing excess idle Desktop process: {p['Id']}")
+            actions.append({"kind": "close-desktop-excess", "pid": p["Id"]})
+            if not args.dry_run and close_desktop_proc(p["Id"]):
+                excess -= 1
+        if excess > 0:
+            log(f"Still {excess} over limit after closing idle - "
+                "keeping active work", "WARN")
+    else:
+        log(f"Concurrent count ({total}) within limit "
+            f"({args.max_concurrent})")
 
     if args.json:
-        print(json.dumps({"sessions": len(sessions), "procs": procs,
+        print(json.dumps({"cliSessions": len(sessions), "procs": procs,
+                          "closedSessions": closed_sessions,
+                          "closedProcs": closed_procs,
                           "actions": actions}, indent=2))
-        return
-
-    for a in actions:
-        if a["kind"] == "close-cli-session":
-            log(f"closing idle session {a['id']} ({a['title']}) — {a['reason']}")
-            if not args.dry_run:
-                r = subprocess.run([str(CLI_PATH), "session", "close", a["id"]],
-                                   capture_output=True, text=True, timeout=30)
-                log(f"  close rc={r.returncode}")
-        else:
-            log(f"  desktop pid {a['id']}: {a['title']} — left alone")
 
 
 if __name__ == "__main__":
