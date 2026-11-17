@@ -43,7 +43,7 @@ def alert(sev, title, msg, eid=1004, force=False):
          f'. "{NOTIFY}"; Send-DevOptAlert -Severity {sev} '
          '-Title $env:DEVOPT_ALERT_TITLE '
          '-Message $env:DEVOPT_ALERT_MSG '
-         "-Tags 'docker','wsl','sync' "
+         "-Tags 'docker','wsl','sync','" + ("rotating_light" if sev == "Critical" else "warning") + "' "
          f"-EventId {eid}" + (" -Force" if force else "")],
         capture_output=True, env=env)
 
@@ -265,7 +265,7 @@ def main():
             note(f"port {port} dead (Windows:{cw} WSL:{cx}) "
                  "and no running publisher found")
             alert("Critical",
-                  "Docker Port Proxy Dead - No Publisher",
+                  "Docker port forward down - no publisher",
                   f"Port {port} proxy dead (Windows:{cw} "
                   f"WSL:{cx}) and no running container "
                   f"publishes {port}", force=True)
@@ -273,8 +273,8 @@ def main():
         log(f"port-proxy DEAD for {port} (Windows:{cw} "
             f"WSL:{cx}) - restarting publisher {publisher}")
         alert("Warning",
-              "Docker Port Proxy Dead - Restarting "
-              "Publisher",
+              "Docker port forward down - restarting "
+              "publisher",
               f"Port {port} proxy dead (Windows:{cw} "
               f"WSL:{cx}) - restarting publisher "
               f"{publisher}")
@@ -304,7 +304,7 @@ def main():
                 f"compose service {proj}/{svc} "
                 f"(workdir {wdir})")
             alert("Warning",
-                  "Docker Port Proxy Force-Recreate",
+                  "Docker port forward - recreating service",
                   f"Port {port} proxy dead - "
                   f"force-recreating compose service "
                   f"{proj}/{svc}")
@@ -320,8 +320,8 @@ def main():
                      "restart and force-recreate of "
                      f"{publisher}")
                 alert("Critical",
-                      "Docker Port Proxy STILL BROKEN "
-                      "After Force-Recreate",
+                      "Docker port forward still down - "
+                      "manual fix needed",
                       f"Port {port} proxy still dead "
                       f"after restart + force-recreate of "
                       f"{publisher} ({proj}/{svc}). Manual "
@@ -336,8 +336,8 @@ def main():
                  f"restarting {publisher} (no compose "
                  "labels)")
             alert("Critical",
-                  "Docker Port Proxy STILL BROKEN "
-                  "(No Compose Labels)",
+                  "Docker port forward still down - "
+                  "manual fix needed",
                   f"Port {port} proxy still dead after "
                   f"restarting {publisher}. Cannot "
                   "force-recreate (no compose labels). "

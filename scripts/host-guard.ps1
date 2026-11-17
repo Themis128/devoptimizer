@@ -36,7 +36,13 @@ function Log { param($m) Add-Content -Path $logFile -Value ("{0} {1}" -f (Get-Da
 function Note { param($id, $msg, $sev)
     Log ("event{0}: {1}" -f $id, $msg)
     $severity = if ($sev) { $sev } elseif ($id -ge 1007) { 'Critical' } else { 'Warning' }
-    Send-DevOptAlert -Severity $severity -Title "Host Guard Event $id" -Message $msg -Tags 'host-guard', 'memory', 'vram' -EventId $id
+    $friendly = switch ($id) {
+        1006 { 'RAM low - caches dropped' }
+        1007 { 'RAM critical' }
+        default { "event $id" }
+    }
+    $icon = if ($severity -eq 'Critical') { 'rotating_light' } else { 'warning' }
+    Send-DevOptAlert -Severity $severity -Title "Host Guard - $friendly" -Message $msg -Tags 'host-guard', 'memory', 'vram', $icon -EventId $id
 }
 
 # --- metrics (host-side, fast) --------------------------------------------------

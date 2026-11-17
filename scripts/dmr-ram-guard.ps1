@@ -25,7 +25,7 @@ $LogFile = 'D:\DevOptimizer\logs\dmr-ram-guard.log'
 New-Item -ItemType Directory -Force -Path (Split-Path $LogFile) | Out-Null
 
 function Log($m,$l='INFO'){ $line="{0} [{1}] {2}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'),$l,$m; $f=Get-Item $LogFile -ErrorAction SilentlyContinue; if($f -and $f.Length -gt 1MB){Get-Content $LogFile -Tail 500|Set-Content $LogFile -Encoding ASCII}; Add-Content $LogFile $line -Encoding ASCII; if($l -ne 'INFO'){Write-Output $line} }
-function Notify($t,$b){ Log "ALERT: $t -- $b" 'WARN'; try{$h=@{Title=$t;Priority='default'};$tf=Join-Path $env:APPDATA 'devin\secrets\ntfy-devoptimizer-token';if(Test-Path $tf){$h['Authorization']='Bearer '+(Get-Content $tf -Raw).Trim()};Invoke-RestMethod -Uri 'https://ntfy.cloudless.gr/devoptimizer-alerts' -Method Post -Body $b -Headers $h -TimeoutSec 10|Out-Null}catch{Log "ntfy fail: $($_.Exception.Message)" 'WARN'} }
+function Notify($t,$b){ Log "ALERT: $t -- $b" 'WARN'; try{$h=@{Title=$t;Priority='default';Tags='rotating_light'};$tf=Join-Path $env:APPDATA 'devin\secrets\ntfy-devoptimizer-token';if(Test-Path $tf){$h['Authorization']='Bearer '+(Get-Content $tf -Raw).Trim()};Invoke-RestMethod -Uri 'https://ntfy.cloudless.gr/devoptimizer-alerts' -Method Post -Body $b -Headers $h -TimeoutSec 10|Out-Null}catch{Log "ntfy fail: $($_.Exception.Message)" 'WARN'} }
 
 # Patterns matching the pinned residents - keep unless critical.
 $Pinned = @('qwen3-4b-instruct', 'embedding-0.6b')
@@ -77,5 +77,5 @@ if ($afterMb -lt $WarnMb) {
         Log "post-kill free ${afterMb}MB"
     }
 }
-if ($crit) { Notify 'dmr-ram-guard CRIT' "host RAM ${freeMb}MB -> evicted $($evict.Count) model(s) incl. pinned set; now ${afterMb}MB free" }
+if ($crit) { Notify 'RAM guard - models evicted (critical)' "host RAM was ${freeMb}MB - evicted $($evict.Count) AI model(s) incl. pinned set; now ${afterMb}MB free" }
 exit 0

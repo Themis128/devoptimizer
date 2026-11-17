@@ -210,11 +210,11 @@ foreach ($pair in ($ProbePorts -split ',')) {
     if (-not $publisher) {
         Log "port-proxy DEAD: $port$path -> Windows:$codeWin WSL:$codeWsl, no running container publishes $port"
         Note-Event "port $port dead (Windows:$codeWin WSL:$codeWsl) and no running publisher found"
-        Send-DevOptAlert -Severity Critical -Title "Docker Port Proxy Dead - No Publisher" -Message "Port $port proxy dead (Windows:$codeWin WSL:$codeWsl) and no running container publishes $port" -Tags 'docker', 'wsl', 'sync', 'port-proxy', 'critical' -Force
+        Send-DevOptAlert -Severity Critical -Title "Docker port forward down - no publisher" -Message "Port $port proxy dead (Windows:$codeWin WSL:$codeWsl) and no running container publishes $port" -Tags 'docker', 'wsl', 'sync', 'port-proxy', 'rotating_light' -Force
         continue
     }
     Log "port-proxy DEAD for $port (Windows:$codeWin WSL:$codeWsl) - restarting publisher $publisher"
-    Send-DevOptAlert -Severity Warning -Title "Docker Port Proxy Dead - Restarting Publisher" -Message "Port $port proxy dead (Windows:$codeWin WSL:$codeWsl) - restarting publisher $publisher" -Tags 'docker', 'wsl', 'sync', 'port-proxy' -EventId 1004
+    Send-DevOptAlert -Severity Warning -Title "Docker port forward down - restarting publisher" -Message "Port $port proxy dead (Windows:$codeWin WSL:$codeWsl) - restarting publisher $publisher" -Tags 'docker', 'wsl', 'sync', 'port-proxy', 'warning' -EventId 1004
     docker restart $publisher 2>$null | Out-Null
     $actions++
     Start-Sleep -Seconds 30
