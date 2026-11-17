@@ -1,5 +1,9 @@
 # PowerShell/Batch → Python migration plan
 
+**Status: COMPLETE (2026-11-17).** All 41 tranches merged (PRs #51–#91),
+314 migrated originals retired via PR #132, registry rebuilt at 920
+commands. This document remains as the migration's design record.
+
 Goal: port every non-Python hub command to Python, in tranches, keeping the
 original `.ps1`/`.bat` in place for review (deviation from the earlier ledger
 rule that deleted originals — user-requested on 2026-11-16).

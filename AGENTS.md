@@ -260,10 +260,18 @@ as housekeeping step [4]. Dead launchers get archived to
 - Watchdog: `omv:~/ntfy-watchdog/ntfy-watchdog.sh` via cron `*/5` — probes
   internal NodePort `:30080` + external `ntfy.cloudless.gr` (health, `//`
   redirect regression, per-topic publish+read-back canary, devoptimizer token
-  validity, subscriber gauge). Auto-remediation: rollout restart after 2
+  validity, subscriber gauge). Probes publish at `Priority: 1` with human
+  titles (`canary ok - <topic>`, `devopt token ok`) — stay in history but
+  never beep (2026-11-17). Auto-remediation: rollout restart after 2
   consecutive external-health fails; all other failures → Telegram alert.
   Secrets in `~/ntfy-watchdog/secrets.env` (PHONE_TOKEN + DEVOPT_TOKEN).
   Log: `~/ntfy-watchdog/watchdog.log`.
+- Publisher convention (readable feed): Title = plain words for what
+  happened + where (`Host Guard - RAM low`, `RAM guard - models evicted`);
+  body = numbers; `Tags` = emoji shortcodes (`warning`→⚠️,
+  `rotating_light`→🚨); Priority 1 = silent history, 3 = one beep,
+  4/5 = act now (5 loops until dismissed when the app's "Keep alerting"
+  toggle is on — that toggle is now OFF on the phone).
 - Monitoring: ServiceMonitor `monitoring/ntfy` + PrometheusRule
   `ntfy-health` (NtfyTargetDown/NtfyNoSubscribers/NtfyPublishFailures);
   Alertmanager routes `namespace="ntfy"` alerts to Telegram (patched

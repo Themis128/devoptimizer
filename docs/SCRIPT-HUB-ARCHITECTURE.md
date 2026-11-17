@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **Script Hub** is a unified execution platform that consolidates all DevOptimizer components (50+ PowerShell scripts, Python CLI, batch files, configuration, modules) into a single, discoverable, category-driven system with:
+The **Script Hub** is a unified execution platform that consolidates all DevOptimizer components (920 commands; Python ports in `scripts/py/` are now the primary implementations — the 314 migrated PowerShell/batch originals were retired 2026-11-17 via PR #132 — plus the remaining PowerShell originals, configuration, and modules) into a single, discoverable, category-driven system with:
 
 - **Unified CLI** (`devoptimizer.ps1` + Python `hub` subcommand)
 - **Interactive Menu** (dynamic, registry-driven)

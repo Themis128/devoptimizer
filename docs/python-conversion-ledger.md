@@ -708,3 +708,11 @@ Excluded this tranche (phase-3 rules): `tools/admin-privilege-manager.ps1`, `too
 | 528 | scripts/lib/State.ps1 | (excluded: module library, no entry point) |
 | 529 | scripts/lib/Notify.ps1 | (excluded: module library, no entry point) |
 | 530 | scripts/lib/TaskUtil.ps1 | (excluded: module library, no entry point) |
+
+## Migration complete (2026-11-17)
+
+All 41 tranches merged via PRs #51–#91. PR #132 retired the 314 migrated
+`.ps1`/`.bat` originals (`scripts/`, `tools/`, `portable/`), keeping only the
+intentional-PowerShell set listed in the plan's "stays PowerShell" section.
+`config/hub-registry.json` regenerated: 920 commands, `python` is now the
+primary `entryPoint` kind.

@@ -1,5 +1,10 @@
 # PowerShell to Python Migration Tracking
 
+> **Superseded (2026-11-17):** the bulk tranche migration tracked in
+> `python-migration-plan.md` + `python-conversion-ledger.md` is COMPLETE —
+> all 41 tranches merged (PRs #51–#91), originals retired via PR #132.
+> Rows below predate that effort and are kept for history only.
+
 ## Overview
 This document tracks the migration of PowerShell scripts to Python modules in the DevOptimizer system.
 
