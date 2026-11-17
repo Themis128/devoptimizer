@@ -1,1 +1,0 @@
-Get-ScheduledTask -TaskPath '\DevOptimizer\' -ErrorAction SilentlyContinue | Where-Object {$_.TaskName -like '*Vhdx*'} | Select-Object TaskName, State

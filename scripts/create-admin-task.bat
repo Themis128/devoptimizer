@@ -1,2 +1,0 @@
-@echo off
-schtasks /Create /TN "\DevOptimizer\Admin-Cleanup-System" /TR "pwsh.exe -NoProfile -ExecutionPolicy Bypass -File \"D:\DevOptimizer\scripts\admin-cleanup-system.ps1\"" /SC WEEKLY /D SUN /ST 03:00 /RU SYSTEM /RL HIGHEST /F /IT
