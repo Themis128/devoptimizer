@@ -45,13 +45,38 @@ function NoteFail { param($msg)
 
 Log '--- nas-backup run started ---'
 
+# Defer around the nightly VHDX compaction (05:00): it issues `wsl --shutdown`
+# which kills docker + in-flight scp mid-run (2026-11-17: whole run produced
+# 0 files). If compaction is in progress — or is about to fire inside the
+# 04:50-05:50 window — wait for today's "compact done" line first.
+$compactLog = 'D:\DevOptimizer\logs\nightly-vhdx-compact.log'
+$compactDeadline = (Get-Date).AddMinutes(75)
+while ($true) {
+    $ev = Get-Content $compactLog -Tail 12 -ErrorAction SilentlyContinue |
+        Select-String 'compact (start|done)'
+    $inProgress = $ev.Count -gt 0 -and $ev[-1].Line -match 'compact start'
+    $now = Get-Date
+    $dangerWindow = ($now.Hour -eq 4 -and $now.Minute -ge 50) -or
+                    ($now.Hour -eq 5) -or
+                    ($now.Hour -eq 6 -and $now.Minute -lt 30)
+    $todayDone = $ev | Where-Object { $_.Line -match 'compact done' -and $_.Line.StartsWith((Get-Date -Format 'yyyy-MM-dd')) }
+    $mustWait = $inProgress -or ($dangerWindow -and -not $todayDone)
+    if (-not $mustWait) { break }
+    if ((Get-Date) -gt $compactDeadline) {
+        Log 'WARN: compaction wait exceeded 75min - proceeding anyway'
+        break
+    }
+    Log 'nightly vhdx compaction window - waiting for compact done'
+    Start-Sleep -Seconds 60
+}
+
 # --- [1] Gates ----------------------------------------------------------------
 if (-not (Get-Process vmmemWSL -ErrorAction SilentlyContinue)) { Log 'WSL VM not running (skipped - no wake)'; exit 0 }
 docker info 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) { Log 'docker engine not reachable (skipped)'; exit 0 }
-ssh -o BatchMode=yes -o ConnectTimeout=10 omv 'echo nas-ok' 2>$null | Out-Null
+ssh -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o ConnectionAttempts=1 omv 'echo nas-ok' 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) { NoteFail 'NAS ssh unreachable (skipped run)'; exit 0 }
-$nasFree = ssh -o BatchMode=yes omv 'df -h / | tail -1' 2>$null
+$nasFree = ssh -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o ConnectionAttempts=1 omv 'df -h / | tail -1' 2>$null
 Log ("nas reachable, root: {0}" -f ($nasFree -join '').Trim())
 
 if ($VerifyOnly) {
@@ -197,7 +222,7 @@ $transferJobs = @()
 foreach ($f in ($files + $manifest)) { $transferJobs += [pscustomobject]@{ Path = $f; Tier = $tier; Carry = $false } }
 foreach ($cf in $carryMap.Keys) { $transferJobs += [pscustomobject]@{ Path = $cf; Tier = $carryMap[$cf]; Carry = $true } }
 foreach ($t in ($transferJobs | ForEach-Object { $_.Tier } | Sort-Object -Unique)) {
-    ssh -o BatchMode=yes omv ("mkdir -p {0}/{1}" -f $NasDir, $t) 2>$null | Out-Null
+    ssh -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o ConnectionAttempts=1 omv ("mkdir -p {0}/{1}" -f $NasDir, $t) 2>$null | Out-Null
 }
 $okCount = 0
 $sentCurrent = 0
@@ -209,10 +234,10 @@ foreach ($job in $transferJobs) {
     $f = $job.Path
     $sent = $false
     foreach ($attempt in 1..3) {
-        scp -o BatchMode=yes -o ConnectTimeout=15 -q $f ("omv:{0}/{1}/" -f $NasDir, $job.Tier) 2>$null
+        scp -o BatchMode=yes -o ConnectTimeout=15 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o ConnectionAttempts=1 -q $f ("omv:{0}/{1}/" -f $NasDir, $job.Tier) 2>$null
         if ($LASTEXITCODE -eq 0) { $sent = $true; break }
         # if the NAS link died mid-run, don't burn retries on every file
-        ssh -o BatchMode=yes -o ConnectTimeout=8 omv 'echo nas-ok' 2>$null | Out-Null
+        ssh -o BatchMode=yes -o ConnectTimeout=8 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o ConnectionAttempts=1 omv 'echo nas-ok' 2>$null | Out-Null
         if ($LASTEXITCODE -ne 0) { break }
         Start-Sleep -Seconds (5 * $attempt)
     }
@@ -248,9 +273,9 @@ Log ("transferred {0}/{1} file(s) to omv (tier={2}, carry-queued={3})" -f $okCou
 # Retention is date-based (mtime), not file-count: a single run ships ~35
 # files, so the old `tail -n +N` count math silently kept ~1 run instead of
 # KeepNightly nights (observed 2026-11-12: only the newest nightly survived).
-ssh -o BatchMode=yes omv ("find {0}/nightly -type f -mtime +{1} -delete" -f $NasDir, $KeepNightly) 2>$null
-ssh -o BatchMode=yes omv ("find {0}/weekly -type f -mtime +{1} -delete" -f $NasDir, ($KeepWeekly * 7)) 2>$null
-ssh -o BatchMode=yes omv ("find {0}/monthly -type f -mtime +{1} -delete" -f $NasDir, ($KeepMonthly * 30)) 2>$null
+ssh -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o ConnectionAttempts=1 omv ("find {0}/nightly -type f -mtime +{1} -delete" -f $NasDir, $KeepNightly) 2>$null
+ssh -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o ConnectionAttempts=1 omv ("find {0}/weekly -type f -mtime +{1} -delete" -f $NasDir, ($KeepWeekly * 7)) 2>$null
+ssh -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o ConnectionAttempts=1 omv ("find {0}/monthly -type f -mtime +{1} -delete" -f $NasDir, ($KeepMonthly * 30)) 2>$null
 # Local staging: on a fully successful transfer delete the current run's
 # staging too (the files live on the NAS + manifest); keep partial runs for
 # retry, and never retain more than 2 older runs regardless. Two weekly
