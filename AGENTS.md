@@ -98,6 +98,41 @@ any recurrence (names containing `:` are invisible to Win32).
   the bridge stays poisoned after the day's recycle.
   Register via `scripts/register-vhdx-devin-exit-task.ps1 [-Unregister]`.
 
+- Quiesce safety (2026-11-19): the compactor disables every scheduled task
+  whose action touches wsl.exe/docker/UNC-wsl for the shutdown window
+  (they'd relaunch the utility VM and re-lock the VHDXs). The disabled
+  list is persisted to `logs\.quiesced-probe-tasks` and re-enabled in
+  `finally` AND at the start of the next run — a reboot mid-compaction
+  used to orphan ~23 watchdogs Disabled forever (happened 00:29 reboot).
+  Elevated tasks the agent can't re-enable are covered by the state file.
+
+- Sparse-VHD unlock chain (2026-11-19/20, verified live): WSL/DD "sparse
+  auto-reclaim" does NOT cash in on this host (fstrim inside docker-desktop
+  unmaps ~888GB in-guest, `wsl --shutdown` returned ZERO host reclaim), and
+  fsutil cannot clear the sparse flag (set-only). The compactor was patched:
+  (0) pre-shutdown `fstrim -av` inside BOTH distros while they're up,
+  (1) `Stop-Service com.docker.service` for the window — the DD Windows
+  service was the hidden relauncher bringing the VM back mid-compaction
+  (restarted in section 5), (2) unlock fallback in the compact loop: kill
+  zombie vmmemWSL → `Restart-Service vmcompute` + `Restart-Service
+  WslService` (orphaned VHDMP sections live in vmcompute after vmmemWSL
+  dies; both vhdxs stayed locked after a bare vmmemWSL kill even idle),
+  (3) `Optimize-VHD` attempted on sparse-flagged files — **it WORKS on this
+  build** (old "must not be sparse" skip was stale): docker_data.vhdx
+  186→133→120GB across two runs (80GB reclaimed). ext4.vhdx (Ubuntu) keeps
+  skipping NOT for sparse reasons but because `\\wsl.localhost` UNC handles
+  (Devin/VS Code) pin the file post-shutdown even through vmcompute/WslService
+  restarts — it compacts in the first window where those apps are closed.
+  Ubuntu's 122GB is real data (/home 86G→48G after the 2026-11-19/20 inner
+  cleanup: ~20G caches+syslog+pnpm, ollama models 16.9G removed after
+  verifying :11434 dead, staging 11.9G archived to
+  `archive/wsl-staging-20261119/`; the "%TEMP% 19GB" that check-cleanup-status
+  flags is the LIVE swap.vhdx, not junk). Deep-clean archive:
+  `archive/housekeeping-20261119-deepclean/` (stray check-disks.ps1).
+  Skill/tool for this: skill `devoptimizer-vhdx-compaction` (playbook +
+  gotchas) and `scripts/diagnose-vhdx-locks.ps1` (read-only: sizes, sparse
+  flags, lock holders via `tools/handle.exe`, last compaction log tail).
+
 ## Console-popup prevention (2026-11-13)
 
 - All scheduled tasks must run headless: `conhost.exe --headless <cmd>` for
@@ -206,6 +241,28 @@ total + per-category + `Search("cleanup")` count).
 - Android side: `settings put global always_on_vpn_app com.tailscale.ipn`
   is set — the OS restarts the tunnel on process kill without any
   watcher.
+  - **Layer 3, on-phone Termux watchdog (2026-11-20)**:
+    `~/phone-watchdog.sh` in Termux on the phone, looped 60s by
+    `~/.termux/boot/phone-watchdog-boot.sh` (Termux:Boot + wake-lock).
+    Survives house outages, where Layers 1-2 die with the power. Checks
+    internet (gstatic 204) + home nodes (TCP:22 to each tailnet IP via
+    bash /dev/tcp; Termux has no ping) and drives the Tailscale app UI via
+    self-adb (`localhost:5555` tcpip; `uiautomator dump` + `input tap`):
+    net dead → exit node **None** (direct ISP/cellular — closes the
+    documented house-outage blackhole gap; Tailscale has no native
+    failover-on-node-death and the Android app has no Automatic option);
+    net back + home back + last-set was None → restores **github-omv**.
+    Only acts on failure/restore. Termux adb needs the libc++ upgrade
+    first (`pkg install libc++ && pkg reinstall android-tools` — stock
+    adb fails to link). Battery exemption (Unrestricted) still REQUIRED
+    (user pending); wireless debugging must stay ON; verify loop restarts
+    after phone reboots. Canonical: `D:\tailnet-watch\scripts\
+    phone-watchdog-termux.sh`; log `~/phone-watchdog.log` on the phone.
+    Skill/tool: skill `devoptimizer-phone-watchdog` (redeploy + MCP
+    phone-driving + battle-test procedures) and
+    `scripts/deploy-phone-watchdog.ps1` (push canonical → omv tailnet
+    HTTP :8000 → prints the phone-side pull one-liner; `-StopServer`
+    cleans up).
 
 ## Pre-PR check
 
