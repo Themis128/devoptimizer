@@ -74,6 +74,22 @@ while ($true) {
 if (-not (Get-Process vmmemWSL -ErrorAction SilentlyContinue)) { Log 'WSL VM not running (skipped - no wake)'; exit 0 }
 docker info 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) { Log 'docker engine not reachable (skipped)'; exit 0 }
+# Engine-content gate: `docker info` can answer 0 while the engine is still
+# booting post-wake or pointed at an empty context — the 2026-11-19 11:01 run
+# produced "volumes tarred: 0 of 0" + empty wsl layer + failed scp. Wait for
+# real content (volumes AND containers) before committing a run.
+$engineDeadline = (Get-Date).AddMinutes(20)
+while ($true) {
+    $volCount = (docker volume ls -q 2>$null | Measure-Object).Count
+    $ctrCount = (docker ps -q 2>$null | Measure-Object).Count
+    if ($volCount -gt 0 -and $ctrCount -gt 0) { break }
+    if ((Get-Date) -gt $engineDeadline) {
+        Log ("docker engine empty after 20min wait (volumes={0} containers={1}) - skipped; freshness watcher will alert if this persists" -f $volCount, $ctrCount)
+        exit 0
+    }
+    Log ("docker engine not populated yet (volumes={0} containers={1}) - waiting" -f $volCount, $ctrCount)
+    Start-Sleep -Seconds 60
+}
 ssh -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o ConnectionAttempts=1 omv 'echo nas-ok' 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) { NoteFail 'NAS ssh unreachable (skipped run)'; exit 0 }
 $nasFree = ssh -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o ConnectionAttempts=1 omv 'df -h / | tail -1' 2>$null
