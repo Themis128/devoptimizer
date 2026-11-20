@@ -11,6 +11,7 @@ import concurrent.futures
 import json
 import sys
 import time
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -21,8 +22,14 @@ API = "http://localhost:11434"
 
 
 def http_json(path: str, payload: dict | None, timeout: int) -> dict:
+    # SSRF guard: only the fixed local ollama API is reachable.
+    url = API + path
+    p = urllib.parse.urlparse(url)
+    if p.scheme != "http" or p.hostname not in ("localhost",
+                                                "127.0.0.1"):
+        raise ValueError(f"endpoint not allowed: {url}")
     data = json.dumps(payload).encode() if payload is not None else None
-    req = urllib.request.Request(API + path, data=data,
+    req = urllib.request.Request(url, data=data,
                                  headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read())

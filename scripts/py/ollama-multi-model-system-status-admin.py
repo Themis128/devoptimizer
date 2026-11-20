@@ -4,17 +4,7 @@
 ollama-batch-helper.bat, 'ollama run qwen' leftovers and
 Invoke-OllamaMultiModelAnalysis in ai-integration-module.ps1.
 """
-# REQUIRES: admin
 import ctypes
-
-def _ensure_admin():
-    if not ctypes.windll.shell32.IsUserAnAdmin():
-        print("[ERROR] Administrator privileges required", file=sys.stderr)
-        sys.exit(1)
-
-import argparse
-import json
-import os
 import shutil
 import subprocess
 import sys
@@ -22,6 +12,12 @@ from pathlib import Path
 
 VARIANTS_DIR = Path(__file__).resolve().parents[1].parent / "tools" / "Variants"
 OUT_DIR = VARIANTS_DIR / "ai-analysis"
+
+
+def _ensure_admin():
+    if not ctypes.windll.shell32.IsUserAnAdmin():
+        print("[ERROR] Administrator privileges required", file=sys.stderr)
+        sys.exit(1)
 
 
 def run(cmd, **kw):
@@ -34,7 +30,11 @@ def run(cmd, **kw):
 
 def ps_to_json(ps_cmd, dest):
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    with open(dest, "w") as f:
+    p = Path(dest).resolve()
+    root = OUT_DIR.resolve()
+    if ".." in p.parts or not p.is_relative_to(root):
+        raise ValueError("dest escapes the allowed output directory")
+    with p.open("w", encoding="utf-8") as f:
         subprocess.run(
             ["powershell", "-ExecutionPolicy", "Bypass",
              "-Command",

@@ -4,9 +4,6 @@
 ollama-batch-helper.bat, 'ollama run qwen' leftovers and
 Invoke-OllamaMultiModelAnalysis in ai-integration-module.ps1.
 """
-import argparse
-import json
-import os
 import shutil
 import subprocess
 import sys
@@ -26,7 +23,11 @@ def run(cmd, **kw):
 
 def ps_to_json(ps_cmd, dest):
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    with open(dest, "w") as f:
+    p = Path(dest).resolve()
+    root = OUT_DIR.resolve()
+    if ".." in p.parts or not p.is_relative_to(root):
+        raise ValueError("dest escapes the allowed output directory")
+    with p.open("w", encoding="utf-8") as f:
         subprocess.run(
             ["powershell", "-ExecutionPolicy", "Bypass",
              "-Command",

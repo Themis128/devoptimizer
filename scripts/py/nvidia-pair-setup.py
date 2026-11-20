@@ -4,12 +4,14 @@ Router) installer/manager. Flags: --status (default), --install,
 --dry-run.
 """
 import argparse
+import ipaddress
 import json
 import os
-import shutil
+import socket
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -38,7 +40,33 @@ def header(t):
     print(f"\n=== {t} ===")
 
 
+_ENDPOINTS = ("api.github.com", "127.0.0.1", "localhost")
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, hdrs, newurl):
+        return None
+
+
+def _local_proxy_ok(url):
+    """Fixed local PAIR proxy: http + loopback-only resolution."""
+    p = urllib.parse.urlparse(url)
+    if p.scheme != "http" or (p.hostname or "").lower() \
+            not in ("127.0.0.1", "localhost"):
+        return False
+    try:
+        infos = socket.getaddrinfo(p.hostname, None)
+    except OSError:
+        return False
+    return all(ipaddress.ip_address(i[4][0]).is_loopback
+               for i in infos)
+
+
 def _get(url, timeout=20):
+    p = urllib.parse.urlparse(url)
+    if p.scheme not in ("http", "https") \
+            or p.hostname not in _ENDPOINTS:
+        raise ValueError(f"endpoint not allowed: {url}")
     with urllib.request.urlopen(url, timeout=timeout) as r:
         return json.loads(r.read())
 
@@ -53,9 +81,9 @@ def _models(url, timeout=5):
 def test_installed():
     out = subprocess.run(["tasklist"], capture_output=True,
                          text=True).stdout
-    svcs = sorted({l.split(",")[0].strip('"')
-                   for l in out.splitlines()
-                   if l.lower().startswith("nvpair-")})
+    svcs = sorted({ln.split(",")[0].strip('"')
+                   for ln in out.splitlines()
+                   if ln.lower().startswith("nvpair-")})
     return Path(PAIR_EXE).exists(), svcs
 
 
@@ -164,10 +192,14 @@ def verify(dry):
             "messages": [{"role": "user",
                           "content": "Reply with: PAIR OK"}],
             "max_tokens": 20}).encode()
+        test_url = PROXY_OPENAI + "/v1/chat/completions"
+        if not _local_proxy_ok(test_url):
+            raise ValueError(f"endpoint not allowed: {test_url}")
         req = urllib.request.Request(
-            PROXY_OPENAI + "/v1/chat/completions", data=body,
+            test_url, data=body,
             headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=180) as r:
+        with urllib.request.build_opener(_NoRedirect).open(
+                req, timeout=180) as r:
             resp = json.loads(r.read())
         txt = resp["choices"][0]["message"]["content"]
         status(f"Inference test: {txt}", "Success")

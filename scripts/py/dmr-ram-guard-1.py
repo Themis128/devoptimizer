@@ -13,6 +13,7 @@ import os
 import subprocess
 import sys
 import time
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -43,6 +44,11 @@ def log(msg: str, level: str = "INFO") -> None:
 def notify(title: str, body: str) -> None:
     log(f"ALERT: {title} -- {body}", "WARN")
     try:
+        # SSRF guard: fixed https host allowlist for alerting.
+        p = urllib.parse.urlparse(NTFY_URL)
+        if p.scheme != "https" or p.hostname != "ntfy.cloudless.gr":
+            log("ntfy host not in allowlist", "WARN")
+            return
         headers = {"Title": title, "Priority": "default"}
         token_file = Path(os.environ.get("APPDATA", "")) / \
             r"devin\secrets\ntfy-devoptimizer-token"

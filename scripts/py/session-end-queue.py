@@ -4,10 +4,13 @@ Identical behavior to the hooks copy: logs session end, optional
 DEVIN_WEBHOOK_URL post, msg.exe toast, and queue-state verification.
 """
 
+import ipaddress
 import json
 import os
+import socket
 import subprocess
 import sys
+import urllib.parse
 import urllib.request
 from datetime import datetime
 from pathlib import Path
@@ -27,6 +30,26 @@ def append_log(name: str, line: str) -> None:
         pass
 
 
+def _webhook_url_ok(url: str) -> bool:
+    """HTTPS + public host only; rejects loopback/private targets."""
+    p = urllib.parse.urlparse(url)
+    if p.scheme != "https" or not p.hostname:
+        return False
+    try:
+        infos = socket.getaddrinfo(p.hostname, None)
+    except OSError:
+        return False
+    for info in infos:
+        try:
+            ip = ipaddress.ip_address(info[4][0])
+        except ValueError:
+            return False
+        if (ip.is_private or ip.is_loopback or ip.is_link_local
+                or ip.is_reserved or ip.is_multicast):
+            return False
+    return True
+
+
 def main() -> None:
     raw = sys.stdin.read()
     try:
@@ -39,7 +62,7 @@ def main() -> None:
     append_log("sessions.log", msg)
 
     webhook = os.environ.get("DEVIN_WEBHOOK_URL")
-    if webhook:
+    if webhook and _webhook_url_ok(webhook):
         try:
             req = urllib.request.Request(
                 webhook, data=json.dumps({"text": msg}).encode(),

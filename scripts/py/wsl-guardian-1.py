@@ -17,7 +17,6 @@ import datetime
 import json
 import os
 import subprocess
-import sys
 import urllib.request
 from pathlib import Path
 
@@ -46,9 +45,20 @@ def log(msg, level="INFO"):
         print(line)
 
 
+NTFY_TOPICS = {
+    "devoptimizer-alerts", "devoptimizer", "cloudless-alerts",
+    "cloudless-ops", "nextcloud-ops",
+}
+
+
 def notify(topic, title, body):
     log(f"ALERT: {title} -- {body}", "WARN")
     if not topic:
+        return
+    # SSRF guard: only the project's fixed ntfy topics on the fixed
+    # host; anything else is dropped.
+    if topic not in NTFY_TOPICS:
+        log(f"ntfy topic not in allowlist: {topic}", "WARN")
         return
     headers = {"Title": title, "Priority": "high"}
     tf = Path(os.environ.get("APPDATA", "")) / "devin" / "secrets" \
@@ -103,12 +113,16 @@ def wsl_run(args, distro, timeout, outfile=None):
     cmd = ["wsl.exe", "-d", distro, "-e"] + args
     try:
         if outfile:
-            with open(outfile, "w") as out, \
-                    open(outfile + ".err", "w") as err:
+            op = Path(outfile).resolve()
+            sd = STATE_DIR.resolve()
+            errf = op.parent / (op.name + ".err")
+            if not (op.is_relative_to(sd)
+                    and errf.is_relative_to(sd)):
+                raise ValueError("outfile escapes state dir")
+            with op.open("w") as out, errf.open("w") as err:
                 r = subprocess.run(cmd, timeout=timeout, stdout=out,
                                    stderr=err)
-            return Path(outfile).read_text(
-                errors="replace").strip()
+            return op.read_text(errors="replace").strip()
         r = subprocess.run(cmd, timeout=timeout,
                            stdout=subprocess.DEVNULL,
                            stderr=subprocess.DEVNULL)
@@ -120,8 +134,12 @@ def wsl_run(args, distro, timeout, outfile=None):
 def wsl_admin(args, timeout):
     try:
         STATE_DIR.mkdir(parents=True, exist_ok=True)
-        with open(STATE_DIR / "admin.txt", "w") as out, \
-                open(STATE_DIR / "admin.err", "w") as err:
+        ap = (STATE_DIR / "admin.txt").resolve()
+        ep = (STATE_DIR / "admin.err").resolve()
+        sd = STATE_DIR.resolve()
+        if not (ap.is_relative_to(sd) and ep.is_relative_to(sd)):
+            raise ValueError("admin output escapes state dir")
+        with ap.open("w") as out, ep.open("w") as err:
             r = subprocess.run(["wsl.exe"] + args, timeout=timeout,
                                stdout=out, stderr=err)
         return r.returncode == 0

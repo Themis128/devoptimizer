@@ -4,23 +4,20 @@ auto-maintenance, performance-tracking, maintenance-plan,
 report-generator. Collects WMI/counter JSONs to ai-analysis/ then
 calls tools/ollama-batch-helper.bat prompts.
 """
-# REQUIRES: admin
-import ctypes
-
-def _ensure_admin():
-    if not ctypes.windll.shell32.IsUserAnAdmin():
-        print("[ERROR] Administrator privileges required", file=sys.stderr)
-        sys.exit(1)
-
 import argparse
-import os
-import shutil
+import ctypes
 import subprocess
 import sys
 from pathlib import Path
 
 VARIANTS_DIR = Path(__file__).resolve().parents[1].parent / "tools" / "Variants"
 OUT_DIR = VARIANTS_DIR / "ai-analysis"
+
+
+def _ensure_admin():
+    if not ctypes.windll.shell32.IsUserAnAdmin():
+        print("[ERROR] Administrator privileges required", file=sys.stderr)
+        sys.exit(1)
 
 SPEC = "Windows 11 Build 26120 with Intel i9-12900H"
 
@@ -142,7 +139,11 @@ SHOW_FILE = {"health-scan": "health-report.txt",
 
 def ps_to_json(ps_cmd, dest):
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    with open(dest, "w") as f:
+    p = Path(dest).resolve()
+    root = OUT_DIR.resolve()
+    if ".." in p.parts or not p.is_relative_to(root):
+        raise ValueError("dest escapes the allowed output directory")
+    with p.open("w", encoding="utf-8") as f:
         subprocess.run(
             ["powershell", "-ExecutionPolicy", "Bypass",
              "-Command",

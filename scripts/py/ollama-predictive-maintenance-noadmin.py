@@ -5,8 +5,6 @@ report-generator. Collects WMI/counter JSONs to ai-analysis/ then
 calls tools/ollama-batch-helper.bat prompts.
 """
 import argparse
-import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -134,7 +132,11 @@ SHOW_FILE = {"health-scan": "health-report.txt",
 
 def ps_to_json(ps_cmd, dest):
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    with open(dest, "w") as f:
+    p = Path(dest).resolve()
+    root = OUT_DIR.resolve()
+    if ".." in p.parts or not p.is_relative_to(root):
+        raise ValueError("dest escapes the allowed output directory")
+    with p.open("w", encoding="utf-8") as f:
         subprocess.run(
             ["powershell", "-ExecutionPolicy", "Bypass",
              "-Command",

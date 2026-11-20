@@ -6,15 +6,38 @@ fires an optional DEVIN_WEBHOOK_URL POST + msg.exe
 toast, and verifies queue-state.json stays valid JSON.
 """
 
+import ipaddress
 import json
 import os
+import socket
 import subprocess
 import sys
+import urllib.parse
 import urllib.request
 from datetime import datetime
 from pathlib import Path
 
 Q = Path("C:/Users/tbaltzakis/devin-queue")
+
+
+def _webhook_url_ok(url: str) -> bool:
+    """HTTPS + public host only; rejects loopback/private targets."""
+    p = urllib.parse.urlparse(url)
+    if p.scheme != "https" or not p.hostname:
+        return False
+    try:
+        infos = socket.getaddrinfo(p.hostname, None)
+    except OSError:
+        return False
+    for info in infos:
+        try:
+            ip = ipaddress.ip_address(info[4][0])
+        except ValueError:
+            return False
+        if (ip.is_private or ip.is_loopback or ip.is_link_local
+                or ip.is_reserved or ip.is_multicast):
+            return False
+    return True
 
 
 def main():
@@ -34,7 +57,7 @@ def main():
     except OSError:
         pass
     url = os.environ.get("DEVIN_WEBHOOK_URL")
-    if url:
+    if url and _webhook_url_ok(url):
         try:
             req = urllib.request.Request(
                 url,

@@ -35,6 +35,9 @@ DOCKER_DATA = (Path(os.environ.get("LOCALAPPDATA", ""))
                / "Docker" / "wsl" / "disk" / "docker_data.vhdx")
 UBUNTU_VHDX = Path(r"C:\WSL\Ubuntu-24.04\ext4.vhdx")
 
+# Only these two disks may be probed or compacted.
+_COMPACT_ALLOWED = {str(DOCKER_DATA), str(UBUNTU_VHDX)}
+
 
 def is_admin():
     try:
@@ -73,8 +76,10 @@ def run(cmd, dry, echo=True):
 
 
 def vhdx_locked(path):
+    if str(path) not in _COMPACT_ALLOWED:
+        raise ValueError("vhdx path not in allowlist")
     try:
-        with open(path, "ab"):
+        with Path(path).open("ab"):
             pass
         return False
     except OSError:
@@ -82,6 +87,8 @@ def vhdx_locked(path):
 
 
 def compact_vhdx(path, label, dry):
+    if str(path) not in _COMPACT_ALLOWED:
+        raise ValueError("vhdx path not in allowlist")
     if not Path(path).is_file():
         return
     if vhdx_locked(path):
@@ -254,7 +261,7 @@ def main() -> None:
         print("[7] sshd-repair ran")
 
     after = free_c()
-    print(f"\n=== Summary ===")
+    print("\n=== Summary ===")
     print(f"C: free before: {gb(before)} GB")
     print(f"C: free after : {gb(after)} GB")
     print(f"Freed on C:   : {gb(after - before)} GB")
