@@ -23,12 +23,15 @@ Log "C: free before: ${before} GB"
 try { Clear-RecycleBin -Force -ErrorAction Stop; Log 'recycle bin: emptied' }
 catch { Log "recycle bin: $($_.Exception.Message)" }
 
-# 4. Docker deep prune: build cache, dangling images, stopped containers,
-#    unused images. Volumes are intentionally NOT pruned (named data volumes).
+# 4. Docker deep prune: build cache, dangling images, stopped containers.
+#    Named-but-unused images are KEPT (dangling-only) so compose
+#    recreations reuse them locally instead of re-pulling ~50GB/day
+#    into docker_data.vhdx between compactions. Volumes are
+#    intentionally NOT pruned (named data volumes).
 if (Get-Command docker -ErrorAction SilentlyContinue) {
     docker builder prune -af 2>&1 | Select-Object -Last 1 | ForEach-Object { Log "docker builder: $_" }
     docker container prune -f 2>&1 | Select-Object -Last 1 | ForEach-Object { Log "docker containers: $_" }
-    docker image prune -a -f 2>&1 | Select-Object -Last 1 | ForEach-Object { Log "docker images: $_" }
+    docker image prune -f 2>&1 | Select-Object -Last 1 | ForEach-Object { Log "docker dangling imgs: $_" }
 } else { Log 'docker: CLI not available - skipped' }
 
 # 5. E: NVIDIA/AMD shader cache (regenerates) - keeps the small data drive clean
