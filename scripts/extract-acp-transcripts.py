@@ -1,4 +1,5 @@
 import sqlite3, os, glob, json, datetime, re
+from pathlib import Path
 
 d = os.path.expandvars(r'%APPDATA%\devin\User\acp-messages')
 outdir = r'D:\DevOptimizer\logs\acp-transcripts'
@@ -30,7 +31,10 @@ for f in sorted(glob.glob(os.path.join(d, '*.db')), key=os.path.getmtime, revers
             con.close(); continue
         mt = datetime.datetime.fromtimestamp(os.path.getmtime(f)).strftime('%Y-%m-%d %H:%M')
         fn = os.path.join(outdir, f'{mt.replace(":","-").replace(" ","_")}_{safe(title)}_{base[:8]}.md')
-        with open(fn, 'w', encoding='utf-8') as w:
+        fp = Path(fn).resolve()
+        if ".." in fp.parts or fp.parent != Path(outdir).resolve():
+            raise ValueError('output path escapes outdir')
+        with fp.open('w', encoding='utf-8') as w:
             w.write(f'# {title}\n\n- source: {base}\n- messages: {n}\n- last activity: {mt}\n\n---\n\n')
             for pos, kind, payload in con.execute('select position, kind, payload from messages order by position'):
                 try:

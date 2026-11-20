@@ -29,6 +29,7 @@ import os
 import subprocess
 import sys
 import time
+import urllib.parse
 import urllib.request
 
 from playwright.sync_api import sync_playwright
@@ -49,6 +50,11 @@ def _emit(state):
 
 
 def _cdp_up(url):
+    # SSRF guard: CDP probes reach only the fixed localhost ports.
+    p = urllib.parse.urlparse(url)
+    if p.scheme != "http" or p.hostname not in ("localhost",
+                                                "127.0.0.1"):
+        return False
     try:
         with urllib.request.urlopen(url + "/json/version", timeout=3) as r:
             return json.load(r).get("Browser") is not None

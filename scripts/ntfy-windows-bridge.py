@@ -14,6 +14,7 @@ import json
 import os
 import sys
 import time
+import urllib.parse
 import urllib.request
 
 from windows_toasts import Toast, WindowsToaster, ToastScenario, ToastDuration
@@ -67,8 +68,15 @@ def toast_for(topic: str, msg: dict) -> None:
 
 
 def stream_topic(toaster: WindowsToaster, topic: str, token: str, seen: set) -> None:
+    # SSRF guard: only the fixed topics on the fixed host are reachable.
+    if topic not in TOPICS:
+        log(f"topic not in allowlist: {topic}")
+        return
     since = str(int(time.time()) - 120)  # catch the last 2 min on (re)connect
     url = f"{BASE}/{topic}/json?since={since}"
+    if urllib.parse.urlparse(url).hostname != "ntfy.cloudless.gr":
+        log(f"stream host not in allowlist: {url}")
+        return
     req = urllib.request.Request(url, headers={
         "Authorization": f"Bearer {token}",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ntfy-windows-bridge/1.0",

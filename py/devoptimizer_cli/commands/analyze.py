@@ -4,22 +4,17 @@ AI-powered analysis commands using Ollama
 
 import json
 import subprocess
-import sys
 import re
-import os
-import hashlib
 import datetime
 import urllib.request
 import urllib.error
 import gzip
 from pathlib import Path
-from typing import Optional, List, Tuple
+from typing import Optional, List
 
 from ..paths import safe_open_write
 import typer
 from rich.console import Console
-from rich.panel import Panel
-from rich.syntax import Syntax
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 app = typer.Typer(name="analyze", help="AI-powered system analysis")
@@ -1587,15 +1582,23 @@ def nextcloud(
         """
         # Validate URL to prevent SSRF (Server-Side Request Forgery) before request
         validated_url = _validate_github_api_url(url)
-        
+
+        # Pin redirects off: any redirect target would fail URL
+        # validation anyway, so block the hop outright instead of
+        # validating only after it fired.
+        class _NoRedirect(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, req, fp, code, msg, hdrs, newurl):
+                return None
+
         # Create request with validated URL
         req = urllib.request.Request(
             validated_url,
             headers={'User-Agent': 'DevOptimizer-NextCloud-Checker'}
         )
-        
+
         # Make the request
-        with urllib.request.urlopen(req, timeout=10) as response:
+        with urllib.request.build_opener(_NoRedirect).open(
+                req, timeout=10) as response:
             # Validate final URL after redirects to prevent SSRF via redirect
             final_url = response.geturl() if hasattr(response, 'geturl') else url
             final_validated_url = _validate_github_api_url(final_url)
