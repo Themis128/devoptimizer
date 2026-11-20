@@ -19,55 +19,80 @@ SCRIPT_DIR = Path(r"D:\DevOptimizer")
 
 
 def gates(s: Path):
-    q = lambda *a: a  # noqa: E731
+    """Gates as (name, check) pairs - no shell, no command strings."""
+    bat1 = s / "01-Quick-Optimization.bat"
+    bat6 = s / "06-System-Health-Check.bat"
+
+    def exists(*paths: Path) -> bool:
+        return all(p.is_file() for p in paths)
+
+    def grep(path: Path, needle: str) -> bool:
+        try:
+            return needle in path.read_text(encoding="utf-8",
+                                             errors="replace")
+        except OSError:
+            return False
+
+    def grep_any_without(path: Path, needle: str) -> bool:
+        try:
+            lines = path.read_text(encoding="utf-8",
+                                   errors="replace").splitlines()
+        except OSError:
+            return False
+        return any(needle not in ln for ln in lines)
+
+    def exec_policy_allows_bypass() -> bool:
+        try:
+            r = subprocess.run(
+                ["powershell", "-NoProfile", "-Command",
+                 "Get-ExecutionPolicy"],
+                capture_output=True, text=True)
+        except OSError:
+            return False
+        return "bypass" in (r.stdout or "").strip().lower()
+
     return [
         ("Critical Files Existence",
-         f'if exist "{s}\\01-Quick-Optimization.bat" if exist '
-         f'"{s}\\06-System-Health-Check.bat" if exist '
-         f'"{s}\\00-LAUNCHER.bat" echo Files exist'),
+         lambda: exists(s / "01-Quick-Optimization.bat",
+                        s / "06-System-Health-Check.bat",
+                        s / "00-LAUNCHER.bat")),
         ("PowerShell Script Integrity",
-         f'if exist "{s}\\dev-optimizer-fixed.ps1" echo Script exists'),
+         lambda: exists(s / "dev-optimizer-fixed.ps1")),
         ("Configuration File Integrity",
-         f'if exist "{s}\\bat.config.json" echo Config exists'),
+         lambda: exists(s / "bat.config.json")),
         ("Error Logging Implementation",
-         f'findstr /c:":log_error" "{s}\\01-Quick-Optimization.bat"'),
+         lambda: grep(bat1, ":log_error")),
         ("Error Checking Implementation",
-         f'findstr /c:":check_error" "{s}\\01-Quick-Optimization.bat"'),
+         lambda: grep(bat1, ":check_error")),
         ("Retry Logic Implementation",
-         f'findstr /c:"RETRY_COUNT" "{s}\\06-System-Health-Check.bat"'),
+         lambda: grep(bat6, "RETRY_COUNT")),
         ("Progress Indicators",
-         f'findstr /c:":show_progress" "{s}\\06-System-Health-Check.bat"'),
+         lambda: grep(bat6, ":show_progress")),
         ("No Timeout Delays",
-         f'findstr /v /c:"timeout /t" "{s}\\01-Quick-Optimization.bat"'),
+         lambda: grep_any_without(bat1, "timeout /t")),
         ("Fast Delay Implementation",
-         f'findstr /c:"ping -n" "{s}\\01-Quick-Optimization.bat"'),
+         lambda: grep(bat1, "ping -n")),
         ("Optimized Loops",
-         f'findstr /c:"for /l" "{s}\\06-System-Health-Check.bat"'),
+         lambda: grep(bat6, "for /l")),
         ("PowerShell Execution Policy",
-         'powershell -Command "Get-ExecutionPolicy" | '
-         'findstr /i "Bypass"'),
-        ("File System Access", f'dir "{s}"'),
+         exec_policy_allows_bypass),
+        ("File System Access", lambda: s.is_dir()),
         ("README Documentation",
-         f'if exist "{s}\\README.md" echo README exists'),
+         lambda: exists(s / "README.md")),
         ("Troubleshooting Guide",
-         f'if exist "{s}\\TROUBLESHOOTING.md" '
-         'echo Troubleshooting exists'),
+         lambda: exists(s / "TROUBLESHOOTING.md")),
         ("Configuration Documentation",
-         f'findstr /c:"success_rate" "{s}\\bat.config.json"'),
+         lambda: grep(s / "bat.config.json", "success_rate")),
         ("Auto-Recovery System",
-         f'if exist "{s}\\AUTO-RECOVERY-SYSTEM.bat" '
-         'echo Auto-recovery exists'),
+         lambda: exists(s / "AUTO-RECOVERY-SYSTEM.bat")),
         ("Health Monitoring",
-         f'if exist "{s}\\HEALTH-MONITOR.bat" '
-         'echo Health monitor exists'),
+         lambda: exists(s / "HEALTH-MONITOR.bat")),
         ("Real-Time Monitoring",
-         f'if exist "{s}\\REAL-TIME-MONITOR.bat" '
-         'echo Real-time monitor exists'),
+         lambda: exists(s / "REAL-TIME-MONITOR.bat")),
         ("Test Suite Implementation",
-         f'if exist "{s}\\COMPREHENSIVE-TEST-SUITE.bat" '
-         'echo Test suite exists'),
+         lambda: exists(s / "COMPREHENSIVE-TEST-SUITE.bat")),
         ("Quality Gates Implementation",
-         f'if exist "{s}\\QUALITY-GATES.bat" echo Quality gates exist'),
+         lambda: exists(s / "QUALITY-GATES.bat")),
     ]
 
 
@@ -102,13 +127,12 @@ def main() -> None:
     s = Path(args.script_dir)
     logf = s / "logs" / "quality-gates.log"
     results = []
-    for i, (name, cmd) in enumerate(gates(s), 1):
-        cmd += " >nul 2>&1" if ">nul" not in cmd else ""
+    for i, (name, check) in enumerate(gates(s), 1):
         log(logf, f"Running Quality Gate: {name}")
-        r = subprocess.run(cmd, shell=True,
-                           stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL)
-        passed = r.returncode == 0
+        try:
+            passed = bool(check())
+        except OSError:
+            passed = False
         results.append({"gate": i, "name": name, "passed": passed})
         log(logf, f"{'PASSED' if passed else 'FAILED'}: {name}")
 

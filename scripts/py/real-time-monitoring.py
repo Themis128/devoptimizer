@@ -7,12 +7,12 @@ typeperf (native Windows), process list from tasklist.
 
 import argparse
 import json
-import os
 import re
 import subprocess
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
+from pathlib import Path
 
 CONFIG = {"cpu": 80, "mem": 85, "disk": 90, "temp": 80}
 ALERTS = []
@@ -188,7 +188,11 @@ def report(path):
 <p><strong>Sent:</strong> {m.get('net_sent')} KB/s</p>
 <p><strong>Received:</strong> {m.get('net_recv')} KB/s</p></div>
 </body></html>"""
-    with open(path, "w", encoding="utf-8") as f:
+    rp = Path(path).resolve()
+    # Reject parent traversal in the user-supplied output path.
+    if ".." in rp.parts:
+        raise ValueError("Output path must not traverse parents")
+    with rp.open("w", encoding="utf-8") as f:
         f.write(html)
     print(f"Performance report generated: {path}")
 
@@ -240,7 +244,8 @@ def main():
     try:
         while True:
             m = get_metrics()
-            os.system("cls" if os.name == "nt" else "clear")
+            # ANSI clear-screen: no shell, works on Win11 VT consoles
+            print("\033[2J\033[H", end="", flush=True)
             show_dashboard(m)
             time.sleep(a.RefreshInterval)
     except KeyboardInterrupt:

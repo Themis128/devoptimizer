@@ -5,6 +5,7 @@ Optimization cache, C:\\Windows.old. Elevated; --dry-run.
 """
 
 import argparse
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -29,14 +30,6 @@ def is_admin():
         return False
 
 
-def sh(cmd: str, dry: bool):
-    print(cmd if dry else "", end="")
-    if dry:
-        print()
-        return 0
-    return subprocess.run(cmd, shell=True).returncode
-
-
 def clear_dir(path: Path, dry: bool):
     if dry:
         print(f"clear {path}")
@@ -44,7 +37,6 @@ def clear_dir(path: Path, dry: bool):
     for item in path.iterdir() if path.is_dir() else []:
         try:
             if item.is_dir():
-                import shutil
                 shutil.rmtree(item, ignore_errors=True)
             else:
                 item.unlink(missing_ok=True)
@@ -60,8 +52,12 @@ def main() -> None:
         sys.exit("This script MUST be run as Administrator.")
 
     print("=== Windows 11 Admin Cleanup ===")
-    sh("Dism /Online /Cleanup-Image /StartComponentCleanup /NoRestart",
-       args.dry_run)
+    if args.dry_run:
+        print("Dism /Online /Cleanup-Image /StartComponentCleanup /NoRestart")
+    else:
+        subprocess.run(["Dism", "/Online", "/Cleanup-Image",
+                        "/StartComponentCleanup", "/NoRestart"],
+                       shell=False)
     clear_dir(WU, args.dry_run)
     if args.dry_run:
         print("[dry-run] Delete-DeliveryOptimizationCache "
@@ -76,9 +72,9 @@ def main() -> None:
             errors="replace")
         print(r.stdout.strip() or "DO cache cleared")
     if args.dry_run:
-        print(f"rd /s /q {WINOLD}")
+        print(f"remove-tree {WINOLD}")
     elif WINOLD.is_dir():
-        subprocess.run(f'cmd /c rd /s /q "{WINOLD}"', shell=True)
+        shutil.rmtree(WINOLD, ignore_errors=True)
     print("Done. A reboot is recommended after DISM operations.")
 
 

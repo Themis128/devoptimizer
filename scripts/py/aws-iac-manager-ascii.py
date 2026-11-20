@@ -8,7 +8,6 @@ session in the original; here it only labels the mode).
 
 import argparse
 import subprocess
-import sys
 from pathlib import Path
 
 # CATEGORY: utilities
@@ -16,36 +15,61 @@ from pathlib import Path
 
 MENU = [
     ("Infrastructure Discovery", [
-        "aws ec2 describe-regions --output table",
-        "aws ec2 describe-availability-zones --output table"]),
+        lambda: subprocess.run(
+            ["aws", "ec2", "describe-regions", "--output", "table"]),
+        lambda: subprocess.run(
+            ["aws", "ec2", "describe-availability-zones",
+             "--output", "table"])]),
     ("CloudFormation Stack Information", [
-        "aws cloudformation list-stacks --stack-status-filter "
-        "CREATE_COMPLETE UPDATE_COMPLETE --output table"]),
+        lambda: subprocess.run(
+            ["aws", "cloudformation", "list-stacks",
+             "--stack-status-filter", "CREATE_COMPLETE",
+             "UPDATE_COMPLETE", "--output", "table"])]),
     ("Terraform State Analysis", []),  # prints terraform.tfstate
     ("EC2 Instance Management", [
-        "aws ec2 describe-instances --output table"]),
+        lambda: subprocess.run(
+            ["aws", "ec2", "describe-instances", "--output", "table"])]),
     ("RDS Database Information", [
-        "aws rds describe-db-instances --output table"]),
+        lambda: subprocess.run(
+            ["aws", "rds", "describe-db-instances",
+             "--output", "table"])]),
     ("Load Balancer Information", [
-        "aws elbv2 describe-load-balancers --output table"]),
+        lambda: subprocess.run(
+            ["aws", "elbv2", "describe-load-balancers",
+             "--output", "table"])]),
     ("Security Group Analysis", [
-        "aws ec2 describe-security-groups --output table"]),
-    ("S3 Bucket Analysis", ["aws s3 ls"]),
+        lambda: subprocess.run(
+            ["aws", "ec2", "describe-security-groups",
+             "--output", "table"])]),
+    ("S3 Bucket Analysis", [
+        lambda: subprocess.run(["aws", "s3", "ls"])]),
     ("Lambda Function Information", [
-        "aws lambda list-functions --output table"]),
+        lambda: subprocess.run(
+            ["aws", "lambda", "list-functions",
+             "--output", "table"])]),
     ("Cost Analysis", [
-        "aws ce get-cost-and-usage --time-period "
-        "Start=2024-01-01,End=2024-12-31 --granularity MONTHLY "
-        "--metrics BlendedCost --output table"]),
+        lambda: subprocess.run(
+            ["aws", "ce", "get-cost-and-usage", "--time-period",
+             "Start=2024-01-01,End=2024-12-31", "--granularity",
+             "MONTHLY", "--metrics", "BlendedCost",
+             "--output", "table"])]),
     ("Resource Optimization", [
-        "aws ec2 describe-instances --filters "
-        '"Name=instance-state-name,Values=stopped" --output table']),
+        lambda: subprocess.run(
+            ["aws", "ec2", "describe-instances", "--filters",
+             "Name=instance-state-name,Values=stopped",
+             "--output", "table"])]),
     ("Complete Infrastructure Report", [
-        "aws ec2 describe-instances --output table",
-        "aws rds describe-db-instances --output table",
-        "aws s3 ls",
-        "aws elbv2 describe-load-balancers --output table"]),
-    ("AWS CLI Setup", ["aws configure"]),
+        lambda: subprocess.run(
+            ["aws", "ec2", "describe-instances", "--output", "table"]),
+        lambda: subprocess.run(
+            ["aws", "rds", "describe-db-instances",
+             "--output", "table"]),
+        lambda: subprocess.run(["aws", "s3", "ls"]),
+        lambda: subprocess.run(
+            ["aws", "elbv2", "describe-load-balancers",
+             "--output", "table"])]),
+    ("AWS CLI Setup", [
+        lambda: subprocess.run(["aws", "configure"])]),
     ("Sync All Resources", []),
 ]
 
@@ -75,14 +99,14 @@ def menu() -> None:
         print(f"\n>> {name}")
         if "Terraform" in name:
             terraform_state()
-        for cmd in cmds:
-            subprocess.run(cmd, shell=True)
+        for fn in cmds:
+            fn()
 
 
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--admin", action="store_true")
-    args = p.parse_args()
+    p.parse_args()
     menu()
 
 

@@ -32,41 +32,46 @@ def tf() -> str:
     return shutil.which("terraform") or "terraform"
 
 
-def run(args_: str, out_name, reports: Path, project: Path,
+def run(argv, out_name, reports: Path, project: Path,
         dry: bool, tool=None):
     exe = tool or tf()
     if out_name:
         out = reports / out_name
         if dry:
-            print(f"[dry-run] {exe} {args_} > {out} (cwd={project})")
+            print(f"[dry-run] {exe} {' '.join(argv)} > {out} "
+                  f"(cwd={project})")
             return
         reports.mkdir(parents=True, exist_ok=True)
-        with open(out, "w") as fh:
-            return subprocess.run(f'{exe} {args_}', shell=True,
-                                  cwd=project, stdout=fh,
+        op = out.resolve()
+        root = reports.resolve()
+        if ".." in op.parts or not op.is_relative_to(root):
+            raise ValueError("report path escapes reports dir")
+        with op.open("w") as fh:
+            return subprocess.run([tool or tf(), *argv], cwd=project,
+                                  stdout=fh,
                                   stderr=subprocess.STDOUT).returncode
     if dry:
-        print(f"[dry-run] {exe} {args_} (cwd={project})")
+        print(f"[dry-run] {exe} {' '.join(argv)} (cwd={project})")
         return 0
-    return subprocess.run(f'{exe} {args_}', shell=True,
-                          cwd=project).returncode
+    return subprocess.run([tool or tf(), *argv],
+                          cwd=project, check=False).returncode
 
 
 ACTIONS = [
     ("State Analysis", [
-        ("init", None),
-        ("show -json", "terraform-state.json"),
-        ("state list", "terraform-resources.txt"),
-        ("state show", "state-summary.txt"),
-        ("version", "terraform-version.txt"),
-        ("providers", "terraform-providers.txt")]),
+        (["init"], None),
+        (["show", "-json"], "terraform-state.json"),
+        (["state", "list"], "terraform-resources.txt"),
+        (["state", "show"], "state-summary.txt"),
+        (["version"], "terraform-version.txt"),
+        (["providers"], "terraform-providers.txt")]),
     ("Resource Inventory", [
-        ("state list", "resource-list.txt")]),
+        (["state", "list"], "resource-list.txt")]),
     ("Dependency Graph", [
-        ("graph", "dependency-graph.dot"),
-        ("graph -type=plan", "plan-graph.dot"),
-        ("graph -type=apply", "apply-graph.dot"),
-        ("graph -json", "dependency-graph.json")]),
+        (["graph"], "dependency-graph.dot"),
+        (["graph", "-type=plan"], "plan-graph.dot"),
+        (["graph", "-type=apply"], "apply-graph.dot"),
+        (["graph", "-json"], "dependency-graph.json")]),
     ("Drift Detection", []),   # special-cased below
     ("Cost Estimation", []),   # special-cased below
     ("Security Analysis", []),
@@ -74,10 +79,10 @@ ACTIONS = [
     ("Compliance Check", []),
     ("State Backup", []),
     ("Workspace Management", [
-        ("workspace list", "workspace-list.txt"),
-        ("workspace show", "current-workspace.txt")]),
+        (["workspace", "list"], "workspace-list.txt"),
+        (["workspace", "show"], "current-workspace.txt")]),
     ("Complete Report", [
-        ("show -json", "complete-report.json")]),
+        (["show", "-json"], "complete-report.json")]),
 ]
 
 
@@ -91,21 +96,21 @@ def is_admin() -> bool:
 
 def cost_estimation(reports, project, dry):
     if shutil.which("infracost"):
-        run("breakdown --path . --format json",
+        run(["breakdown", "--path", ".", "--format", "json"],
             "infracost-breakdown.json", reports, project, dry,
             tool="infracost")
-        run("breakdown --path . --format table",
+        run(["breakdown", "--path", ".", "--format", "table"],
             "infracost-breakdown.txt", reports, project, dry,
             tool="infracost")
-        run("summary --path .",
+        run(["summary", "--path", "."],
             "infracost-summary.txt", reports, project, dry,
             tool="infracost")
     else:  # terraform_cost_estimation fallback
-        rc = run("plan -out=cost-plan.out", None, reports, project,
-                 dry)
+        rc = run(["plan", "-out=cost-plan.out"], None, reports,
+                 project, dry)
         if rc == 0 and (dry or
                         (project / "cost-plan.out").is_file()):
-            run("show -json cost-plan.out", "cost-plan.json",
+            run(["show", "-json", "cost-plan.out"], "cost-plan.json",
                 reports, project, dry)
         else:
             print("terraform plan failed — skipping export",
@@ -114,11 +119,11 @@ def cost_estimation(reports, project, dry):
 
 def security_analysis(reports, project, dry):
     if shutil.which("tfsec"):
-        run(". --format json", "tfsec-results.json",
+        run([".", "--format", "json"], "tfsec-results.json",
             reports, project, dry, tool="tfsec")
-        run(". --format table", "tfsec-results.txt",
+        run([".", "--format", "table"], "tfsec-results.txt",
             reports, project, dry, tool="tfsec")
-        run(". --format summary", "tfsec-summary.txt",
+        run([".", "--format", "summary"], "tfsec-summary.txt",
             reports, project, dry, tool="tfsec")
     else:  # basic_security_analysis: keyword scan of *.tf
         pats = {"security-keywords.txt":
@@ -138,17 +143,25 @@ def security_analysis(reports, project, dry):
 
 
 def performance_analysis(reports, project, dry):
-    run('state list | find /c /v ""', "total-resources.txt",
+    # Pipelines replaced: raw state list is captured to a file, then
+    # post-processed in Python (no shell, no find/findstr).
+    run(["state", "list"], "state-list-raw.txt",
         reports, project, dry)
-    run('state list | findstr /i "aws_"', "aws-resources.txt",
-        reports, project, dry)
-    run("plan -out=perf-plan.out", "plan-performance.txt",
+    if not dry and (reports / "state-list-raw.txt").is_file():
+        lines = (reports / "state-list-raw.txt").read_text(
+            errors="replace").splitlines()
+        (reports / "total-resources.txt").write_text(
+            f"{len(lines)}\n")
+        (reports / "aws-resources.txt").write_text(
+            "\n".join(ln for ln in lines if "aws_" in ln.lower())
+            + "\n")
+    run(["plan", "-out=perf-plan.out"], "plan-performance.txt",
         reports, project, dry)
 
 
 def compliance_check(reports, project, dry):
     if shutil.which("terraform-compliance"):
-        run("-f . -t .", "compliance-results.txt",
+        run(["-f", ".", "-t", "."], "compliance-results.txt",
             reports, project, dry, tool="terraform-compliance")
     else:  # basic_compliance_check
         pats = {"encryption-check.txt": ("encryption",),
@@ -184,13 +197,13 @@ def state_backup(project, dry):
 
 
 def drift_detection(reports, project, dry):
-    run("plan -detailed-exitcode", "drift-plan.txt", reports,
+    run(["plan", "-detailed-exitcode"], "drift-plan.txt", reports,
         project, dry)
-    rc = run("plan -out=drift-plan.out", None, reports, project,
+    rc = run(["plan", "-out=drift-plan.out"], None, reports, project,
              dry)
     if rc == 0 and (dry or
                     (project / "drift-plan.out").is_file()):
-        run("show -json drift-plan.out", "drift-plan.json",
+        run(["show", "-json", "drift-plan.out"], "drift-plan.json",
             reports, project, dry)
     else:
         print("terraform plan failed — skipping export",

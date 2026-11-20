@@ -9,7 +9,6 @@ import argparse
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
@@ -59,7 +58,10 @@ def run(cmd, dry):
     if dry:
         print(f"[dry-run] {' '.join(cmd)}")
         return ""
-    r = subprocess.run(cmd, shell=True, capture_output=True,
+    # Resolve .cmd wrappers (npm/pnpm/pip) via PATHEXT, then exec
+    # directly - no shell, so no metacharacter injection surface.
+    argv = [shutil.which(cmd[0]) or cmd[0], *cmd[1:]]
+    r = subprocess.run(argv, shell=False, capture_output=True,
                        text=True, errors="replace")
     return (r.stdout + r.stderr).strip()
 

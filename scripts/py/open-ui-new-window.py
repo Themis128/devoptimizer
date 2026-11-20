@@ -8,7 +8,6 @@ elevation; --admin flag selects it.
 
 import argparse
 import os
-import subprocess
 import sys
 
 # CATEGORY: utilities
@@ -16,14 +15,13 @@ import sys
 
 OPTIONS = [
     ("Universal Launcher", "DevOptimizer Universal Launcher",
-     ["cmd", "/k", r"D:\DevOptimizer\UNIVERSAL-LAUNCHER.bat"]),
+     r"D:\DevOptimizer\UNIVERSAL-LAUNCHER.bat"),
     ("Admin Mode", "DevOptimizer Admin Mode",
-     ["powershell", "-ExecutionPolicy", "Bypass", "-File",
-      r"D:\DevOptimizer\RUN-AS-ADMIN.bat"]),
+     r"D:\DevOptimizer\RUN-AS-ADMIN.bat"),
     ("System Health Check", "System Health Check",
-     ["cmd", "/k", r"D:\DevOptimizer\06-System-Health-Check.bat"]),
+     r"D:\DevOptimizer\06-System-Health-Check.bat"),
     ("Quick Optimization", "Quick Optimization",
-     ["cmd", "/k", r"D:\DevOptimizer\01-Quick-Optimization.bat"]),
+     r"D:\DevOptimizer\01-Quick-Optimization.bat"),
 ]
 
 
@@ -35,27 +33,26 @@ def is_admin() -> bool:
         return False
 
 
-def launch(cmd, title):
+def launch(path, title):
     if os.name == "nt":
-        line = 'start "{}" {}'.format(
-            title.replace('"', ''),
-            " ".join('"{}"'.format(a) if " " in a else a for a in cmd))
-        subprocess.Popen(line, shell=True)
+        # ShellExecute on the fixed script path opens it in a new
+        # console window - no command string, no injection surface.
+        os.startfile(path)
     else:
-        print("start " + " ".join(cmd))
+        print(f"start {title}: {path}")
 
 
 def apply_choice(choice: str) -> bool:
     if choice == "6" or not choice:
         return True
     if choice in ("1", "2", "3", "4"):
-        _name, title, cmd = OPTIONS[int(choice) - 1]
+        _name, title, path = OPTIONS[int(choice) - 1]
         print(f"Opening {title} in new window...")
-        launch(cmd, title)
+        launch(path, title)
         return True
     if choice == "5":
-        for _name, title, cmd in OPTIONS:
-            launch(cmd, title)
+        for _name, title, path in OPTIONS:
+            launch(path, title)
         return True
     print("Invalid choice.")
     return False

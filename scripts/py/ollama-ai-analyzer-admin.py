@@ -4,23 +4,21 @@ ollama-batch-helper prompts (performance analysis, maintenance
 predictions, optimization scripts, performance score).
 """
 # REQUIRES: admin
-import ctypes
-
-def _ensure_admin():
-    if not ctypes.windll.shell32.IsUserAnAdmin():
-        print("[ERROR] Administrator privileges required", file=sys.stderr)
-        sys.exit(1)
-
 import argparse
-import json
-import os
-import shutil
+import ctypes
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 VARIANTS_DIR = Path(__file__).resolve().parents[1].parent / "tools" / "Variants"
 OUT_DIR = VARIANTS_DIR / "ai-analysis"
+
+
+def _ensure_admin():
+    if not ctypes.windll.shell32.IsUserAnAdmin():
+        print("[ERROR] Administrator privileges required", file=sys.stderr)
+        sys.exit(1)
 
 
 def run(cmd, **kw):
@@ -31,13 +29,18 @@ def run(cmd, **kw):
         return 127
 
 
-def ps_to_json(ps_cmd, dest):
+def ps_to_json(ps_cmd, name):
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    with open(dest, "w") as f:
+    # Whitelist: plain filename only - no separators, no traversal.
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", str(name)):
+        raise ValueError("dest must be a plain filename under OUT_DIR")
+    p = (OUT_DIR / name).resolve()
+    if not p.is_relative_to(OUT_DIR.resolve()):
+        raise ValueError("dest escapes the allowed output directory")
+    with p.open("w", encoding="utf-8") as f:
         subprocess.run(
             ["powershell", "-ExecutionPolicy", "Bypass",
-             "-Command",
-             "try { " + ps_cmd + " | ConvertTo-Json } catch { '{}' }"],
+             "-Command", ps_cmd],
             stdout=f, stderr=subprocess.DEVNULL)
 
 
@@ -53,19 +56,26 @@ def find_tool(name):
 
 def helper(prompt, out):
     bat = find_tool("ollama-batch-helper.bat")
-    return run(["cmd", "/c", str(bat), "-prompt", prompt,
+    # .bat first element: CreateProcess wraps via cmd.exe itself -
+    # no explicit cmd /c command-string construction needed.
+    return run([str(bat), "-prompt", prompt,
                 "-output", str(OUT_DIR / out)])
 
 METRICS = [
-    ("Get-WmiObject -Class Win32_Processor | Select-Object "
-     "Name, LoadPercentage", "cpu-metrics.json"),
-    ("Get-WmiObject -Class Win32_OperatingSystem | Select-Object "
-     "TotalVisibleMemorySize, FreePhysicalMemory",
+    ("try { Get-WmiObject -Class Win32_Processor | Select-Object "
+     "Name, LoadPercentage | ConvertTo-Json } catch { '{}' }",
+     "cpu-metrics.json"),
+    ("try { Get-WmiObject -Class Win32_OperatingSystem | Select-Object "
+     "TotalVisibleMemorySize, FreePhysicalMemory | ConvertTo-Json "
+     "} catch { '{}' }",
      "memory-metrics.json"),
-    ("Get-WmiObject -Class Win32_LogicalDisk | Select-Object "
-     "DeviceID, Size, FreeSpace", "disk-metrics.json"),
-    ("Get-Process | Sort-Object CPU -Descending | Select-Object "
-     "-First 10 Name, CPU, WorkingSet", "process-metrics.json"),
+    ("try { Get-WmiObject -Class Win32_LogicalDisk | Select-Object "
+     "DeviceID, Size, FreeSpace | ConvertTo-Json } catch { '{}' }",
+     "disk-metrics.json"),
+    ("try { Get-Process | Sort-Object CPU -Descending | Select-Object "
+     "-First 10 Name, CPU, WorkingSet | ConvertTo-Json "
+     "} catch { '{}' }",
+     "process-metrics.json"),
 ]
 
 PROMPTS = [
@@ -111,7 +121,7 @@ def main():
         print("[dry-run] collect 4 metric JSONs + 4 helper prompts")
         return 0
     for ps_cmd, dest in METRICS:
-        ps_to_json(ps_cmd, OUT_DIR / dest)
+        ps_to_json(ps_cmd, dest)
     for prompt, out in PROMPTS:
         helper(prompt, out)
     score = OUT_DIR / "performance-score.txt"

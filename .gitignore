@@ -38,10 +38,12 @@ archive/
 *.corrupted.bak
 *.bak
 
-# --- tooling/session state (ZCode, Mimosa, glm-hammer) ---
+# --- tooling/session state (ZCode, Mimosa, glm-hammer, plugin work dirs) ---
 .mimosa/
 .zcode/
 .glm-hammer/
+.v2c/
+.video_agent/
 
 # --- Windows reserved-name junk (phantom 'nul' entries choke git) ---
 nul

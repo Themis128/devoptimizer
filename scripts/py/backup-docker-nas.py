@@ -10,12 +10,10 @@ find -mtime, staging purge + keep last 2 staging dirs.
 import argparse
 import csv
 import hashlib
-import os
 import shlex
 import shutil
 import subprocess
 import sys
-import time
 from datetime import datetime
 from pathlib import Path
 
@@ -142,9 +140,13 @@ def pg_dump(user, container, dst):
         stderr=subprocess.DEVNULL)
     gzexe = shutil.which("gzip.exe") or (
         r"C:\Program Files\Git\usr\bin\gzip.exe")
+    # Confinement: dumps must land inside the staging tree.
+    dp = Path(dst).resolve()
+    if not dp.is_relative_to(STAGING.resolve()):
+        raise ValueError("dump target escapes staging dir")
     gz = subprocess.Popen([gzexe, "-c"],
                           stdin=pipe.stdout,
-                          stdout=open(dst, "wb"))
+                          stdout=dp.open("wb"))
     pipe.stdout.close()
     gz.wait()
     pipe.wait()
@@ -172,12 +174,13 @@ def wsl_tar(src, dst, excludes):
     rel = dst.as_posix()
     if rel.startswith("D:/"):
         rel = "/mnt/d/" + rel[3:]
-    cmd = (f"tar czf {shlex.quote(rel)} "
-           + "".join(f" --exclude={shlex.quote(e)}"
-                     for e in excludes)
-           + f" -C {shlex.quote(src)} .")
-    r = run(["wsl.exe", "-d", "Ubuntu-24.04",
-             "-e", "bash", "-c", cmd], timeout=7200)
+    # Drive tar directly via wsl -e (no bash -c, no shell parsing).
+    argv = ["wsl.exe", "-d", "Ubuntu-24.04", "-e",
+            "tar", "czf", rel]
+    for e in excludes:
+        argv += ["--exclude", e]
+    argv += ["-C", src, "."]
+    r = run(argv, timeout=7200)
     return bool(r and r.returncode == 0
                 and dst.exists())
 
@@ -284,8 +287,11 @@ def main():
             else:
                 out(f"  wsl layer {src} FAILED")
 
-    # manifest
-    with open(manifest, "w", newline="") as f:
+    # manifest (confinement: stays inside the staging tree)
+    mp = Path(manifest).resolve()
+    if not mp.is_relative_to(STAGING.resolve()):
+        raise ValueError("manifest escapes staging dir")
+    with mp.open("w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["file", "bytes", "sha256", "tier"])
         w.writerows(mrows)

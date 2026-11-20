@@ -8,7 +8,6 @@ to logs/daily-full-cleanup.log. Mutating; --dry-run.
 import argparse
 import datetime
 import subprocess
-import sys
 from pathlib import Path
 
 # CATEGORY: cleanup
@@ -67,7 +66,7 @@ def main() -> None:
         log("[dry-run] Clear-RecycleBin")
         for c in ("docker builder prune -af",
                   "docker container prune -f",
-                  "docker image prune -a -f"):
+                  "docker image prune -f"):
             log(f"[dry-run] {c}")
         log("[dry-run] clear E:\\AdaptivaCache")
     else:
@@ -76,14 +75,21 @@ def main() -> None:
                            capture_output=True, text=True)
         log("recycle bin: emptied" if r.returncode == 0
             else f"recycle bin: {r.stderr.strip()}")
-        for label, cmd in (("docker builder", "docker builder prune -af"),
-                           ("docker containers",
-                            "docker container prune -f"),
-                           ("docker images", "docker image prune -a -f")):
-            r = subprocess.run(cmd, shell=True, capture_output=True,
-                               text=True)
-            last = (r.stdout.strip().splitlines() or [""])[-1]
-            log(f"{label}: {last}")
+        # Dangling-only image prune: tagged-but-unused images survive so
+        # compose recreations reuse them locally instead of re-pulling
+        # ~50GB/day into docker_data.vhdx between compactions.
+        r = subprocess.run(["docker", "builder", "prune", "-af"],
+                           capture_output=True, text=True)
+        last = (r.stdout.strip().splitlines() or [""])[-1]
+        log(f"docker builder: {last}")
+        r = subprocess.run(["docker", "container", "prune", "-f"],
+                           capture_output=True, text=True)
+        last = (r.stdout.strip().splitlines() or [""])[-1]
+        log(f"docker containers: {last}")
+        r = subprocess.run(["docker", "image", "prune", "-f"],
+                           capture_output=True, text=True)
+        last = (r.stdout.strip().splitlines() or [""])[-1]
+        log(f"docker dangling imgs: {last}")
         shader = Path(r"E:\AdaptivaCache")
         if shader.is_dir():
             for item in shader.iterdir():
