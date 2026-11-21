@@ -9,13 +9,18 @@
 # Tiers (set ABOVE Host Guard's ~1GB pri-5 crit line so eviction lands first;
 # model loads come from real traffic so the load->crunch->evict loop is
 # structural - the guard's job is to keep free RAM above the alarm line):
-#   free < 1800MB : evict non-pinned residents (transients reload on demand)
+#   free < 2800MB : evict non-pinned residents (transients reload on demand)
+#                   2026-11-20: raised 1800->2800 - the host-gates warn line is
+#                   now 2.0GB and the 91MB dive observed 11-20 bottomed out
+#                   between 5-min guard passes; evicting earlier lands before
+#                   the dive instead of inside it. Cost: more frequent cold
+#                   reloads (~20-40s latency on the next call).
 #   free < 1000MB : also evict the pinned set (4B mid + 0.6B embedding) - a
 #                   20-40s cold reload beats a host stall.
 # Pinned = DMR_MID_MODEL (chatbot latency, 30m keep_alive by design) +
 #          DMR_EMBEDDING_MODEL (keep-warm tier). Everything else is fair game.
 param(
-    [int]$WarnMb   = 1800,
+    [int]$WarnMb   = 2800,
     [int]$CritMb   = 1000,
     [switch]$DryRun
 )
@@ -25,12 +30,36 @@ $LogFile = 'D:\DevOptimizer\logs\dmr-ram-guard.log'
 New-Item -ItemType Directory -Force -Path (Split-Path $LogFile) | Out-Null
 
 function Log($m,$l='INFO'){ $line="{0} [{1}] {2}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'),$l,$m; $f=Get-Item $LogFile -ErrorAction SilentlyContinue; if($f -and $f.Length -gt 1MB){Get-Content $LogFile -Tail 500|Set-Content $LogFile -Encoding ASCII}; Add-Content $LogFile $line -Encoding ASCII; if($l -ne 'INFO'){Write-Output $line} }
-function Notify($t,$b){ Log "ALERT: $t -- $b" 'WARN'; try{$h=@{Title=$t;Priority='default';Tags='rotating_light'};$tf=Join-Path $env:APPDATA 'devin\secrets\ntfy-devoptimizer-token';if(Test-Path $tf){$h['Authorization']='Bearer '+(Get-Content $tf -Raw).Trim()};Invoke-RestMethod -Uri 'https://ntfy.cloudless.gr/devoptimizer-alerts' -Method Post -Body $b -Headers $h -TimeoutSec 10|Out-Null}catch{Log "ntfy fail: $($_.Exception.Message)" 'WARN'} }
+function Notify($t,$b,$p='default'){ Log "ALERT: $t -- $b" 'WARN'; try{$h=@{Title=$t;Priority=$p;Tags='rotating_light'};$tf=Join-Path $env:APPDATA 'devin\secrets\ntfy-devoptimizer-token';if(Test-Path $tf){$h['Authorization']='Bearer '+(Get-Content $tf -Raw).Trim()};Invoke-RestMethod -Uri 'https://ntfy.cloudless.gr/devoptimizer-alerts' -Method Post -Body $b -Headers $h -TimeoutSec 10|Out-Null}catch{Log "ntfy fail: $($_.Exception.Message)" 'WARN'} }
 
 # Patterns matching the pinned residents - keep unless critical.
 $Pinned = @('qwen3-4b-instruct', 'embedding-0.6b')
 
 $freeMb = [int]((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1KB)
+
+# --- alert tuning (2026-11-21): the per-pass p3 eviction alert was spam.
+# State store = the guard LOG (JSON state writes silently no-op in the
+# task context). Gate: ok->critical edge + 60-min persistence; recovery
+# on the crit->non-crit edge.
+$lastBand = 'ok'
+try {
+    $bl = Get-Content $LogFile -Tail 60 -ErrorAction Stop | Where-Object { $_ -match 'band-save done: band=(\w+)' } | Select-Object -Last 1
+    if ($bl -match 'band-save done: band=(\w+)') { $lastBand = $Matches[1] }
+} catch {}
+$band = if ($freeMb -lt $CritMb) { 'critical' } elseif ($freeMb -lt $WarnMb) { 'low' } else { 'ok' }
+$now = Get-Date
+Log ("band-save done: band={0} free={1}MB" -f $band, $freeMb)
+$critNotifyLine = $null
+try {
+    $critNotifyLine = Get-Content $LogFile -Tail 200 -ErrorAction Stop | Where-Object { $_ -match 'ALERT: RAM guard - models evicted' } | Select-Object -Last 1
+} catch {}
+$lastCritNotify = [datetime]::MinValue
+if ($critNotifyLine) { try { $lastCritNotify = [datetime]($critNotifyLine.Substring(0, 19)) } catch {} }
+
+if ($lastBand -eq 'critical' -and $band -ne 'critical') {
+    Notify 'RAM guard - RAM recovered' "free now ${freeMb}MB" 'min'
+}
+
 if ($freeMb -ge $WarnMb) { exit 0 }   # headroom ok - nothing to do
 
 $ps = docker model ps 2>$null
@@ -77,5 +106,14 @@ if ($afterMb -lt $WarnMb) {
         Log "post-kill free ${afterMb}MB"
     }
 }
-if ($crit) { Notify 'RAM guard - models evicted (critical)' "host RAM was ${freeMb}MB - evicted $($evict.Count) AI model(s) incl. pinned set; now ${afterMb}MB free" }
+if ($crit) {
+    # Alert tuning: page on ok->critical edge or 60-min persistence only.
+    $critEdge = ($band -eq 'critical' -and $lastBand -ne 'critical')
+    $critPersist = ($lastCritNotify -lt $now.AddMinutes(-60))
+    if ($critEdge -or $critPersist) {
+        Notify 'RAM guard - models evicted (critical)' "host RAM was ${freeMb}MB - evicted $($evict.Count) AI model(s) incl. pinned set; now ${afterMb}MB free" 'min'
+    } else {
+        Log ("critical notify suppressed (gated); free={0}MB" -f $freeMb)
+    }
+}
 exit 0

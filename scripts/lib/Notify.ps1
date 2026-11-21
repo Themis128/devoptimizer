@@ -111,7 +111,7 @@ function Write-EventLogEntry {
 function Send-DevOptAlert {
     [CmdletBinding()]
     param(
-        [ValidateSet('Info','Warning','Critical')]
+        [ValidateSet('Info','Warning','Critical','History','Recovery')]
         [string]$Severity = 'Warning',
         [string]$Title,
         [string]$Message,
@@ -133,20 +133,28 @@ function Send-DevOptAlert {
     }
 
     # Determine ntfy priority and Event Log type from severity
+    # History/Recovery (2026-11-21 alert tuning): silent 'min' class -
+    # complete timeline in history, zero phone beeps.
     $ntfyPriority = switch ($Severity) {
         'Info'      { 'default' }
         'Warning'   { 'high' }
         'Critical'  { 'urgent' }
+        'History'   { 'min' }
+        'Recovery'  { 'min' }
     }
     $eventType = switch ($Severity) {
         'Info'      { 'Information' }
         'Warning'   { 'Warning' }
         'Critical'  { 'Error' }
+        'History'   { 'Information' }
+        'Recovery'  { 'Information' }
     }
     $defaultEventId = switch ($Severity) {
         'Info'      { 1000 }
         'Warning'   { 1001 }
         'Critical'  { 1002 }
+        'History'   { 1000 }
+        'Recovery'  { 1000 }
     }
     $eventIdToUse = if ($EventId -gt 0) { $EventId } else { $defaultEventId }
 

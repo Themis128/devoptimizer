@@ -60,7 +60,7 @@ Log ("metrics: avail={0}MB vram={1}/{2}MB ({3}%) vmmemWSL={4:N1}GB commit={5}%" 
 
 # --- state (rate limits) ----------------------------------------------------------
 $state = $null
-try { $state = Get-Content $stateFile -Raw -ErrorAction Stop | ConvertFrom-Json } catch {}
+try { $state = Get-Content $stateFile -Raw -ErrorAction Stop | ConvertFrom-Json } catch { $state = [pscustomobject]@{} }
 $now = Get-Date
 function LastAction { param($key)
     if ($state -and $state.$key) { return [datetime]$state.$key }
@@ -81,12 +81,42 @@ $engineUp = ($LASTEXITCODE -eq 0)
 $state = $null
 try { $state = Get-Content $stateFile -Raw -ErrorAction Stop | ConvertFrom-Json } catch { $state = [pscustomobject]@{} }
 $state | Add-Member -NotePropertyName 'metrics' -NotePropertyValue @{ availMB = $availMB; vramPct = $vramPct; commitPct = $commitPct } -Force
-$state | ConvertTo-Json -Depth 3 | Set-Content $stateFile -Encoding ASCII
+
+# --- alert-tuning band tracking (2026-11-21): notify on ok->low and
+# ok->critical edges plus 60-min persistence instead of every pass.
+# State store = the guard LOG (the JSON state-file writes silently no-op
+# in the task context; Add-Content to the log is the proven write path).
+function Get-LastLogValue {
+    param([string]$Pattern)
+    $line = Get-Content $logFile -Tail 300 -ErrorAction SilentlyContinue | Where-Object { $_ -match $Pattern } | Select-Object -Last 1
+    if ($line -match $Pattern) { return $Matches[1] }
+    return $null
+}
+function Get-LastLogStamp {
+    param([string]$Pattern)
+    $line = Get-Content -Path $logFile -Tail 300 -ErrorAction SilentlyContinue | Where-Object { $_ -match $Pattern } | Select-Object -Last 1
+    if ($line -match $Pattern) { return [datetime]($line.Substring(0, 19)) }
+    return [datetime]::MinValue
+}
+$band = if ($availMB -lt $CriticalThresholdMB) { 'critical' }
+        elseif ($availMB -lt $SoftThresholdMB) { 'low' }
+        else { 'ok' }
+$prevBand = Get-LastLogValue 'band-save done: band=(\w+)'
+if (-not $prevBand) { $prevBand = 'ok' }
+$lowEdge = ($band -eq 'low' -and $prevBand -ne 'low')
+$critEdge = ($band -eq 'critical' -and $prevBand -ne 'critical')
+Log ("band-save done: band={0} prevBand={1}" -f $band, $prevBand)
 
 # --- T2: soft pressure -> guest drop_caches ---------------------------------------
 if ($wslUp -and $availMB -lt $SoftThresholdMB -and ((LastAction 'lastDropCaches') -lt $now.AddMinutes(-$RateLimitMinutes))) {
     wsl.exe -d Ubuntu-24.04 -u root -- sh -c "sync; echo 3 > /proc/sys/vm/drop_caches" 2>$null | Out-Null
-    Note 1006 ("Available {0} MB < {1} - guest drop_caches applied" -f $availMB, $SoftThresholdMB)
+    # Alert tuning: page only on the ok->low edge or 60-min persistence -
+    # drop_caches itself keeps applying on its 30-min action rate limit.
+    $lastLowNotify = Get-LastLogStamp 'low-notify fired'
+    if ($lowEdge -or $critEdge -or ($lastLowNotify -lt $now.AddMinutes(-60))) {
+        Note 1006 ("Available {0} MB < {1} - guest drop_caches applied" -f $availMB, $SoftThresholdMB)
+        Log 'low-notify fired'
+    }
     SaveState @{ lastDropCaches = $now }
     Start-Sleep -Seconds 10
     $availMB = [int](Get-Counter '\Memory\Available MBytes' -ErrorAction SilentlyContinue).CounterSamples[0].CookedValue
@@ -101,7 +131,7 @@ if ($wslUp -and $availMB -lt $SoftThresholdMB -and ((LastAction 'lastDropCaches'
 if ($engineUp -and $vramPct -gt $VramPercentThreshold -and $availMB -lt $SoftThresholdMB -and ((LastAction 'lastUnload') -lt $now.AddMinutes(-$RateLimitMinutes))) {
     docker restart docker-model-runner 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) {
-        Note 1006 ("VRAM {0}% + Available {1} MB - docker-model-runner restarted (models evicted)" -f $vramPct, $availMB)
+        Note 1006 ("VRAM {0}% + Available {1} MB - docker-model-runner restarted (models evicted)" -f $vramPct, $availMB) 'History'
         SaveState @{ lastUnload = $now }
         Start-Sleep -Seconds 10
         $vramUsed = 0
@@ -129,7 +159,16 @@ if ($availMB -lt $CriticalThresholdMB) {
         # Only page pri-5 if still critical AFTER remediation - a successful
         # cull self-heals in seconds and does not warrant the insistent alarm.
         $sev = if ($afterDevin -lt $CriticalThresholdMB) { 'Critical' } else { 'Warning' }
-        Note 1007 ("CRITICAL Available {0} MB with Devin OPEN - {1}; available now {2} MB. No bounce while Devin open." -f $availMB, $cull, $afterDevin) $sev
+        # Alert tuning: page on ok->critical edge or 60-min persistence only -
+        # the 5-min pass previously noted EVERY pass (the p5 spam source).
+        $lastCritNotify = Get-LastLogStamp 'crit-notify fired'
+        $critPersist = ($lastCritNotify -lt $now.AddMinutes(-60))
+        if ($critEdge -or $critPersist) {
+            Note 1007 ("CRITICAL Available {0} MB with Devin OPEN - {1}; available now {2} MB. No bounce while Devin open." -f $availMB, $cull, $afterDevin) $sev
+            Log 'crit-notify fired'
+        } else {
+            Log ("T4: critical notify suppressed (gated); available {0} MB" -f $afterDevin)
+        }
         exit 0
     }
     if ((LastAction 'lastBounce') -ge $now.AddMinutes(-$BounceRateLimitMinutes)) {
@@ -160,6 +199,11 @@ if ($availMB -lt $CriticalThresholdMB) {
     $sev = if ($after -lt $CriticalThresholdMB) { 'Critical' } else { 'Warning' }
     Note 1007 ("CRITICAL {0} MB -> auto-bounce done. Available now {1} MB, 9390={2}" -f $availMB, $after, $probe) $sev
     exit 0
+}
+
+# --- alert tuning: recovery notice on the ->ok edge (silent history class)
+if ($band -eq 'ok' -and $prevBand -ne 'ok') {
+    Send-DevOptAlert -Severity Recovery -Title 'Host Guard - RAM recovered' -Message ("Available {0} MB (prev band {1})" -f $availMB, $prevBand) -Tags 'host-guard', 'memory', 'white_check_mark'
 }
 
 if ($OnceVerbose) { Write-Output ("metrics: avail={0}MB vram={1}% commit={2}%" -f $availMB, $vramPct, $commitPct) }
