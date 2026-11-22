@@ -31,17 +31,30 @@ $KnownEndpoints = @('RFCTA0AEKZP', '192.168.1.235:5555', '192.168.1.77:5555', '1
 
 function Log([string]$m) { Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $m" }
 
+# Spawn a console-subsystem exe with CREATE_NO_WINDOW - bare '& exe' allocates
+# a visible console (popup flash). Returns stdout; $null on spawn/timeout.
+function Invoke-Hidden([string]$Exe, [string[]]$CmdArgs, [int]$TimeoutMs = 30000) {
+    $psi = [System.Diagnostics.ProcessStartInfo]::new($Exe)
+    foreach ($a in $CmdArgs) { [void]$psi.ArgumentList.Add($a) }
+    $psi.CreateNoWindow = $true; $psi.UseShellExecute = $false
+    $psi.RedirectStandardOutput = $true; $psi.RedirectStandardError = $true
+    $p = [System.Diagnostics.Process]::Start($psi)
+    $outTxt = $p.StandardOutput.ReadToEnd()
+    $null = $p.StandardError.ReadToEnd()
+    if (-not $p.WaitForExit($TimeoutMs)) { try { $p.Kill() } catch {}; return $null }
+    return $outTxt
+}
+
 # adb devices with a 20s cap - a dead/restarting adb server hangs the call
 # otherwise, and this task would sit wedged until reboot.
 function Get-AdbDevices {
-    $j = Start-Job { & 'C:\Users\tbaltzakis\AppData\Local\Android\Sdk\platform-tools\adb.exe' devices 2>$null }
-    $out = if (Wait-Job $j -Timeout 20) { Receive-Job $j } else { $null }
-    Remove-Job $j -Force -ErrorAction SilentlyContinue
+    $out = Invoke-Hidden $Adb @('devices') -TimeoutMs 20000
+    if (-not $out) { return @() }
     return ($out -split "`n" | Where-Object { $_ -match '\tdevice$' } | ForEach-Object { ($_ -split "`t")[0] })
 }
 
 # --- 1. peer state ---
-$status = & tailscale.exe status --json 2>$null | ConvertFrom-Json
+$status = Invoke-Hidden 'tailscale.exe' @('status','--json') | ConvertFrom-Json
 if (-not $status -or $status.BackendState -ne 'Running' -or -not $status.Peer) {
     # tailscaled itself is (re)starting - Peer is null in that window.
     # Transient, retry next pass; do not treat as phone-offline.
@@ -64,7 +77,7 @@ if (-not $endpoint) {
     if (-not $endpoint) { $endpoint = $devs | Where-Object { $_ -match '^\d+\.\d+\.\d+\.\d+:\d+$' } | Select-Object -First 1 }
 }
 if (-not $endpoint) {
-    foreach ($ep in ($KnownEndpoints | Where-Object { $_ -match ':' })) { & $Adb connect $ep 2>$null | Out-Null }
+    foreach ($ep in ($KnownEndpoints | Where-Object { $_ -match ':' })) { Invoke-Hidden $Adb @('connect', $ep) | Out-Null }
     $devs = @(Get-AdbDevices)
     foreach ($ep in $KnownEndpoints) { if ($devs -contains $ep) { $endpoint = $ep; break } }
     if (-not $endpoint) { $endpoint = $devs | Where-Object { $_ -match '^\d+\.\d+\.\d+\.\d+:\d+$' } | Select-Object -First 1 }
@@ -84,32 +97,32 @@ if (-not $endpoint) {
 }
 
 # --- 3. app-process repair ---
-$pid_ = ((& $Adb -s $endpoint shell pidof $Pkg) -replace '\s','')
+$pid_ = ((Invoke-Hidden $Adb @('-s', $endpoint, 'shell', 'pidof', $Pkg)) -replace '\s','')
 if ($pid_) {
     Log "app alive (pid $pid_) via $endpoint but peer offline - not an app-death; skipping relaunch"
     exit 0
 }
 Log "app dead via $endpoint - relaunching"
 if (-not $DryRun) {
-    & $Adb -s $endpoint shell monkey -p $Pkg -c android.intent.category.LAUNCHER 1 | Out-Null
+    Invoke-Hidden $Adb @('-s', $endpoint, 'shell', 'monkey', '-p', $Pkg, '-c', 'android.intent.category.LAUNCHER', '1') | Out-Null
     Start-Sleep -Seconds 8
-    $aon = ((& $Adb -s $endpoint shell settings get global always_on_vpn_app) -replace '\s','')
+    $aon = ((Invoke-Hidden $Adb @('-s', $endpoint, 'shell', 'settings', 'get', 'global', 'always_on_vpn_app')) -replace '\s','')
     if ($aon -ne $Pkg) {
-        & $Adb -s $endpoint shell settings put global always_on_vpn_app $Pkg | Out-Null
+        Invoke-Hidden $Adb @('-s', $endpoint, 'shell', 'settings', 'put', 'global', 'always_on_vpn_app', $Pkg) | Out-Null
         Log "pinned always_on_vpn_app -> $Pkg"
     }
 }
 
 # --- 4. verify ---
 Start-Sleep -Seconds 10
-$status2 = & tailscale.exe status --json 2>$null | ConvertFrom-Json
+$status2 = Invoke-Hidden 'tailscale.exe' @('status','--json') | ConvertFrom-Json
 $node2 = $status2.Peer.PSObject.Properties.Value | Where-Object { $_.HostName -match 'galaxy|s22' -or $_.DNSName -like 'galaxy-s22.*' } | Select-Object -First 1
 $ok = $node2 -and $node2.Online
 New-Item -ItemType File -Path $fixStamp -Force | Out-Null
 try {
     . 'D:\DevOptimizer\scripts\lib\Notify.ps1'
     if ($ok) {
-        Send-DevOptAlert -Severity Info -Title 'Phone tailnet watch' -Message "galaxy-s22 tailscale app was dead - relaunched via $endpoint, node back online." -Tags 'phone','tailscale' -ErrorAction SilentlyContinue
+        Send-DevOptAlert -Severity Recovery -Title 'Phone tailnet watch' -Message "galaxy-s22 tailscale app was dead - relaunched via $endpoint, node back online." -Tags 'phone','tailscale','white_check_mark' -ErrorAction SilentlyContinue
     } else {
         Send-DevOptAlert -Severity Warning -Title 'Phone tailnet watch' -Message "galaxy-s22 relaunched via $endpoint but node still offline - may need app UI check." -Tags 'phone','tailscale' -ErrorAction SilentlyContinue
     }

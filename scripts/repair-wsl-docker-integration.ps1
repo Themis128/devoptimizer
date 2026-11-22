@@ -56,8 +56,16 @@ function WslArgs {
     if ($Root) { $exeArgs += @('-u', 'root') }
     $exeArgs += '--'
     $exeArgs += $A
-    $out = & wsl.exe @exeArgs 2>&1 | Out-String
-    return @{ Code = $LASTEXITCODE; Out = $out.Trim() }
+    # CREATE_NO_WINDOW spawn - bare '& wsl.exe' allocates a visible console
+    # (popup flash) even when this script runs under conhost --headless.
+    $psi = [System.Diagnostics.ProcessStartInfo]::new('wsl.exe')
+    foreach ($a in $exeArgs) { [void]$psi.ArgumentList.Add($a) }
+    $psi.CreateNoWindow = $true; $psi.UseShellExecute = $false
+    $psi.RedirectStandardOutput = $true; $psi.RedirectStandardError = $true
+    $proc = [System.Diagnostics.Process]::Start($psi)
+    $outTxt = $proc.StandardOutput.ReadToEnd() + $proc.StandardError.ReadToEnd()
+    if (-not $proc.WaitForExit(60000)) { try { $proc.Kill() } catch {}; return @{ Code = -1; Out = $outTxt.Trim() } }
+    return @{ Code = $proc.ExitCode; Out = $outTxt.Trim() }
 }
 
 Log "=== WSL repair check (dryRun=$DryRun) ==="
