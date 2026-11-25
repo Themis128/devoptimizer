@@ -36,6 +36,8 @@ The pinned model is not a frontier agent model, so every playbook is:
 | `fsbridge-responder.md` | Container mass-exit-127 / fsbridge poison | when containers die in waves |
 | `watchdog-audit.md` | Weekly audit of the scheduled-task fleet itself | weekly |
 | `nightly-maintenance.md` | Sequenced nightly window (prune, reclaim, cleanup) | nightly, user idle |
+| `settings-drift-guard.md` | Silent drift in settings-store.json / .wslconfig / watchdog scripts — the root cause class of half the November incidents | weekly + after Docker/WSL updates |
+| `artifact-compose-sweep.md` | Empty-dir bind-mount artifacts + hash-prefixed compose orphans | weekly + after restart waves |
 
 ## Wiring in ZCode
 
