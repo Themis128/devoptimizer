@@ -15,16 +15,22 @@ Multi-line PowerShell goes in temp .ps1 files — never inline through bash.
 
 `%APPDATA%\Docker\settings-store.json`:
 
-- `IntegratedWslDistros` MUST be the array `["Ubuntu-24.04"]` — not null, not
-  missing (DD regenerates missing keys as null; null crashes startup with
-  `reflect: Call using zero Value argument`).
+- `IntegratedWslDistros`: drift means the value is **null** or the wrong
+  type — null crashes startup with `reflect: Call using zero Value argument`,
+  and DD regenerates the key as null when it's absent across a restart.
+  A missing key with Docker running HEALTHY is not corruption (the repair
+  watchdog's reset lane intentionally clears and re-adds it) — do not restart
+  a healthy Docker just to normalize the key. Repair means setting the array
+  `["Ubuntu-24.04"]` only when the value is null/wrong, or when DD is already
+  down for another reason.
 - `UseContainerdSnapshotter` MUST be `true` — when flipped off, all
   containers/images vanish from view (they are hidden, not deleted).
 
-Repair: stop all docker processes, backup the file (`*.bak-zcode`), write the
-correct values with proper PS array serialization, restart DD. Never write an
-empty array — PowerShell 5.1 serializes `@()` as null, which is the bug class
-itself.
+Repair when warranted: stop docker processes first ONLY if a restart is
+needed (null-value repair or containerd flip), backup (`*.bak-zcode`), write
+with proper PS array serialization. Never write an empty array — PowerShell
+5.1 serializes `@()` as null, which is the bug class itself. Restarting a
+healthy engine for cosmetics is worse than the drift.
 
 ## Check 2 — .wslconfig invariants
 

@@ -27,8 +27,13 @@ sources listed in the compose file that are directories with 0 entries where
 the git checkout has content.
 
 Repair per artifact (exact sequence — skipping steps re-creates the artifact):
-1. Note the container using it is stopped/dead.
-2. Delete the artifact directory (PowerShell `Remove-Item -Recurse -Force`).
+1. **Verify it is actually an artifact**: a true bind-mount artifact directory
+   is EMPTY or contains only other empty dirs. If it contains any real file,
+   it is NOT the artifact class — it may be intentional content. Report it in
+   the sweep output and skip deletion; never `Remove-Item -Recurse` a
+   directory whose contents you have not listed.
+2. Note the container using it is stopped/dead, then delete the verified-empty
+   artifact directory.
 3. Restore the real file: the canonical source is the git checkout itself —
    `git -C C:\Users\tbaltzakis\cu130-slim checkout -- <path>` when tracked,
    or copy from the WSL mirror via `wsl.exe cat <src>` piped into the Windows
@@ -51,16 +56,23 @@ docker ps -a --format '{{.Names}} {{.Status}}' | grep -iE 'created$'
 
 - Hash-prefixed names = orphan duplicates. Verify the non-prefixed twin
   exists, then `docker rm` the orphan.
-- Containers in `Created` state (never started) after a converge = aborted
-  converge leftovers; `docker rm` them, then re-converge from the correct
-  project directory.
+- Containers in `Created` state = aborted converge leftovers, BUT only when
+  they belong to this project — other compose projects (swetrix-selfhost,
+  portainer helpers, comfyui) have their own lifecycle. Scope by the compose
+  project: `docker ps -a --filter label=com.docker.compose.project=socialauto-standalone`
+  and only remove `Created`-state entries from THAT list, cross-checking the
+  label rather than the name pattern.
 
 Verification — the fleet should converge cleanly:
 
 ```powershell
 cd C:\Users\tbaltzakis\cu130-slim\deploy\socialauto-standalone
-docker compose ps --format '{{.Name}} {{.State}}' | Measure-Object -Line
+docker compose ps --format '{{.Name}} {{.State}}'
 ```
+
+Read the states, don't just count them: any service not `running` after the
+converge is named in the sweep report with its state — a count alone hides
+which service failed to recover.
 
 Compose operations run from the WINDOWS side on this host — WSL-side compose
 resolves `/mnt/c` bind paths as distro-internal and hits the fsbridge even

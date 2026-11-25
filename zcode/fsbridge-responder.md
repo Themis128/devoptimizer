@@ -73,22 +73,30 @@ wsl.exe -d Ubuntu-24.04 --exec mount | grep cli-tools
 
 Must show the iso mount. Retry for up to 5 minutes. Only then recreate.
 
-## Step 5 — force-recreate casualties, from the Windows side
+## Step 5 — force-recreate ONLY the casualties
 
 Plain `docker compose up -d` REUSES existing containers when config is
-unchanged — the poisoned bind mount survives. Must force-recreate:
+unchanged — the poisoned bind mount survives. But a blanket
+`--force-recreate` also bounces healthy services for nothing. Scope to the
+dead ones:
 
 ```powershell
 cd C:\Users\tbaltzakis\cu130-slim\deploy\socialauto-standalone
-docker compose up -d --force-recreate
+docker compose ps -a --filter status=exited --format '{{.Service}}'
+docker compose up -d --force-recreate <svc1> <svc2>   # only the exited/dead ones
 ```
 
-Run compose from the WINDOWS side (the repo checkout lives at
-`C:\Users\tbaltzakis\cu130-slim` — a real git checkout since 2026-11-25).
-WSL-side compose resolves `/mnt/c` paths as distro-internal and hits the
-poisoned bridge even for C: files. Never run a root-dir `compose up` in the
-repo root — it creates hash-prefixed duplicate orphans that name-conflict
-the real fleet (2026-11-22 incident, twice).
+**Which side runs compose depends on the mount source, not habit:**
+- Services whose binds are C:-hosted project files (the socialauto fleet):
+  compose from the WINDOWS side — WSL-side compose resolves `/mnt/c` paths
+  as distro-internal and hits the poisoned bridge even for C: files.
+- Services bind-mounting `/mnt/wsl/docker-desktop/cli-tools/*` (notably
+  `stack-watchers`): Windows-side compose fails with `invalid cross distro
+  token` — recreate these INSIDE Ubuntu-24.04, only AFTER the Step-4 iso
+  verification passes (the repair watchdog does exactly this).
+Never run a root-dir `compose up` in the repo root — it creates
+hash-prefixed duplicate orphans that name-conflict the real fleet
+(2026-11-22 incident, twice).
 
 If specific containers still fail with empty-file errors, the mount SOURCE
 files became empty-directory artifacts (docker auto-creates missing bind

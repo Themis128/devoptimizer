@@ -27,7 +27,8 @@ operator must know this lane irreversibly: empties the Recycle Bin
 Windows.old / WU cache (`admin-cleanup-elevated.ps1`). All three are standard
 maintenance on this host and run monthly via scheduled tasks regardless —
 but they are deletions, not moves. If the user only wanted a tidy-up, run
-Phases 1-2 only and stop.
+ONLY housekeeping + swap-orphans from Phase 2 and stop — `daily-full-cleanup.ps1`
+itself empties the Recycle Bin, so even Phase 2 is too much for a tidy-up.
 
 ## Phase 2 — user-space cleanup (no admin needed)
 
@@ -36,12 +37,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/devoptimizer-houseke
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/cleanup-wsl-swap-orphans.ps1
 ```
 
-Then `daily-full-cleanup.ps1` with one exception: if its docker container
-prune is active, skip or accept that sleeping sidecars will be deleted —
-check the script first; the idle-sleep containers are a feature, and deleted
-containers must be recreated, not just started. If the script has no
-exclusion mechanism, run its non-container steps only (report what you
-skipped).
+Then `daily-full-cleanup.ps1` — full-run mode only (the user asked for deep
+cleanup and the disclosure above was accepted). Two carve-outs: its docker
+container prune must be skipped/accepted knowingly (sleeping sidecars are a
+feature; deleted containers must be recreated, not just started) — check the
+script for an exclusion mechanism first and use it if present. The Recycle
+Bin emptying is irreversible and part of why this is Phase-2-of-deep-clean
+only.
 
 ## Phase 3 — elevated cleanup via the existing task
 
