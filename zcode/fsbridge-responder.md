@@ -83,8 +83,22 @@ dead ones:
 ```powershell
 cd C:\Users\tbaltzakis\cu130-slim\deploy\socialauto-standalone
 docker compose ps -a --filter status=exited --format '{{.Service}}'
-docker compose up -d --force-recreate <svc1> <svc2>   # only the exited/dead ones
+docker compose up -d --no-deps --force-recreate <svc1> <svc2>   # only the casualties
 ```
+
+Three scoping rules:
+- **`--no-deps` always** — otherwise a casualty with compose dependencies can
+  drag a healthy dependency into the recreate with it.
+- **Exited ≠ casualty**: idle-asleep sidecars also show as exited (the
+  stack's idle-sleep is intentional, exits 137/143 or clean stops via
+  stack-ops). Cross-check before recreating: `scripts/stackctl.py status`
+  marks sleeping services; skip those — they wake on demand. Only recreate
+  services whose exit is the failure wave (127/1, recent, clustered).
+- **Running ≠ healthy**: a container can stay Up with a poisoned mount —
+  `stack-watchers` is the known case (its supervisor loses the docker CLI).
+  Check the watchers board (`curl http://127.0.0.1:9099/status`) and the
+  supervisor log for `is a directory`/`permission denied` exec errors;
+  include any such running-but-broken service in the recreate list.
 
 **Which side runs compose depends on the mount source, not habit:**
 - Services whose binds are C:-hosted project files (the socialauto fleet):
