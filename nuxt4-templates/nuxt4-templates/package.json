@@ -27,7 +27,7 @@
   "dependencies": {
     "@nuxt/image": "^1.8.1",
     "@nuxtjs/critters": "^0.10.1",
-    "@nuxtjs/seo": "^2.0.0-rc.23",
+    "@nuxtjs/seo": "^6.1.0",
     "@nuxtjs/tailwindcss": "^6.12.1",
     "@nuxtjs/web-vitals": "^0.2.7",
     "@pinia/nuxt": "^0.5.5",
