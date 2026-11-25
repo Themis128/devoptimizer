@@ -1,0 +1,1 @@
+$path = "C:\Users\tbaltzakis\AppData\Local\Docker\wsl\disk\docker_data.vhdx"; if (Test-Path $path) { $sizeGB = (Get-Item $path).Length / 1GB; Write-Host "docker_data.vhdx size: $([math]::Round($sizeGB, 2)) GB" } else { Write-Host "Not found at: $path" }

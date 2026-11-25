@@ -38,6 +38,21 @@ try {
     }
     
     if ($devinProcesses) {
+        # Guard: never kill an ancestor of this script. If the task was
+        # launched from inside a Devin session/terminal, killing that
+        # Devin.exe kills US mid-loop — observed 2026-11-22: log stops
+        # mid-kill, task result 0x40010004, Devin never relaunched.
+        $ancestorPids = @{}
+        $cur = Get-CimInstance Win32_Process -Filter "ProcessId=$PID" -ErrorAction SilentlyContinue
+        while ($cur -and $cur.ParentProcessId) {
+            $ancestorPids[[int]$cur.ParentProcessId] = $true
+            $cur = Get-CimInstance Win32_Process -Filter "ProcessId=$($cur.ParentProcessId)" -ErrorAction SilentlyContinue
+        }
+        $guarded = @($devinProcesses | Where-Object { $ancestorPids.ContainsKey([int]$_.Id) })
+        if ($guarded) {
+            Write-Log "Skipping ancestor Devin PID(s): $($guarded.Id -join ', ')" 'WARN'
+            $devinProcesses = @($devinProcesses | Where-Object { -not $ancestorPids.ContainsKey([int]$_.Id) })
+        }
         Write-Log "Found $($devinProcesses.Count) Devin process(es)"
         foreach ($proc in $devinProcesses) {
             Write-Log "Stopping Devin PID $($proc.Id) (CPU: $($proc.CPU)s, WS: $([math]::Round($proc.WorkingSet64/1MB)) MB)"
@@ -106,5 +121,15 @@ try {
 }
 catch {
     Write-Log "=== Devin Weekly Restart FAILED: $_ ===" 'ERROR'
+    # Last-resort: never leave Devin down because the kill phase threw.
+    $devinPath = "${env:LOCALAPPDATA}\Programs\Devin\Devin.exe"
+    if ((Test-Path $devinPath) -and -not (Get-Process -Name 'Devin' -ErrorAction SilentlyContinue)) {
+        try {
+            Start-Process -FilePath $devinPath -WindowStyle Normal | Out-Null
+            Write-Log "Recovery: relaunched Devin after failure" 'WARN'
+        } catch {
+            Write-Log "Recovery relaunch failed: $_" 'ERROR'
+        }
+    }
     exit 1
 }

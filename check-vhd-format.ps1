@@ -1,0 +1,1 @@
+$vhd = "C:\Users\tbaltzakis\AppData\Local\Docker\wsl\disk\docker_data.vhdx"; $vhdObj = Get-VHD -Path $vhd; Write-Host "Sparse: $($vhdObj.VhdFormat) $($vhdObj.VhdType) Size: $([math]::Round($vhdObj.FileSize/1GB,1)) GB"
