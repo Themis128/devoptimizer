@@ -32,10 +32,14 @@ task already does this).
    `%TEMP%\DockerDesktop\*` — always safe, regenerate.
 2. Recycle Bin — irreversible, confirm scope first.
 3. Docker Desktop log `com.docker.backend` rotates poorly — truncate, not delete.
-4. `docker builder prune` / `docker image prune` (never `-a` unattended,
+4. Note: the elevated task (`admin-cleanup-elevated.ps1`) also deletes the
+   oldest C: shadow copy and removes `Windows.old` when present — both
+   irreversible; that's rollback data, so it's opt-in via the task, not the
+   user-space tiers.
+5. `docker builder prune` / `docker image prune` (never `-a` unattended,
    never volume prune) — shrinks usage inside docker_data.vhdx but NOT the
    host file; the vhdx shrink needs compaction.
-5. Elevated: DISM component cleanup + WU cache via the registered
+6. Elevated: DISM component cleanup + WU cache via the registered
    `\DevOptimizer\DeepClean-Elevated` task.
 
 ## VHDX compaction gate
@@ -44,7 +48,7 @@ docker_data.vhdx / distro vhdx compaction requires the VM stopped — which kill
 devin-server inside Ubuntu-24.04. Probe first (3x retry, vsock flakes):
 
 ```powershell
-wsl.exe -d Ubuntu-24.04 -e bash -lc "pgrep -f 'devin acp|server-mai[n]' | head -3"
+wsl.exe -d Ubuntu-24.04 -e bash -lc "pgrep -f 'devin ac[p]|server-mai[n]' | head -3"
 ```
 
 If alive: report, do not compact. Async lane: `vhdx-compact-on-devin-exit.ps1`.
