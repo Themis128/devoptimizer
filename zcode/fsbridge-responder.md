@@ -17,7 +17,14 @@ docker ps -a --filter status=exited --format '{{.Names}} {{.Status}}' | head -20
 
 If 5+ containers exited with code 127 (or 255 — the same poison class,
 e.g. entrypoint unreadable) within the same hour, it's PROBABLY the bridge —
-but exit codes alone are not proof. Before any shutdown you need positive
+but exit codes alone are not proof. Run the probe first (best-effort — wsl
+calls flake when the vsock plane is degraded):
+
+```bash
+wsl.exe -d Ubuntu-24.04 --exec python3 /home/tbaltzakis/cu130-slim/.devin/skills/wsl-fsbridge-ops/scripts/fsbridge_doctor.py status
+```
+
+Before any shutdown you need positive
 mount evidence — at least one of:
 1. `fsbridge_doctor.py status` reports the bridge poisoned, or
 2. a hashed mount-source dir under Docker's bind-mount staging is empty
@@ -30,9 +37,6 @@ exits have other causes (OOM, engine flap, dependency cascade). Without
 evidence, write findings to `logs/zcode-fsbridge.md` and STOP; never shut
 down WSL on a guess. Probe:
 
-```bash
-wsl.exe -d Ubuntu-24.04 --exec python3 /home/tbaltzakis/cu130-slim/.devin/skills/wsl-fsbridge-ops/scripts/fsbridge_doctor.py status
-```
 
 ## Step 2 — heal gates (mandatory, in order)
 
