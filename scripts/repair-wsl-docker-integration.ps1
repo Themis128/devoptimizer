@@ -129,7 +129,7 @@ if ($mkdirTest.Code -ne 0 -or $foreignN -gt 0) {
             Log "[integration] no IntegratedWslDistros key (DD 4.98+ schema) - default-distro integration governs, skipping"
         } elseif (@($st.IntegratedWslDistros) -notcontains $Distro) {
             if (-not $DryRun) {
-                $st.IntegratedWslDistros = @($st.IntegratedWslDistros) + @($Distro)
+                $st.IntegratedWslDistros = @($st.IntegratedWslDistros | Where-Object { $_ }) + @($Distro)
                 $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
                 Log "[integration] re-enabled $Distro in settings-store.json (distro reachable; DD will re-push the proxy)"
             } else {
@@ -202,7 +202,11 @@ if ($sock.Code -ne 0 -or -not $engineOk) {
                         try {
                             $st = Get-Content $settingsPath -Raw -ErrorAction Stop | ConvertFrom-Json
                             if ($st.PSObject.Properties['IntegratedWslDistros']) {
-                                $st.IntegratedWslDistros = @()
+                                # 2026-11-25: NEVER write @() here — PS5.1 ConvertTo-Json serializes
+                                # an empty array as null, and DD panics on startup parsing it
+                                # ("overriding IntegratedWslDistros: reflect: Call using zero Value").
+                                # Removing the key entirely is the correct reset (DD 4.98+ default schema).
+                                $st.PSObject.Properties.Remove('IntegratedWslDistros')
                                 if ($st.PSObject.Properties['EnableIntegrationWithDefaultWslDistro']) { $st.EnableIntegrationWithDefaultWslDistro = $false }
                                 $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
                             }
@@ -223,7 +227,7 @@ if ($sock.Code -ne 0 -or -not $engineOk) {
                                 $st = Get-Content $settingsPath -Raw -ErrorAction Stop | ConvertFrom-Json
                                 if ($st.PSObject.Properties['IntegratedWslDistros'] -and
                                     @($st.IntegratedWslDistros) -notcontains $Distro) {
-                                    $st.IntegratedWslDistros = @($st.IntegratedWslDistros) + @($Distro)
+                                    $st.IntegratedWslDistros = @($st.IntegratedWslDistros | Where-Object { $_ }) + @($Distro)
                                     $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
                                     Log "[integration] re-added $Distro post-reset (DD re-pushes proxy)"
                                 }
