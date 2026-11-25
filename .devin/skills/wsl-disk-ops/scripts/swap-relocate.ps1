@@ -21,7 +21,7 @@ if ($txt -match '(?m)^\s*swapfile\s*=') {
     $txt = $txt -replace '(?m)^(swap=\S+)', "`$1`r`nswapfile=$vhdx"
   } else {
     # no explicit swap size — insert both under [wsl2]
-    $txt = $txt -replace '(?m)^(\[wsl2\])', "`$1`r`nswapfile=$vhdx"
+    $txt = $txt -replace '(?m)^\[wsl2\][^\r\n]*', ('[wsl2]' + "`r`nswapfile=$vhdx")
   }
   [IO.File]::WriteAllText($cfg, $txt)
   "swapfile=$vhdx added" | Out-File $log -Append
