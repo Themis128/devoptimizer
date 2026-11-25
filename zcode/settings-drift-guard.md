@@ -23,7 +23,14 @@ Multi-line PowerShell goes in temp .ps1 files — never inline through bash.
   --exec docker info` answer?). A missing key with Docker running HEALTHY
   and the integration working is not corruption (the repair watchdog's
   reset lane intentionally clears and re-adds it) — do not restart a
-  healthy Docker just to normalize the key.
+  healthy Docker just to normalize the key. BUT when a correction IS written
+  (null fix, or adding Ubuntu-24.04 to a distro list that omits it), the
+  backend only applies integration changes at boot — the full stop/write/
+  relaunch cycle is mandatory in that case, even if the engine looks healthy
+  from Windows. The verification after relaunch is
+  `wsl.exe -d Ubuntu-24.04 --exec docker info`, not just Windows-side
+  `docker info` — the Windows engine answering proves nothing about the
+  Ubuntu integration.
 - `UseContainerdSnapshotter` MUST be `true` — when flipped off, all
   containers/images vanish from view (they are hidden, not deleted).
 

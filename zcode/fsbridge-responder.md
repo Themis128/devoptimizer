@@ -88,12 +88,16 @@ docker compose up -d --no-deps --force-recreate <svc1> <svc2>   # only the casua
 
 Three scoping rules:
 - **`--no-deps` always** — otherwise a casualty with compose dependencies can
-  drag a healthy dependency into the recreate with it.
+  drag a healthy dependency into the recreate with it. Corollary: after the
+  recreates, run `docker compose ps` once more and confirm no dependency of a
+  recreated service is left stopped (redis/postgres/chroma are the usual
+  chain) — `docker compose up -d --no-deps <dep>` for any that are.
 - **Exited ≠ casualty**: idle-asleep sidecars also show as exited (the
   stack's idle-sleep is intentional, exits 137/143 or clean stops via
   stack-ops). Cross-check before recreating: `scripts/stackctl.py status`
   marks sleeping services; skip those — they wake on demand. Only recreate
-  services whose exit is the failure wave (127/1, recent, clustered).
+  services whose exit is the failure wave (127/1/255, recent, clustered —
+  255 is the same poison class, e.g. entrypoint unreadable).
 - **Running ≠ healthy**: a container can stay Up with a poisoned mount —
   `stack-watchers` is the known case (its supervisor loses the docker CLI).
   Check the watchers board (`curl http://127.0.0.1:9099/status`) and the
