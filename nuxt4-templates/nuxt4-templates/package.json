@@ -25,7 +25,7 @@
     "cleanup": "nuxt cleanup"
   },
   "dependencies": {
-    "@nuxt/image": "^1.8.1",
+    "@nuxt/image": "^2.2.1",
     "@nuxtjs/critters": "^0.10.1",
     "@nuxtjs/seo": "^6.1.0",
     "@nuxtjs/tailwindcss": "^6.12.1",
