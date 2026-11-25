@@ -15,7 +15,8 @@ PowerShell goes in a temp .ps1 file, never inline through bash.
 docker ps -a --filter status=exited --format '{{.Names}} {{.Status}}' | head -20
 ```
 
-If 5+ containers exited with code 127 within the same hour, it's the bridge.
+If 5+ containers exited with code 127 (or 255 — the same poison class,
+e.g. entrypoint unreadable) within the same hour, it's the bridge.
 Also probe (best-effort — wsl calls flake when the vsock plane is degraded):
 
 ```bash
@@ -91,7 +92,11 @@ Three scoping rules:
   drag a healthy dependency into the recreate with it. Corollary: after the
   recreates, run `docker compose ps` once more and confirm no dependency of a
   recreated service is left stopped (redis/postgres/chroma are the usual
-  chain) — `docker compose up -d --no-deps <dep>` for any that are.
+  chain) — use `docker compose ps -a` (plain `ps` omits stopped containers)
+and `docker compose up -d --no-deps <dep>` for any that are stopped — but
+apply the same idle-sleep cross-check before starting them: a dependency
+that is intentionally asleep (stackctl says so) is NOT missing, it's just
+asleep and wakes on demand.
 - **Exited ≠ casualty**: idle-asleep sidecars also show as exited (the
   stack's idle-sleep is intentional, exits 137/143 or clean stops via
   stack-ops). Cross-check before recreating: `scripts/stackctl.py status`
