@@ -323,6 +323,13 @@ as housekeeping step [4]. Dead launchers get archived to
   consecutive external-health fails; all other failures → Telegram alert.
   Secrets in `~/ntfy-watchdog/secrets.env` (PHONE_TOKEN + DEVOPT_TOKEN).
   Log: `~/ntfy-watchdog/watchdog.log`.
+- PWA/web-app persistence (2026-11-26): `enable_login: true` is set in the
+  `ntfy-config` ConfigMap — subscriptions + settings live server-side in
+  `accounts.db` on the PVC under the `pc` account (login once per client).
+  Manifests mirrored in OMV repo `k3s/ntfy/`. Cleanup scripts are NOT a
+  threat: `extended-cleanup.py` only prunes regenerable caches (CacheStorage,
+  ScriptCache, Code/GPUCache) — IndexedDB, Local Storage, and Cookies are
+  never touched. Do not add "protect IndexedDB" exclusions.
 - Publisher convention (readable feed): Title = plain words for what
   happened + where (`Host Guard - RAM low`, `RAM guard - models evicted`);
   body = numbers; `Tags` = emoji shortcodes (`warning`→⚠️,
