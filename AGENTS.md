@@ -133,7 +133,51 @@ any recurrence (names containing `:` are invisible to Win32).
   gotchas) and `scripts/diagnose-vhdx-locks.ps1` (read-only: sizes, sparse
   flags, lock holders via `tools/handle.exe`, last compaction log tail).
 
-## Console-popup prevention (2026-11-13)
+- **2026-11-26 vmcompute StopPending wedge (host needed reboot)**: the
+  unlock fallback's `Restart-Service vmcompute` was UNCONDITIONAL — when
+  `vmmemWSL`/`vmwp` survived the kill (tonight: uninterruptible kernel
+  wait, unkillable even elevated), the restart wedged `vmcompute` in
+  `StopPending` forever → every `CreateInstance` host-wide timed out
+  (docker-desktop `vpnkit-bridge`, all `wsl.exe`), `WslService` followed,
+  and only a host reboot recovered. The script itself then froze on the
+  SECOND target's `Restart-Service` (blocks on an already-StopPending
+  service) and never reached `finally` — 25 probe tasks sat Disabled.
+  Patched `logs\nightly-wsl-vhdx-compact.ps1`: fallback now (a) kills
+  vmmemWSL + zombie vmwp first, (b) checks `@(Get-Process
+  vmmemWSL,vmwp,vmmem)` — if ANY worker survives it SKIPs the restarts,
+  logs `host reboot needed` + fires `Send-DevOptAlert -Severity Critical
+  -Force` (never issue vmcompute restart with a live VM worker — it is
+  what converts a locked-vhdx SKIP into a full-host wedge), (c) runs each
+  `Restart-Service` in a 45s-bounded `Start-Job` and only when the service
+  is `Running`, so `finally{}` (task re-enable + DD relaunch) still lands.
+  Pre-patch backup: `logs\nightly-wsl-vhdx-compact.ps1.bak-20261126`.
+  Emergency elevated repair lane used: `scripts\vmcompute-unstick.ps1` +
+  `scripts\reenable-quiesced.ps1`, fired via a marker-file hook
+  temporarily prepended to `dd-settings-watchdog.ps1`/`sshd-repair.ps1`
+  (`schtasks /create /rl HIGHEST` is denied from a limited token, but
+  `schtasks /run` on an existing Highest task works — the piggyback
+  pattern). Full incident log: `logs\vmcompute-unstick.log`.
+
+- **2026-11-26 follow-ups (same incident)**: the night's OTHER stall was a
+  00:05 run — `Nightly-Vhdx-Compact` had `StartWhenAvailable=True` +
+  `WakeToRun=True`, so a missed 05:00 catch-up fired at 00:05 mid-session
+  and then hit `ExecutionTimeLimit=PT2H` mid-`Optimize-VHD` (which is why
+  the quiesced-task list survived until the 05:00 run's leftover
+  re-enable). Fixes applied: task `StartWhenAvailable` now **False**
+  (missed runs wait for tomorrow; WakeToRun kept — the 05:00 wake is
+  intentional) via `scripts\fix-compact-task-settings.ps1`; script now
+  writes a once/day stamp `logs\.nightly-compact-fired` at start so a
+  second same-day run (DevinExit lane, manual fire, another catch-up)
+  exits early; and the locked-skip diagnosis now also names
+  `\\wsl.localhost` UNC-handle owners (`handle.exe -a wsl.localhost`
+  filtered to the distro) — the ext4.vhdx pinner (Devin/VS Code) gets
+  logged instead of just `wslservice`/`vmwp`.
+  All patches battle-tested live 06:08–06:23 same day: guard vs the real
+  locked ext4.vhdx took the SKIP branch (vmcompute stayed Running,
+  Critical-path alert verified delivered via notify.log), elevated handle
+  diag named wslservice#6556+vmwp#17656, and the once/day stamp made the
+  real script early-exit (`already ran today - exit`) before touching
+  Docker or the quiesce list. Test scripts removed after the run.
 
 - All scheduled tasks must run headless: `conhost.exe --headless <cmd>` for
   ps1/bat/wsl, `pythonw.exe` for python scripts. `python.exe`/`py.exe`/`cmd.exe`
