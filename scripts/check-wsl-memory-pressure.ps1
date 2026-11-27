@@ -225,11 +225,13 @@ try {
 
 # Commit-charge guard (2026-11-27): the night's Devin renderer crash loop
 # (-36861 x2 + renderer OOM 0xE0000008) was host COMMIT exhaustion, invisible
-# to every existing guard: D:\pagefile.sys (8-32GB) is configured in PagingFiles
-# but the file never activated, pinning the commit limit at RAM + C:'s fixed
-# 2GB (~33.7GB). vmmemWSL (~10GB) + the post-boot app herd crossed it and
+# to every existing guard: the only configured D:\pagefile.sys (8-32GB) sits on
+# a BitLocker auto-unlock data volume - SMSS skips those at boot, so the file
+# never activates and the commit limit was pinned at RAM + C:'s fixed 2GB
+# (~33.7GB). vmmemWSL (~10GB) + the post-boot app herd crossed it and
 # Windows killed renderers/services (NahimicSvc64 AV 22:54:23 was the same
-# casualty class). Log every pass; event 1005 warning <2GB free commit,
+# casualty class). Fix 2026-11-28: C: pagefile 8192/32768 (OS volume), D:
+# entry dropped. Log every pass; event 1005 warning <2GB free commit,
 # error <0.75GB; critical-tier page at <0.75GB (band-gated by Notify.ps1).
 try {
     $os = Get-CimInstance Win32_OperatingSystem
@@ -239,14 +241,14 @@ try {
     Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') commit ${cUsedGB}/${cLimitGB} GB (free ${cFreeGB} GB)"
     if ($cFreeGB -lt 0.75) {
         Write-EventLog -LogName 'DevOptimizer' -Source 'DevOptimizer' -EventId 1005 -EntryType Error `
-            -Message "Commit charge critical: ${cUsedGB}/${cLimitGB} GB (free ${cFreeGB} GB). Windows kills renderer processes and services at this level (the 2026-11-27 Devin -36861/OOM crash class). Check vmmemWSL commit and verify D:\pagefile.sys is active." `
+            -Message "Commit charge critical: ${cUsedGB}/${cLimitGB} GB (free ${cFreeGB} GB). Windows kills renderer processes and services at this level (the 2026-11-27 Devin -36861/OOM crash class). Check vmmemWSL commit and verify the C: pagefile config (C:\pagefile.sys 8192 32768 in PagingFiles) is active." `
             -ErrorAction SilentlyContinue
         Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') CRITICAL: commit free ${cFreeGB} GB - event 1005 written"
         try {
             . "$PSScriptRoot\lib\Notify.ps1"
             Send-DevOptAlert -Severity Critical -Force `
                 -Title 'Commit charge - virtual memory wall' `
-                -Message "commit ${cUsedGB}/${cLimitGB} GB, free ${cFreeGB} GB - renderer/service kills imminent; verify D:\pagefile.sys active + check vmmemWSL" `
+                -Message "commit ${cUsedGB}/${cLimitGB} GB, free ${cFreeGB} GB - renderer/service kills imminent; verify C: pagefile 8192/32768 active in PagingFiles + check vmmemWSL" `
                 -Tags 'warning','memory' -EventId 1005
             Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') page sent: commit free ${cFreeGB} GB (critical tier)"
         } catch {
