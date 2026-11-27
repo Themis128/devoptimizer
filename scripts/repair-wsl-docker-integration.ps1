@@ -201,15 +201,17 @@ if ($sock.Code -ne 0 -or -not $engineOk) {
                         Start-Sleep -Seconds 5
                         try {
                             $st = Get-Content $settingsPath -Raw -ErrorAction Stop | ConvertFrom-Json
-                            if ($st.PSObject.Properties['IntegratedWslDistros']) {
-                                # 2026-11-25: NEVER write @() here — PS5.1 ConvertTo-Json serializes
-                                # an empty array as null, and DD panics on startup parsing it
-                                # ("overriding IntegratedWslDistros: reflect: Call using zero Value").
-                                # Removing the key entirely is the correct reset (DD 4.98+ default schema).
-                                $st.PSObject.Properties.Remove('IntegratedWslDistros')
-                                if ($st.PSObject.Properties['EnableIntegrationWithDefaultWslDistro']) { $st.EnableIntegrationWithDefaultWslDistro = $false }
-                                $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
+                            # 2026-11-25: write the final state directly — the key with ONLY the
+                            # target distro. Never write @(): PS5.1 serializes empty arrays as null,
+                            # and DD panics on startup parsing it. Single-element arrays serialize
+                            # correctly as ["distro"] (verified). Key ABSENCE is also dangerous:
+                            # DD regenerates it as null on shutdown (observed 2026-11-25).
+                            if (-not $st.PSObject.Properties['IntegratedWslDistros']) {
+                                $st | Add-Member -MemberType NoteProperty -Name IntegratedWslDistros -Value @($Distro)
+                            } else {
+                                $st.IntegratedWslDistros = @($Distro)
                             }
+                            $st | ConvertTo-Json -Depth 20 | Set-Content $settingsPath -Encoding UTF8
                             # DD 4.98+ schema: key absent - the DD restart below
                             # IS the reset (integration rides the default-distro
                             # default; verified 2026-11-14 engine reachable with

@@ -1,0 +1,1 @@
+$path = "C:\WSL\Ubuntu-24.04\ext4.vhdx"; if (Test-Path $path) { $sizeGB = (Get-Item $path).Length / 1GB; Write-Host "Ubuntu ext4.vhdx size: $([math]::Round($sizeGB, 2)) GB" } else { Write-Host "Not found at: $path" }

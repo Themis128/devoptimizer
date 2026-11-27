@@ -33,6 +33,8 @@ param(
     [switch]$DryRun
 )
 
+
+
 $ErrorActionPreference = 'Continue'
 $logDir = 'D:\DevOptimizer\logs'
 $log    = Join-Path $logDir 'sshd-repair.log'
