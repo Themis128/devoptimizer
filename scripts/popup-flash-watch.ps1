@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Console-flash catcher - samples for visible console processes and logs
     the parent chain, to identify sources the task audit can't see.
@@ -26,7 +26,7 @@ param(
 
 $ErrorActionPreference = 'Continue'
 $logFile = 'D:\DevOptimizer\logs\popup-flashes.log'
-$names = 'cmd','powershell','pwsh','conhost','wsl','wscript','cscript','bash','schtasks','netsh','ipconfig','tasklist','wslhost','vmmem'
+$names = 'cmd','powershell','pwsh','conhost','wsl','wscript','cscript','bash','schtasks','netsh','ipconfig','tasklist','wslhost','vmmem','gh','git','git-remote-https','mintty','ssh','bash'
 
 $deadline = (Get-Date).AddMinutes($DurationMin)
 $seen = @{}   # pid -> first-seen stamp, so each flash logs once
@@ -55,3 +55,4 @@ while ((Get-Date) -lt $deadline) {
     Start-Sleep -Seconds $IntervalSec
 }
 Write-Host "popup-flash-watch done: $($seen.Count) visible-console process(es) logged to $logFile"
+
