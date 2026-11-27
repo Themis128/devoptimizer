@@ -28,6 +28,11 @@
 #      PopupTaskAudit-Fix: registers without admin, fires elevated via
 #      schtasks /run). Bootstrap path from a limited session: the elevated
 #      WSL-Memory-Watchdog calls this script with -RegisterTask once.
+#   6. Network-profile repair (2026-11-27): sshd RUNNING + LISTENING but LAN
+#      :22 times out - OpenSSH-Server-In-TCP firewall rule is Profile=Private
+#      while the home Wi-Fi (COSMOTE1) got categorized Public. Fix the
+#      classification (home LAN should be Private), NOT the rule - widening
+#      the rule to Any would expose SSH on public hotspots.
 param(
     [switch]$RegisterTask,
     [switch]$DryRun
@@ -208,6 +213,32 @@ if ($svc2.Status -eq 'Running') {
             }
         }
     }
+}
+
+# --- 4b. network profile repair (firewall reachability, not service state) ---
+# 2026-11-27: sshd RUNNING + port 22 LISTENING but LAN connections time out.
+# OpenSSH-Server-In-TCP is scoped Profile=Private; the home Wi-Fi profile
+# (COSMOTE1) was categorized Public (likely after a router/NAT change
+# flipped the network fingerprint). A home LAN should be Private - that
+# also enables network discovery etc. Only flip profiles that carry a
+# private LAN IPv4 (192.168/10/172.16-31) so a genuine public hotspot
+# stays Public.
+if ($elevated -and -not $DryRun) {
+    Get-NetConnectionProfile -ErrorAction SilentlyContinue | ForEach-Object {
+        $p = $_
+        $hasLanIp = Get-NetIPAddress -InterfaceIndex $p.InterfaceIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+            Where-Object { $_.IPAddress -match '^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)' }
+        if ($hasLanIp -and $p.NetworkCategory -eq 'Public') {
+            try {
+                Set-NetConnectionProfile -InterfaceIndex $p.InterfaceIndex -NetworkCategory Private -ErrorAction Stop
+                Log "[netprofile] $($p.Name) ($($p.InterfaceAlias)) LAN IP detected on Public profile -> set Private (sshd firewall rule now applies)"
+            } catch {
+                Log "[netprofile] failed to set $($p.InterfaceAlias) Private: $($_.Exception.Message)"
+            }
+        }
+    }
+} elseif (-not $elevated) {
+    Log "[netprofile] not elevated - skipping (LAN :22 reachability needs Private profile)"
 }
 
 # --- 5. self-register elevated watch task ---
