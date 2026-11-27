@@ -223,6 +223,43 @@ try {
     }
 } catch {}
 
+# Commit-charge guard (2026-11-27): the night's Devin renderer crash loop
+# (-36861 x2 + renderer OOM 0xE0000008) was host COMMIT exhaustion, invisible
+# to every existing guard: D:\pagefile.sys (8-32GB) is configured in PagingFiles
+# but the file never activated, pinning the commit limit at RAM + C:'s fixed
+# 2GB (~33.7GB). vmmemWSL (~10GB) + the post-boot app herd crossed it and
+# Windows killed renderers/services (NahimicSvc64 AV 22:54:23 was the same
+# casualty class). Log every pass; event 1005 warning <2GB free commit,
+# error <0.75GB; critical-tier page at <0.75GB (band-gated by Notify.ps1).
+try {
+    $os = Get-CimInstance Win32_OperatingSystem
+    $cLimitGB = [math]::Round($os.TotalVirtualMemorySize / 1MB, 1)
+    $cFreeGB = [math]::Round($os.FreeVirtualMemory / 1MB, 1)
+    $cUsedGB = [math]::Round($cLimitGB - $cFreeGB, 1)
+    Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') commit ${cUsedGB}/${cLimitGB} GB (free ${cFreeGB} GB)"
+    if ($cFreeGB -lt 0.75) {
+        Write-EventLog -LogName 'DevOptimizer' -Source 'DevOptimizer' -EventId 1005 -EntryType Error `
+            -Message "Commit charge critical: ${cUsedGB}/${cLimitGB} GB (free ${cFreeGB} GB). Windows kills renderer processes and services at this level (the 2026-11-27 Devin -36861/OOM crash class). Check vmmemWSL commit and verify D:\pagefile.sys is active." `
+            -ErrorAction SilentlyContinue
+        Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') CRITICAL: commit free ${cFreeGB} GB - event 1005 written"
+        try {
+            . "$PSScriptRoot\lib\Notify.ps1"
+            Send-DevOptAlert -Severity Critical -Force `
+                -Title 'Commit charge - virtual memory wall' `
+                -Message "commit ${cUsedGB}/${cLimitGB} GB, free ${cFreeGB} GB - renderer/service kills imminent; verify D:\pagefile.sys active + check vmmemWSL" `
+                -Tags 'warning','memory' -EventId 1005
+            Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') page sent: commit free ${cFreeGB} GB (critical tier)"
+        } catch {
+            Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') commit page failed: $($_.Exception.Message)"
+        }
+    } elseif ($cFreeGB -lt 2) {
+        Write-EventLog -LogName 'DevOptimizer' -Source 'DevOptimizer' -EventId 1005 -EntryType Warning `
+            -Message "Commit charge low: ${cUsedGB}/${cLimitGB} GB (free ${cFreeGB} GB). Renderer kills begin when this approaches 0." `
+            -ErrorAction SilentlyContinue
+        Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') WARNING: commit free ${cFreeGB} GB - event 1005 written"
+    }
+} catch {}
+
 # Headless rewrap piggyback: this task runs elevated every 30 min and owns
 # no console window (conhost --headless), so it is the safe carrier for
 # fixing the highest-run-level tasks that unelevated shells cannot touch.
