@@ -153,7 +153,10 @@ if ((-not $SkipWSL) -and $wslVhdx -and (Test-Path $wslVhdx)) {
 
 # --- Step 5: Restart Docker Desktop -----------------------------------------
 Write-Out "[5/6] Starting Docker Desktop..."
-Start-Process 'C:\Program Files\Docker\Docker\Docker Desktop.exe'
+$ddExe = @("$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe",
+           'C:\Program Files\Docker\Docker\Docker Desktop.exe') |
+    Where-Object { Test-Path $_ } | Select-Object -First 1
+if ($ddExe) { Start-Process $ddExe } else { Write-Out 'WARN: Docker Desktop.exe not found - relaunch skipped' }
 Write-Out "Waiting for Docker engine..."
 $deadline = (Get-Date).AddMinutes($TimeoutMinutes)
 while ((Get-Date) -lt $deadline) {

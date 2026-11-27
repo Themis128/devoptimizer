@@ -46,6 +46,31 @@ function Note-Event { param($msg)
     Send-DevOptAlert -Severity Warning -Title "Docker-WSL Sync Event" -Message $msg -Tags 'docker', 'wsl', 'sync' -EventId 1004
 }
 
+# Resolve the real Docker Desktop.exe — this host installs per-user at
+# %LOCALAPPDATA%\Programs\DockerDesktop, NOT 'C:\Program Files\Docker\Docker'.
+# A hardcoded path made the 2026-11-26 wedge unrecoverable: the kill landed but
+# the relaunch silently no-opped (Start-Process on a missing file).
+function Get-DockerDesktopExe {
+    $running = Get-Process 'Docker Desktop' -ErrorAction SilentlyContinue |
+        Select-Object -First 1 -ExpandProperty Path
+    if ($running -and (Test-Path $running)) { return $running }
+    $uninst = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+        'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue |
+        Where-Object { $_.DisplayName -eq 'Docker Desktop' -and $_.InstallLocation } |
+        Select-Object -First 1 -ExpandProperty InstallLocation
+    $candidates = @()
+    if ($uninst) { $candidates += (Join-Path $uninst 'Docker Desktop.exe') }
+    $candidates += "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe"
+    $candidates += "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe"
+    $candidates += "${env:ProgramFiles(x86)}\Docker\Docker\Docker Desktop.exe"
+    foreach ($c in $candidates) { if ($c -and (Test-Path $c)) { return $c } }
+    return $null
+}
+$script:DockerDesktopExe = Get-DockerDesktopExe
+if (-not $script:DockerDesktopExe) {
+    Log 'WARN: Docker Desktop.exe not found - relaunch paths will be skipped'
+}
+
 # --- [1] Guards ---------------------------------------------------------------
 Log '--- sync run started ---'
 if (-not (Get-Process vmmemWSL -ErrorAction SilentlyContinue)) {
@@ -60,7 +85,7 @@ if ($LASTEXITCODE -ne 0) {
         # Relaunch it; containers with restart policies come back on their own.
         Log 'docker engine unreachable AND com.docker.backend absent - relaunching Docker Desktop'
         Note-Event 'Docker Desktop was not running; relaunched by Docker-WSL-Sync'
-        Start-Process 'C:\Program Files\Docker\Docker\Docker Desktop.exe'
+        if ($script:DockerDesktopExe) { Start-Process $script:DockerDesktopExe } else { Log 'ERROR: no Docker Desktop.exe path resolved - cannot relaunch' }
         exit 0
     }
     # Backend alive but engine unreachable: count consecutive strikes and do a
@@ -75,7 +100,7 @@ if ($LASTEXITCODE -ne 0) {
         Note-Event "Docker Desktop backend wedged ($strikes strikes); force-restarted by Docker-WSL-Sync"
         Stop-Process -Name 'com.docker.backend','Docker Desktop' -Force -ErrorAction SilentlyContinue
         Start-Sleep 5
-        Start-Process 'C:\Program Files\Docker\Docker\Docker Desktop.exe'
+        if ($script:DockerDesktopExe) { Start-Process $script:DockerDesktopExe } else { Log 'ERROR: no Docker Desktop.exe path resolved - cannot relaunch' }
         Remove-Item $stateFile -Force -ErrorAction SilentlyContinue
         exit 0
     }

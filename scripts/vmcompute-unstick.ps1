@@ -71,8 +71,10 @@ try { Start-Service com.docker.service -ErrorAction Stop; W 'com.docker.service 
 catch { W "com.docker.service start failed: $($_.Exception.Message)" }
 
 # 9. Relaunch Docker Desktop UI/backend
-$dd = 'C:\Program Files\Docker\Docker\Docker Desktop.exe'
-if (Test-Path $dd) { Start-Process $dd; W 'Docker Desktop relaunched' }
+$dd = @("$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe",
+        'C:\Program Files\Docker\Docker\Docker Desktop.exe') |
+    Where-Object { Test-Path $_ } | Select-Object -First 1
+if ($dd) { Start-Process $dd; W 'Docker Desktop relaunched' } else { W 'Docker Desktop.exe not found - relaunch skipped' }
 
 # 10. Final state
 $svc = Get-Service vmcompute,WSLService,com.docker.service | ForEach-Object { "$($_.Name)=$($_.Status)" }

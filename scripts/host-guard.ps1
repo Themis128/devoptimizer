@@ -184,7 +184,10 @@ if ($availMB -lt $CriticalThresholdMB) {
     wsl.exe --shutdown 2>$null | Out-Null
     $deadline = (Get-Date).AddSeconds(60)
     while ((Get-Date) -lt $deadline) { if (-not (Get-Process vmmemWSL -ErrorAction SilentlyContinue)) { break }; Start-Sleep -Seconds 2 }
-    Start-Process 'C:\Program Files\Docker\Docker\Docker Desktop.exe'
+    $ddExe = @("$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe",
+               'C:\Program Files\Docker\Docker\Docker Desktop.exe') |
+        Where-Object { Test-Path $_ } | Select-Object -First 1
+    if ($ddExe) { Start-Process $ddExe }
     $deadline = (Get-Date).AddSeconds(180)
     while ((Get-Date) -lt $deadline) { docker info 2>$null | Out-Null; if ($LASTEXITCODE -eq 0) { break }; Start-Sleep -Seconds 5 }
     Log 'engine restarted - bridge grace 120s'

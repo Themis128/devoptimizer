@@ -49,7 +49,10 @@ Log ("vhdx after compaction: {0:N2} GB" -f ((Get-Item $vhdx).Length/1GB))
 
 # --- 3. Restart Docker Desktop and confirm engine + WSL recovery ---
 Log 'Restarting Docker Desktop...'
-Start-Process 'C:\Program Files\Docker\Docker\Docker Desktop.exe'
+$ddExe = @("$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe",
+           'C:\Program Files\Docker\Docker\Docker Desktop.exe') |
+    Where-Object { Test-Path $_ } | Select-Object -First 1
+if ($ddExe) { Start-Process $ddExe } else { Log 'WARN: Docker Desktop.exe not found - relaunch skipped' }
 $deadline = (Get-Date).AddMinutes(6)
 do {
     Start-Sleep 10
