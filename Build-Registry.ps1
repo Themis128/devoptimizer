@@ -106,6 +106,7 @@ $categoryGroups = $allItems | Group-Object { $_.Category }
 $commandsArray = @()
 $categoriesArray = @()
 $commandIds = @{}  # Track used command IDs for uniqueness
+$skippedItems = @()  # Discovered files that yield no valid command id
 
 foreach ($group in $categoryGroups) {
     $catName = $group.Name
@@ -131,6 +132,7 @@ foreach ($group in $categoryGroups) {
         $baseId = ($item.Name.ToLower() -replace '[^a-z0-9 _-]', '') -replace '\s+', '-'
         if (-not $baseId -or $baseId -notmatch '^[a-z0-9-]+$') {
             Write-Host "[REGISTRY] Skipping '$($item.Name)': filename yields no valid command id" -ForegroundColor Yellow
+            $skippedItems += $item.Name
             continue
         }
         # Ensure unique command IDs
@@ -324,6 +326,9 @@ Write-Host "[REGISTRY] Commands: $($commandsArray.Count), Categories: $($categor
 @{
     totalCommands = $commandsArray.Count
     totalCategories = $categoriesArray.Count
+    discoveredTotal = $allItems.Count
+    skippedCommands = $skippedItems.Count
+    skippedItems = $skippedItems
     discoveryTimestamp = $discovery.Timestamp
     rootPath = $discovery.RootPath
 }

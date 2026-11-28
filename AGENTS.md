@@ -257,9 +257,12 @@ any recurrence (names containing `:` are invisible to Win32).
 
 `config/hub-registry.json` is generated — never hand-edit. After adding/removing
 scripts run `Discover-Scripts.ps1` then `Build-Registry.ps1 -Validate -Force`,
-then sync the count pins in `.github/workflows/ci.yml` and
+then sync the count pins in
 `app/DevOptimizer.App.Tests/RegistryServiceTests.cs` (Live_Registry test pins
-total + per-category + `Search("cleanup")` count).
+total + per-category + `Search("cleanup")` count). The CI lint-registry job no
+longer hard-codes the expected count — it derives it from the actual
+discovery/build output (`discoveredTotal - skippedCommands`), so only the test
+pins and the regenerated JSON need syncing.
 
 ## Phone tailnet watch (2026-11-14)
 
