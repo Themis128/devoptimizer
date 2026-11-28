@@ -88,16 +88,28 @@ jobs:
         run: .\Discover-Scripts.ps1 -RootPath ${{ github.workspace }} -OutputPath config/discovered-scripts.json -PassThru
 
       - name: Build and validate registry
-        run: .\Build-Registry.ps1 -DiscoveryPath config/discovered-scripts.json -Validate -Force -RootPath ${{ github.workspace }}
+        run: |
+          $summary = .\Build-Registry.ps1 -DiscoveryPath config/discovered-scripts.json -Validate -Force -RootPath ${{ github.workspace }} |
+            Where-Object { $_ -is [System.Collections.IDictionary] } | Select-Object -Last 1
+          if (-not $summary -or $null -eq $summary.discoveredTotal -or $null -eq $summary.skippedCommands) {
+            throw "Build-Registry did not return discoveredTotal/skippedCommands in its summary"
+          }
+          "DISCOVERED_TOTAL=$($summary.discoveredTotal)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "SKIPPED_COMMANDS=$($summary.skippedCommands)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Verify registry counts
         run: |
           $registry = Get-Content config/hub-registry.json -Raw -Encoding UTF8 | ConvertFrom-Json
+          $discovery = Get-Content config/discovered-scripts.json -Raw -Encoding UTF8 | ConvertFrom-Json
           $cmdCount = $registry.commands.Count
+          $discoveredTotal = [int]$discovery.Statistics.TotalScripts
+          $skipped = [int]$env:SKIPPED_COMMANDS
+          $expected = $discoveredTotal - $skipped
           $missingDesc = ($registry.commands | Where-Object { -not $_.description -or $_.description.Trim() -eq '' }).Count
-          Write-Host "Commands: $cmdCount (expected 927)"
+          Write-Host "Commands: $cmdCount (expected $expected = $discoveredTotal discovered - $skipped skipped)"
           Write-Host "Missing descriptions: $missingDesc (expected 0)"
-          if ($cmdCount -ne 927) { throw "Command count mismatch: $cmdCount != 927" }
+          if ([int]$env:DISCOVERED_TOTAL -ne $discoveredTotal) { throw "Discovery total drifted between build ($env:DISCOVERED_TOTAL) and verify ($discoveredTotal)" }
+          if ($cmdCount -ne $expected) { throw "Command count mismatch: $cmdCount != $expected" }
           if ($missingDesc -ne 0) { throw "$missingDesc commands missing descriptions" }
 
   security-scan:
