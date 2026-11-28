@@ -40,7 +40,44 @@ def log(msg):
         f.write(line + "\n")
 
 
+def _env_val(name):
+    v = os.environ.get(name)
+    if v:
+        return v
+    env_file = Path(r"C:\Users\tbaltzakis\cu130-slim\.env")
+    try:
+        for line in env_file.read_text(encoding="utf-8", errors="replace").splitlines():
+            if line.startswith(name + "="):
+                return line.split("=", 1)[1].strip().strip('"').strip("'")
+    except OSError:
+        pass
+    return ""
+
+
+def ntfy(text):
+    """Best-effort ntfy fan-out — mirrors ops alerts to the phone lane."""
+    try:
+        base = _env_val("NTFY_ALERT_BASE_URL").rstrip("/")
+        tok = _env_val("NTFY_ALERT_TOKEN")
+        topic = _env_val("NTFY_ALERT_TOPIC") or "cloudless-alerts"
+        if not (base and tok):
+            return
+        req = urllib.request.Request(
+            f"{base}/{topic}", data=text[:3900].encode(), method="POST",
+            headers={
+                "Authorization": f"Bearer {tok}",
+                "Title": "[ops] diskguard",
+                "Priority": "4",
+                "Tags": "ops",
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) ntfy-alert/1.0",
+            })
+        urllib.request.urlopen(req, timeout=10)
+    except Exception as e:
+        log(f"ntfy send failed: {e}")
+
+
 def telegram(text):
+    ntfy(text)
     token_file = Path(os.environ["APPDATA"]) / "devin" / "secrets" / "tg-bot-token"
     if not token_file.exists():
         log("telegram skipped: no tg-bot-token")
